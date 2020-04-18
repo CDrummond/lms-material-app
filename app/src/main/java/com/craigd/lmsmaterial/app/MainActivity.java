@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private String getConfiguredUrl() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String server = sharedPreferences.getString("server_address",null);
-        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?native";
+        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?native,hide=notif";
     }
 
     @Override
