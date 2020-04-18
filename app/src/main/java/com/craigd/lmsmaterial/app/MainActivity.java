@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private String getConfiguredUrl() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String server = sharedPreferences.getString("server_address",null);
-        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?native,hide=notif";
+        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?native&hide=notif";
     }
 
     @Override
@@ -84,9 +84,11 @@ public class MainActivity extends AppCompatActivity {
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 // if there is any error opening the web page, navigate to settings
                 // screen because site could not be loaded
-                Log.i(TAG, "onReceivedError:"+error.toString());
-                pageError = true;
-                navigateToSettingsActivity();
+                Log.i(TAG, "onReceivedError:"+error.getErrorCode()+", mf:"+request.isForMainFrame()+", u:"+request.getUrl());
+                if (request.isForMainFrame()) {
+                    pageError = true;
+                    navigateToSettingsActivity();
+                }
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
@@ -146,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (!u.equals(url)) {
             Log.i(TAG, "Load new URL");
             pageError = false;
-            webView.loadUrl(url);
+            webView.loadUrl(u);
         } else if (pageError) {
             Log.i(TAG, "Reload URL");
             pageError = false;
