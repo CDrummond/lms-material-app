@@ -2,6 +2,7 @@ package com.craigd.lmsmaterial.app;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
         setFullscreen();
         setContentView(R.layout.activity_main);
         webView = findViewById(R.id.webview);
+        webView.setBackgroundColor(Color.TRANSPARENT);
 
         // Enable Javascript
         WebSettings webSettings = webView.getSettings();
