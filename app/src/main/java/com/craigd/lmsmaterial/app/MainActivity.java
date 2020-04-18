@@ -1,14 +1,17 @@
 package com.craigd.lmsmaterial.app;
 
+import android.app.KeyguardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
-import android.webkit.JavascriptInterface;
+import android.view.WindowManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -36,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private String getConfiguredUrl() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String server = sharedPreferences.getString("server_address",null);
-        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?native&hide=notif";
+        //return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?native&hide=notif";
+        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?hide=notif";
     }
 
     @Override
@@ -84,8 +88,6 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                // if there is any error opening the web page, navigate to settings
-                // screen because site could not be loaded
                 Log.i(TAG, "onReceivedError:"+error.getErrorCode()+", mf:"+request.isForMainFrame()+", u:"+request.getUrl());
                 if (request.isForMainFrame()) {
                     pageError = true;
@@ -102,15 +104,36 @@ public class MainActivity extends AppCompatActivity {
         }
         Log.i(TAG, "URL:"+url);
         webView.loadUrl(url);
-        webView.addJavascriptInterface(this, "NativeReceiver");
+        //webView.addJavascriptInterface(this, "NativeReceiver");
         // TODO: Add clear cache button
         webView.clearCache(true);
+
+        // Allow to show above the lock screen
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            if (keyguardManager!=null) {
+                keyguardManager.requestDismissKeyguard(this, null);
+            }
+        } else {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        }
     }
 
+    /*
     @JavascriptInterface
-    public void updateStatus(String status){
+    public void updateStatus(String status) {
         Log.d(TAG, status);
+
+        try {
+            JSONObject json = new JSONObject(status);
+        } catch (Exception e) {
+        }
     }
+     */
 
     private void setFullscreen() {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE
