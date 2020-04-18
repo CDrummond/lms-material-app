@@ -156,16 +156,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         Log.i(TAG, "Pause");
-        //webView.onPause();
-        //webView.pauseTimers();
+        webView.onPause();
+        webView.pauseTimers();
         super.onPause();
     }
 
     @Override
     protected void onResume() {
         Log.i(TAG, "Resume");
-        //webView.onResume();
-        //webView.resumeTimers();
+        webView.onResume();
+        webView.resumeTimers();
         String u = getConfiguredUrl();
         Log.i(TAG, "onResume, URL:"+u);
         if (u==null) {
