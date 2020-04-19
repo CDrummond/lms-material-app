@@ -26,6 +26,7 @@ import androidx.preference.PreferenceManager;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "LMS";
+    private final String SETTINGS_URL = "mska://settings";
 
     private WebView webView;
     private String url;
@@ -41,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String server = sharedPreferences.getString("server_address",null);
         //return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?native&hide=notif";
-        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?hide=notif";
+        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?hide=notif&appSettings="+SETTINGS_URL;
     }
 
     private Boolean clearCache() {
@@ -111,6 +112,10 @@ public class MainActivity extends AppCompatActivity {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Log.i(TAG, "shouldOverrideUrlLoading:"+url);
 
+                if (url.equals(SETTINGS_URL)) {
+                    navigateToSettingsActivity();
+                    return true;
+                }
                 // Is this an intent:// URL - used by Material to launch SB Player
                 if (url.startsWith("intent://")) {
                     try {
