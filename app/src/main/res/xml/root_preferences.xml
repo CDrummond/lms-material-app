@@ -25,4 +25,7 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/cache">
+        <Preference app:title="@string/clear_cache" app:key="clearcache"/>
+    </PreferenceCategory>
 </PreferenceScreen>

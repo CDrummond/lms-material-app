@@ -43,6 +43,17 @@ public class MainActivity extends AppCompatActivity {
         return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?hide=notif";
     }
 
+    private Boolean clearCache() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        Boolean clear = sharedPreferences.getBoolean("clear_cache",false);
+        if (clear) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("clear_cache", false);
+            editor.commit();
+        }
+        return clear;
+    }
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         int action = event.getAction();
@@ -105,8 +116,6 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "URL:"+url);
         webView.loadUrl(url);
         //webView.addJavascriptInterface(this, "NativeReceiver");
-        // TODO: Add clear cache button
-        webView.clearCache(true);
 
         // Allow to show above the lock screen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -167,6 +176,10 @@ public class MainActivity extends AppCompatActivity {
         webView.onResume();
         webView.resumeTimers();
         String u = getConfiguredUrl();
+        if (clearCache()) {
+            Log.i(TAG,"Clear cache");
+            webView.clearCache(true);
+        }
         Log.i(TAG, "onResume, URL:"+u);
         if (u==null) {
             Log.i(TAG,"Start settings");

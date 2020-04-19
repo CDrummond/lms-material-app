@@ -1,11 +1,14 @@
 package com.craigd.lmsmaterial.app;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 
 public class SettingsActivity extends AppCompatActivity {
     private static boolean visible = false;
@@ -43,6 +46,23 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
+
+            Preference button = (Preference)getPreferenceManager().findPreference("clearcache");
+            if (button != null) {
+                button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference arg0) {
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                        Boolean clear = sharedPreferences.getBoolean("clear_cache",false);
+                        if (!clear) {
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putBoolean("clear_cache", true);
+                            editor.commit();
+                        }
+                        return true;
+                    }
+                });
+            }
         }
     }
 }
