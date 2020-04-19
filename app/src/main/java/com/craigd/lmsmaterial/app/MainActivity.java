@@ -219,9 +219,11 @@ public class MainActivity extends AppCompatActivity {
         webView.onResume();
         webView.resumeTimers();
         String u = getConfiguredUrl();
+        boolean cacheCleared = false;
         if (clearCache()) {
             Log.i(TAG,"Clear cache");
             webView.clearCache(true);
+            cacheCleared = true;
         }
         Log.i(TAG, "onResume, URL:"+u);
         if (u==null) {
@@ -230,8 +232,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (!u.equals(url)) {
             Log.i(TAG, "Load new URL");
             pageError = false;
+            url = u;
             webView.loadUrl(u);
-        } else if (pageError) {
+        } else if (pageError || cacheCleared) {
             Log.i(TAG, "Reload URL");
             pageError = false;
             webView.reload();
