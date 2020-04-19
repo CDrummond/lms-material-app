@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -105,6 +106,43 @@ public class MainActivity extends AppCompatActivity {
                     navigateToSettingsActivity();
                 }
             }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                Log.i(TAG, "shouldOverrideUrlLoading:"+url);
+
+                // Is this an intent:// URL - used by Material to launch SB Player
+                if (url.startsWith("intent://")) {
+                    try {
+                        String[] fragment = Uri.parse(url).getFragment().split(";");
+                        for (int i=0; i<fragment.length; ++i) {
+                            if (fragment[i].startsWith("package=")) {
+                                String pkg = fragment[i].substring(8);
+                                Intent intent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(pkg);
+                                if (intent!=null) {
+                                    startActivity(intent);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                    }
+                    return true;
+                }
+
+                // Is URL for LMS server? If so we handle this
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                String server = sharedPreferences.getString("server_address","");
+
+                if (server.equals(Uri.parse(url).getHost())) {
+                    return false;
+                }
+
+                // Nope, so launch an intent to handle the URL...
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+                return true;
+            }
+
         });
         webView.setWebChromeClient(new WebChromeClient() {
         });
