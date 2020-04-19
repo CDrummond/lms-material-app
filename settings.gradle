@@ -1,2 +1,2 @@
-include ':app'
+include ':lms-material'
 rootProject.name='lms-material-app'
