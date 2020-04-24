@@ -10,3 +10,4 @@
 .cxx
 lms-material/debug/
 lms-material/release/
+keystore.properties
