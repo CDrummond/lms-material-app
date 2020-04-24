@@ -1,3 +1,8 @@
+0.0.2
+-----
+1. Wait for 5 seconds for URL to load. If an invalid server address is entered
+   then this will timeout.
+
 0.0.1
 -----
 

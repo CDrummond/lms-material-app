@@ -4,10 +4,13 @@ import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -27,6 +30,7 @@ import androidx.preference.PreferenceManager;
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "LMS";
     private final String SETTINGS_URL = "mska://settings";
+    private final int PAGE_TIMEOUT = 5000;
 
     private WebView webView;
     private String url;
@@ -79,6 +83,22 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    private Runnable pageLoadTimeout = new Runnable() {
+        public void run() {
+            Log.d(TAG, "Page failed to load");
+            navigateToSettingsActivity();
+        }
+    };
+
+    Handler handler = new Handler(Looper.myLooper());
+
+    private void loadUrl(String u) {
+        Log.d(TAG, "Load URL:"+url);
+        handler.removeCallbacks(pageLoadTimeout);
+        webView.loadUrl(u);
+        handler.postDelayed(pageLoadTimeout, PAGE_TIMEOUT);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,6 +119,15 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setDomStorageEnabled(true);
 
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(WebView view, String u, Bitmap favicon) {
+                Log.d("MSK", "onPageStarted:"+u);
+                if (u.equals(url)) {
+                    Log.d(TAG, u+" is loading");
+                    handler.removeCallbacks(pageLoadTimeout);
+                }
+            }
+
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 Log.i(TAG, "onReceivedError:"+error.getErrorCode()+", mf:"+request.isForMainFrame()+", u:"+request.getUrl());
@@ -157,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
             navigateToSettingsActivity();
         }
         Log.i(TAG, "URL:"+url);
-        webView.loadUrl(url);
+        loadUrl(url);
         //webView.addJavascriptInterface(this, "NativeReceiver");
 
         // Allow to show above the lock screen
@@ -233,7 +262,7 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "Load new URL");
             pageError = false;
             url = u;
-            webView.loadUrl(u);
+            loadUrl(u);
         } else if (pageError || cacheCleared) {
             Log.i(TAG, "Reload URL");
             pageError = false;
