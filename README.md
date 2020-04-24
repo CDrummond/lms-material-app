@@ -1,16 +1,11 @@
-# WORK IN PROGRESS
-
-This is app is *very* much a work in progress, and has *many* rough edges. It is
-not intended for daily use.
-
 # Introduction
 This application *requires* that you run LMS and have the Material-Skin plugin
 installed. However, it is not required for Material to be set as the default
 skin.
 
 This app is based upon https://github.com/andreasbehnke/lms-material-app
-
-## Building and signing the app
+ 
+# Building and signing the app
 
 You can build the app using your own signing key. Only signed apk files can be
 installed by downloading, so the signing process is required. 
@@ -38,5 +33,5 @@ chmod 600 keystore.properties
 ```
 * move release artifact to your phone: 
 ```
-/lms-material-app/app/build/outputs/apk/release/app-release.apk 
+/lms-material-app/lms-material/build/outputs/apk/release/lms-material-release.apk 
 ```
