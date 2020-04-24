@@ -27,6 +27,8 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "LMS";
     private final String SETTINGS_URL = "mska://settings";
@@ -35,9 +37,36 @@ public class MainActivity extends AppCompatActivity {
     private WebView webView;
     private String url;
     private boolean pageError = false;
+    private boolean settingsShown = false;
+
+    private class Discovery extends ServerDiscovery {
+        public Discovery(Context context) {
+            super(context);
+        }
+
+        public void discoveryFinished(List<String> servers) {
+            Log.d(TAG, "Discovery finished");
+            if (servers.size()<1) {
+                Log.d(TAG, "No server found, show settings");
+                navigateToSettingsActivity();
+            } else {
+                Log.d(TAG, "Discovered server");
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("server_address", servers.get(0));
+                editor.commit();
+
+                url = getConfiguredUrl();
+                Log.i(TAG, "URL:"+url);
+                loadUrl(url);
+            }
+        }
+    }
 
     private void navigateToSettingsActivity() {
+        Log.d(TAG, "Navigate to settings");
         if (!SettingsActivity.isVisible()) {
+            settingsShown = true;
             startActivity(new Intent(this, SettingsActivity.class));
         }
     }
@@ -105,11 +134,24 @@ public class MainActivity extends AppCompatActivity {
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         ActionBar ab = getSupportActionBar();
-        if (ab!=null) {
+        if (ab != null) {
             ab.hide();
         }
         setFullscreen();
         setContentView(R.layout.activity_main);
+        // Allow to show above the lock screen
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            if (keyguardManager != null) {
+                keyguardManager.requestDismissKeyguard(this, null);
+            }
+        } else {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        }
         webView = findViewById(R.id.webview);
         webView.setBackgroundColor(Color.TRANSPARENT);
 
@@ -121,16 +163,16 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String u, Bitmap favicon) {
-                Log.d("MSK", "onPageStarted:"+u);
+                Log.d("MSK", "onPageStarted:" + u);
                 if (u.equals(url)) {
-                    Log.d(TAG, u+" is loading");
+                    Log.d(TAG, u + " is loading");
                     handler.removeCallbacks(pageLoadTimeout);
                 }
             }
 
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                Log.i(TAG, "onReceivedError:"+error.getErrorCode()+", mf:"+request.isForMainFrame()+", u:"+request.getUrl());
+                Log.i(TAG, "onReceivedError:" + error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
                 if (request.isForMainFrame()) {
                     pageError = true;
                     navigateToSettingsActivity();
@@ -139,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                Log.i(TAG, "shouldOverrideUrlLoading:"+url);
+                Log.i(TAG, "shouldOverrideUrlLoading:" + url);
 
                 if (url.equals(SETTINGS_URL)) {
                     navigateToSettingsActivity();
@@ -149,11 +191,11 @@ public class MainActivity extends AppCompatActivity {
                 if (url.startsWith("intent://")) {
                     try {
                         String[] fragment = Uri.parse(url).getFragment().split(";");
-                        for (int i=0; i<fragment.length; ++i) {
+                        for (int i = 0; i < fragment.length; ++i) {
                             if (fragment[i].startsWith("package=")) {
                                 String pkg = fragment[i].substring(8);
                                 Intent intent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(pkg);
-                                if (intent!=null) {
+                                if (intent != null) {
                                     startActivity(intent);
                                 }
                             }
@@ -165,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // Is URL for LMS server? If so we handle this
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                String server = sharedPreferences.getString("server_address","");
+                String server = sharedPreferences.getString("server_address", "");
 
                 if (server.equals(Uri.parse(url).getHost())) {
                     return false;
@@ -180,27 +222,15 @@ public class MainActivity extends AppCompatActivity {
         });
         webView.setWebChromeClient(new WebChromeClient() {
         });
-
-        url = getConfiguredUrl();
-        if (url==null) {
-            navigateToSettingsActivity();
-        }
-        Log.i(TAG, "URL:"+url);
-        loadUrl(url);
         //webView.addJavascriptInterface(this, "NativeReceiver");
 
-        // Allow to show above the lock screen
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true);
-            setTurnScreenOn(true);
-            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-            if (keyguardManager!=null) {
-                keyguardManager.requestDismissKeyguard(this, null);
-            }
+        url = getConfiguredUrl();
+        if (url == null) {
+            Discovery discovery = new Discovery(getApplicationContext());
+            discovery.discover();
         } else {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+            Log.i(TAG, "URL:" + url);
+            loadUrl(url);
         }
     }
 
@@ -247,6 +277,11 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "Resume");
         webView.onResume();
         webView.resumeTimers();
+        super.onResume();
+
+        if (!settingsShown) {
+            return;
+        }
         String u = getConfiguredUrl();
         boolean cacheCleared = false;
         if (clearCache()) {
@@ -268,7 +303,6 @@ public class MainActivity extends AppCompatActivity {
             pageError = false;
             webView.reload();
         }
-        super.onResume();
     }
 
     @Override

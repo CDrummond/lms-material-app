@@ -2,7 +2,8 @@
 -----
 1. Wait for 5 seconds for URL to load. If an invalid server address is entered
    then this will timeout.
-2. Add button in settings dialog to discover server.
+2. If no server configured, attempt to auto-discover and use first server found.
+3. Add button in settings dialog to discover server.
 
 0.0.1
 -----
