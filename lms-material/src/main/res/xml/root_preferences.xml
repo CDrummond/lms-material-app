@@ -22,7 +22,7 @@
             app:key="server_address"
             app:title="@string/server_address"
             app:useSimpleSummaryProvider="true" />
-
+        <Preference app:title="@string/discover" app:key="discover"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/cache">

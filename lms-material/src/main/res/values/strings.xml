@@ -3,6 +3,8 @@
     <string name="app_name">LMS</string>
     <string name="server_settings">Server Settings</string>
     <string name="server_address">Hostname, or IP address</string>
+    <string name="discover">Click here to discover server</string>
     <string name="cache">Cache</string>
     <string name="clear_cache">Click to clear cache</string>
+    <string name="no_servers">No servers found</string>
 </resources>
