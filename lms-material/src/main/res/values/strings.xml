@@ -12,4 +12,5 @@
     <string name="server_discovered">Server discovered</string>
     <string name="no_new_server">No new server found</string>
     <string name="discovering_server">Discovering server</string>
+    <string name="page_error">Page error</string>
 </resources>

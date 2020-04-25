@@ -22,6 +22,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,6 +37,12 @@ public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
     private String url;
+    // Has page been loaded OK at least once?
+    // This flag is used so that if we have a server, but this fails to load (pageWasLoaded=false),
+    // then we will attempt to discover another server. Useful for when you have servers at
+    // different locations. If pageWasLoaded==true and we get a page error, then its probably a
+    // network issue - so we show settings dialog.
+    private boolean pageWasLoaded = false;
     private boolean pageError = false;
     private boolean settingsShown = false;
 
@@ -48,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Discovery finished");
             if (servers.size()<1) {
                 Log.d(TAG, "No server found, show settings");
+                Toast.makeText(context, getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT).show();
                 navigateToSettingsActivity();
             } else {
                 Log.d(TAG, "Discovered server");
@@ -55,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString(SettingsActivity.SERVER_PREF_KEY, servers.get(0));
                 editor.commit();
+                Toast.makeText(context, getResources().getString(R.string.server_discovered)+"\n\n"+servers.get(0), Toast.LENGTH_SHORT).show();
 
                 url = getConfiguredUrl();
                 Log.i(TAG, "URL:"+url);
@@ -128,6 +137,12 @@ public class MainActivity extends AppCompatActivity {
         handler.postDelayed(pageLoadTimeout, PAGE_TIMEOUT);
     }
 
+    private void discoverServer() {
+        Toast.makeText(getBaseContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT).show();
+        Discovery discovery = new Discovery(getApplicationContext());
+        discovery.discover();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -154,11 +169,15 @@ public class MainActivity extends AppCompatActivity {
         }
         webView = findViewById(R.id.webview);
         webView.setBackgroundColor(Color.TRANSPARENT);
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        //webView.addJavascriptInterface(this, "NativeReceiver");
 
-        // Enable Javascript
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         webSettings.setDomStorageEnabled(true);
+        webSettings.setAppCacheEnabled(true);
+        webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -168,14 +187,28 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, u + " is loading");
                     handler.removeCallbacks(pageLoadTimeout);
                 }
+                super.onPageStarted(view, u, favicon);
             }
+
+            // onPageFinished does not seem to be getting called. So, set pageWasLoaded=true in
+            // onProgressChanged of WebChromeClient
+            //@Override
+            //public void onPageFinished(WebView view, String u) {
+            //    Log.d("MSK", "onPageFinished:" + u);
+            //    pageWasLoaded = true;
+            //}
 
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                Log.i(TAG, "onReceivedError:" + error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
+                Log.i(TAG, "onReceivedError:" + error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl() + " pageWasLoaded:"+pageWasLoaded);
                 if (request.isForMainFrame()) {
                     pageError = true;
-                    navigateToSettingsActivity();
+                    if (pageWasLoaded) {
+                        Toast.makeText(getBaseContext(), getResources().getString(R.string.page_error), Toast.LENGTH_SHORT).show();
+                        navigateToSettingsActivity();
+                    } else {
+                        discoverServer();
+                    }
                 }
             }
 
@@ -221,13 +254,16 @@ public class MainActivity extends AppCompatActivity {
 
         });
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                super.onProgressChanged(view, newProgress);
+                pageWasLoaded = true;
+            }
         });
-        //webView.addJavascriptInterface(this, "NativeReceiver");
 
         url = getConfiguredUrl();
         if (url == null) {
-            Discovery discovery = new Discovery(getApplicationContext());
-            discovery.discover();
+            discoverServer();
         } else {
             Log.i(TAG, "URL:" + url);
             loadUrl(url);
