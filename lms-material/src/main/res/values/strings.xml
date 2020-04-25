@@ -6,7 +6,10 @@
     <string name="discover">Click here to discover server</string>
     <string name="cache">Cache</string>
     <string name="clear_cache">Click to clear cache</string>
+    <string name="cache_to_be_cleared">Cache will be cleared</string>
     <string name="no_servers">No servers found</string>
     <string name="server_changed">Server changed</string>
     <string name="server_discovered">Server discovered</string>
+    <string name="no_new_server">No new server found</string>
+    <string name="discovering_server">Discovering server</string>
 </resources>

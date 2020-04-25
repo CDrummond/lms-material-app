@@ -104,6 +104,8 @@ public class SettingsActivity extends AppCompatActivity {
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString(SERVER_PREF_KEY, serverToUse);
                         editor.commit();
+                    } else {
+                        Toast.makeText(getContext(), getResources().getString(R.string.no_new_server), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -120,6 +122,7 @@ public class SettingsActivity extends AppCompatActivity {
                 discoverButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {
+                        Toast.makeText(getContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT).show();
                         if (discovery == null) {
                             discovery = new Discovery(getContext().getApplicationContext());
                         }
@@ -140,6 +143,7 @@ public class SettingsActivity extends AppCompatActivity {
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putBoolean(CLEAR_CACHE_PREF_KEY, true);
                             editor.commit();
+                            Toast.makeText(getContext(), getResources().getString(R.string.cache_to_be_cleared), Toast.LENGTH_SHORT).show();
                         }
                         return true;
                     }
