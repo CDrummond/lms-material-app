@@ -58,7 +58,9 @@ public abstract class ServerDiscovery {
                             String server = respPkt.getAddress().getHostAddress();
                             if (servers.indexOf(server) < 0) {
                                 servers.add(server);
-                                break; // Stop at first for now...
+                                if (!discoverAll) {
+                                    break; // Stop at first for now...
+                                }
                             }
                         }
                     } catch (IOException e) {
@@ -90,11 +92,13 @@ public abstract class ServerDiscovery {
     }
 
     protected Context context;
+    private boolean discoverAll;
     private Handler handler;
     private DiscoveryRunnable runnable;
 
-    ServerDiscovery(Context context) {
+    ServerDiscovery(Context context, boolean discoverAll) {
         this.context = context;
+        this.discoverAll = discoverAll;
         handler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message unused) {

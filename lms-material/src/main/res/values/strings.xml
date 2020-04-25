@@ -7,4 +7,6 @@
     <string name="cache">Cache</string>
     <string name="clear_cache">Click to clear cache</string>
     <string name="no_servers">No servers found</string>
+    <string name="server_changed">Server changed</string>
+    <string name="server_discovered">Server discovered</string>
 </resources>

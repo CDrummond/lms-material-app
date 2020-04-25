@@ -4,6 +4,8 @@
    then this will timeout.
 2. If no server configured, attempt to auto-discover and use first server found.
 3. Add button in settings dialog to discover server.
+4. If click on 'discovef server' and another server that is not the current one
+   is found, then the server is changed to the first new one.
 
 0.0.1
 -----

@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
     private class Discovery extends ServerDiscovery {
         public Discovery(Context context) {
-            super(context);
+            super(context, false);
         }
 
         public void discoveryFinished(List<String> servers) {
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Discovered server");
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString("server_address", servers.get(0));
+                editor.putString(SettingsActivity.SERVER_PREF_KEY, servers.get(0));
                 editor.commit();
 
                 url = getConfiguredUrl();
@@ -73,17 +73,17 @@ public class MainActivity extends AppCompatActivity {
 
     private String getConfiguredUrl() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String server = sharedPreferences.getString("server_address",null);
+        String server = sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null);
         //return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?native&hide=notif";
         return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?hide=notif&appSettings="+SETTINGS_URL;
     }
 
     private Boolean clearCache() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        Boolean clear = sharedPreferences.getBoolean("clear_cache",false);
+        Boolean clear = sharedPreferences.getBoolean(SettingsActivity.CLEAR_CACHE_PREF_KEY,false);
         if (clear) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("clear_cache", false);
+            editor.putBoolean(SettingsActivity.CLEAR_CACHE_PREF_KEY, false);
             editor.commit();
         }
         return clear;
@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // Is URL for LMS server? If so we handle this
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                String server = sharedPreferences.getString("server_address", "");
+                String server = sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, "");
 
                 if (server.equals(Uri.parse(url).getHost())) {
                     return false;
