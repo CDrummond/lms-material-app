@@ -37,12 +37,6 @@ public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
     private String url;
-    // Has page been loaded OK at least once?
-    // This flag is used so that if we have a server, but this fails to load (pageWasLoaded=false),
-    // then we will attempt to discover another server. Useful for when you have servers at
-    // different locations. If pageWasLoaded==true and we get a page error, then its probably a
-    // network issue - so we show settings dialog.
-    private boolean pageWasLoaded = false;
     private boolean pageError = false;
     private boolean settingsShown = false;
 
@@ -67,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
                 url = getConfiguredUrl();
                 Log.i(TAG, "URL:"+url);
+                pageError = false;
                 loadUrl(url);
             }
         }
@@ -190,25 +185,12 @@ public class MainActivity extends AppCompatActivity {
                 super.onPageStarted(view, u, favicon);
             }
 
-            // onPageFinished does not seem to be getting called. So, set pageWasLoaded=true in
-            // onProgressChanged of WebChromeClient
-            //@Override
-            //public void onPageFinished(WebView view, String u) {
-            //    Log.d("MSK", "onPageFinished:" + u);
-            //    pageWasLoaded = true;
-            //}
-
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                Log.i(TAG, "onReceivedError:" + error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl() + " pageWasLoaded:"+pageWasLoaded);
+                Log.i(TAG, "onReceivedError:" + error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
                 if (request.isForMainFrame()) {
                     pageError = true;
-                    if (pageWasLoaded) {
-                        Toast.makeText(getBaseContext(), getResources().getString(R.string.page_error), Toast.LENGTH_SHORT).show();
-                        navigateToSettingsActivity();
-                    } else {
-                        discoverServer();
-                    }
+                    discoverServer();
                 }
             }
 
@@ -254,11 +236,6 @@ public class MainActivity extends AppCompatActivity {
 
         });
         webView.setWebChromeClient(new WebChromeClient() {
-            @Override
-            public void onProgressChanged(WebView view, int newProgress) {
-                super.onProgressChanged(view, newProgress);
-                pageWasLoaded = true;
-            }
         });
 
         url = getConfiguredUrl();
