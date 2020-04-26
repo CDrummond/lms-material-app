@@ -2,10 +2,10 @@
 -----
 1. Wait for 5 seconds for URL to load. If an invalid server address is entered
    then this will timeout.
-2. If no server configured, attempt to auto-discover and use first server found.
-3. Add button in settings dialog to discover server.
-4. If click on 'discovef server' and another server that is not the current one
-   is found, then the server is changed to the first new one.
+2. Auto-detect LMS server.
+3. Add button in settings dialog to detect other servers. First one found that
+   is not the current server is used.
+4. Show server name and address in settings dialog.
 
 0.0.1
 -----

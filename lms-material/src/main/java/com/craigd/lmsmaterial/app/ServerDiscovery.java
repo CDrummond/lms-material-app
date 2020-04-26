@@ -7,22 +7,107 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class ServerDiscovery {
     private static final String TAG = "LMS";
     private static final int SERVER_DISCOVERY_TIMEOUT = 1500;
 
+    public static class Server implements Comparable<Server> {
+        public String ip;
+        public String name;
+
+        public Server(String str) {
+            Log.d(TAG, "DECODE:"+str);
+            if (str != null) {
+                try {
+                    JSONObject json = new JSONObject(str);
+                    ip = json.getString("ip");
+                    name = json.getString("name");
+                } catch (JSONException e) {
+                    ip = str;
+                    name = "";
+                }
+            }
+        }
+
+        public Server(DatagramPacket pkt) {
+            ip = pkt.getAddress().getHostAddress();
+
+            // Try to get name of server for packet
+            int pktLen = pkt.getLength();
+            byte bytes[] = pkt.getData();
+
+            // Look for NAME:<Name> in list of key:value pairs
+            for(int i=1; i < pktLen; ) {
+                if (i + 5 > pktLen) {
+                    break;
+                }
+
+                // Extract 4 bytes
+                String key = new String(bytes, i, 4);
+                i += 4;
+
+                int valueLen = bytes[i++] & 0xFF;
+                if (i + valueLen > pktLen) {
+                    break;
+                }
+
+                // If 'NAME' found, then stop here. Otherwise skip onto next string
+                if (key.equals("NAME")) {
+                    name = new String(bytes, i, valueLen);
+                    break;
+                }
+                i += valueLen;
+            }
+        }
+
+        public boolean isEmpty() {
+            return null==ip || ip.isEmpty();
+        }
+
+        @Override
+        public int compareTo(Server o) {
+            return null==ip ? (o.ip==null ? 0 : -1) : ip.compareTo(o.ip);
+        }
+
+        public boolean equals(Server o) {
+                return Objects.equals(ip, o.ip);
+        }
+
+        public String describe() {
+            if (null==name || name.isEmpty()) {
+                return ip;
+            }
+            return name+" ("+ip+")";
+        }
+
+        public String encode() {
+            try {
+                JSONObject json = new JSONObject();
+                json.put("ip", ip);
+                json.put("name", name);
+                return json.toString(0);
+            } catch (JSONException e) {
+                return ip;
+            }
+        }
+    }
+
     public class DiscoveryRunnable implements Runnable {
         private volatile boolean active = false;
         private volatile boolean cancelled;
         private WifiManager wifiManager;
-        private List<String> servers = new LinkedList<>();
+        private List<Server> servers = new LinkedList<>();
 
         public DiscoveryRunnable(WifiManager wifiManager) {
             this.wifiManager = wifiManager;
@@ -55,7 +140,7 @@ public abstract class ServerDiscovery {
                     try {
                         socket.receive(respPkt);
                         if (resp[0]==(byte)'E') {
-                            String server = respPkt.getAddress().getHostAddress();
+                            Server server = new Server(respPkt);
                             if (servers.indexOf(server) < 0) {
                                 servers.add(server);
                                 if (!discoverAll) {
@@ -116,5 +201,5 @@ public abstract class ServerDiscovery {
         thread.start();
     }
 
-    public abstract void discoveryFinished(List<String> servers);
+    public abstract void discoveryFinished(List<Server> servers);
 }

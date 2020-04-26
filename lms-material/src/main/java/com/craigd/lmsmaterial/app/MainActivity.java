@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
             super(context, false);
         }
 
-        public void discoveryFinished(List<String> servers) {
+        public void discoveryFinished(List<Server> servers) {
             Log.d(TAG, "Discovery finished");
             if (servers.size()<1) {
                 Log.d(TAG, "No server found, show settings");
@@ -56,9 +56,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Discovered server");
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(SettingsActivity.SERVER_PREF_KEY, servers.get(0));
+                editor.putString(SettingsActivity.SERVER_PREF_KEY, servers.get(0).encode());
                 editor.commit();
-                Toast.makeText(context, getResources().getString(R.string.server_discovered)+"\n\n"+servers.get(0), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, getResources().getString(R.string.server_discovered)+"\n\n"+servers.get(0).describe(), Toast.LENGTH_SHORT).show();
 
                 url = getConfiguredUrl();
                 Log.i(TAG, "URL:"+url);
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     private String getConfiguredUrl() {
         Intent playerLaunchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String server = sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null);
+        String server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null)).ip;
         //return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?native&hide=notif";
         return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?hide=notif" + (null==playerLaunchIntent ? ",launchPlayer" : "") + "&appSettings="+SETTINGS_URL;
     }
@@ -224,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // Is URL for LMS server? If so we handle this
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                String server = sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, "");
+                String server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, "")).ip;
 
                 if (server.equals(Uri.parse(url).getHost())) {
                     return false;
@@ -245,6 +245,10 @@ public class MainActivity extends AppCompatActivity {
             discoverServer();
         } else {
             Log.i(TAG, "URL:" + url);
+            Toast.makeText(getApplicationContext(),
+                    new Discovery.Server(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(SettingsActivity.SERVER_PREF_KEY,null)).describe(),
+                    Toast.LENGTH_SHORT).show();
+
             loadUrl(url);
         }
     }

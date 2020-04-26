@@ -10,7 +10,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
@@ -18,7 +17,7 @@ import androidx.preference.PreferenceManager;
 import java.util.List;
 
 public class SettingsActivity extends AppCompatActivity {
-    public static final String SERVER_PREF_KEY = "server_address";
+    public static final String SERVER_PREF_KEY = "server";
     public static final String CLEAR_CACHE_PREF_KEY = "clear_cache";
     private static final String TAG = "LMS";
     private static boolean visible = false;
@@ -64,24 +63,20 @@ public class SettingsActivity extends AppCompatActivity {
                 super(context, true);
             }
 
-            public void discoveryFinished(List<String> servers) {
+            public void discoveryFinished(List<Server> servers) {
                 Log.d(TAG, "Discovery finished");
                 if (servers.size()<1) {
                     Toast.makeText(getContext(),getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT).show();
                 } else {
-                    EditTextPreference serverAddress = (EditTextPreference)getPreferenceManager().findPreference(SERVER_PREF_KEY);
                     SharedPreferences sharedPreferences = getPreferenceManager().getDefaultSharedPreferences(getContext());
-                    String serverToUse = servers.get(0);
-                    String current = null != serverAddress ? serverAddress.getText() : null;
-                    if (null == current || current.isEmpty()) {
-                        current = sharedPreferences.getString(SERVER_PREF_KEY, null);
-                    }
+                    Server serverToUse = servers.get(0);
+                    Server current = new Server(sharedPreferences.getString(SERVER_PREF_KEY, null));
 
                     if (servers.size()>1) {
                         // If more than 1 server found, then select one that is different to the currently selected one.
 
-                        if (current!=null && !current.isEmpty()) {
-                            for (String server: servers) {
+                        if (!current.isEmpty()) {
+                            for (Server server: servers) {
                                 if (!server.equals(current)) {
                                     serverToUse = server;
                                     break;
@@ -90,19 +85,19 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     }
 
-                    if (null==current || current.isEmpty() || !current.equals(serverToUse)) {
-                        if (null==current || current.isEmpty()) {
-                            Toast.makeText(getContext(), getResources().getString(R.string.server_discovered), Toast.LENGTH_SHORT).show();
+                    if (current.isEmpty() || !current.equals(serverToUse)) {
+                        if (current.isEmpty()) {
+                            Toast.makeText(getContext(), getResources().getString(R.string.server_discovered)+"\n\n"+serverToUse.describe(), Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(getContext(), getResources().getString(R.string.server_changed), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getResources().getString(R.string.server_changed)+"\n\n"+serverToUse.describe(), Toast.LENGTH_SHORT).show();
                         }
 
-                        if (null != serverAddress) {
-                            serverAddress.setText(serverToUse);
+                        Preference discoverButton = (Preference)getPreferenceManager().findPreference("discover");
+                        if (discoverButton != null) {
+                            discoverButton.setSummary(serverToUse.describe());
                         }
-
                         SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.putString(SERVER_PREF_KEY, serverToUse);
+                        editor.putString(SERVER_PREF_KEY, serverToUse.encode());
                         editor.commit();
                     } else {
                         Toast.makeText(getContext(), getResources().getString(R.string.no_new_server), Toast.LENGTH_SHORT).show();
@@ -119,6 +114,8 @@ public class SettingsActivity extends AppCompatActivity {
             Log.d(TAG, "SETUP");
             Preference discoverButton = (Preference)getPreferenceManager().findPreference("discover");
             if (discoverButton != null) {
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                discoverButton.setSummary(new Discovery.Server(sharedPreferences.getString(SERVER_PREF_KEY,"")).describe());
                 discoverButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {
