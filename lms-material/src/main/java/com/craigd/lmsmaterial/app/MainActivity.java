@@ -33,6 +33,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "LMS";
     private final String SETTINGS_URL = "mska://settings";
+    private final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
     private final int PAGE_TIMEOUT = 5000;
 
     private WebView webView;
@@ -76,10 +77,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String getConfiguredUrl() {
+        Intent playerLaunchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String server = sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null);
         //return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?native&hide=notif";
-        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?hide=notif&appSettings="+SETTINGS_URL;
+        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?hide=notif" + (null==playerLaunchIntent ? ",launchPlayer" : "") + "&appSettings="+SETTINGS_URL;
     }
 
     private Boolean clearCache() {
