@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null)).ip;
         //return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?native&hide=notif";
-        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?hide=notif" + (null==playerLaunchIntent ? ",launchPlayer" : "") + "&appSettings="+SETTINGS_URL;
+        return server==null || server.isEmpty() ? null : "http://"+server+":9000/material/?hide=notif,scale" + (null==playerLaunchIntent ? ",launchPlayer" : "") + "&appSettings="+SETTINGS_URL;
     }
 
     private Boolean clearCache() {
