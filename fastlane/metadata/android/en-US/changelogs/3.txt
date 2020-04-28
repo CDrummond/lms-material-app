@@ -6,3 +6,4 @@ Improved
 Fixed
 
 • Use correct tag value for log messages.
+• Increase page load timeout from 5 seconds to 10 seconds.
