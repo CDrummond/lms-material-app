@@ -11,4 +11,6 @@
     <string name="server_discovered">Server discovered</string>
     <string name="no_new_server">No new server found</string>
     <string name="discovering_server">Discovering server</string>
+    <string name="display">Display</string>
+    <string name="scale">Scale</string>
 </resources>

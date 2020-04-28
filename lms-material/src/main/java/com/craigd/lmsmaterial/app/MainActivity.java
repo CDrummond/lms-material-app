@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private String url;
     private boolean pageError = false;
     private boolean settingsShown = false;
+    private int currentScale = 0;
 
     private class Discovery extends ServerDiscovery {
         public Discovery(Context context) {
@@ -93,6 +94,12 @@ public class MainActivity extends AppCompatActivity {
             editor.commit();
         }
         return clear;
+    }
+
+    private int getScale() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        int pref = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
+        return 0==pref ? 0 : (250+(25*pref));
     }
 
     @Override
@@ -175,6 +182,10 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setDomStorageEnabled(true);
         webSettings.setAppCacheEnabled(true);
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        webSettings.setLoadWithOverviewMode(true);
+        webSettings.setUseWideViewPort(false);
+        currentScale = getScale();
+        webView.setInitialScale(currentScale);
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -303,6 +314,13 @@ public class MainActivity extends AppCompatActivity {
         }
         String u = getConfiguredUrl();
         boolean cacheCleared = false;
+        boolean needReload = false;
+        int scale = getScale();
+        if (scale!=currentScale) {
+            currentScale = scale;
+            webView.setInitialScale(scale);
+            needReload = true;
+        }
         if (clearCache()) {
             Log.i(TAG,"Clear cache");
             webView.clearCache(true);
@@ -317,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
             pageError = false;
             url = u;
             loadUrl(u);
-        } else if (pageError || cacheCleared) {
+        } else if (pageError || cacheCleared || needReload) {
             Log.i(TAG, "Reload URL");
             pageError = false;
             webView.reload();

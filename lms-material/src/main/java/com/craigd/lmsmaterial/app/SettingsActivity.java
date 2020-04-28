@@ -19,6 +19,7 @@ import java.util.List;
 public class SettingsActivity extends AppCompatActivity {
     public static final String SERVER_PREF_KEY = "server";
     public static final String CLEAR_CACHE_PREF_KEY = "clear_cache";
+    public static final String SCALE_PREF_KEY = "scale";
     private static final String TAG = "LMS";
     private static boolean visible = false;
     public static boolean isVisible() {
