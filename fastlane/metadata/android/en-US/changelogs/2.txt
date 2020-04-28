@@ -1,0 +1,7 @@
+Improved
+
+• Wait for 5 seconds for URL to load. If an invalid server address is entered then this will timeout.
+• Auto-detect LMS server.
+• Add button in settings dialog to detect other servers. First one found that is not the current server is used.
+• Show server name and address in settings dialog.
+
