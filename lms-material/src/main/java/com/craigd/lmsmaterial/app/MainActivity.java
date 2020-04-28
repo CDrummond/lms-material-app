@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
     private Runnable pageLoadTimeout = new Runnable() {
         public void run() {
             Log.d(TAG, "Page failed to load");
-            navigateToSettingsActivity();
+            discoverServer();
         }
     };
 

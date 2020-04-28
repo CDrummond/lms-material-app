@@ -1,0 +1,3 @@
+Improved
+
+• If page fails to load, try to discover LMS server first, the show settings page if this fails.
