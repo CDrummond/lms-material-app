@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String u, Bitmap favicon) {
-                Log.d("MSK", "onPageStarted:" + u);
+                Log.d(TAG, "onPageStarted:" + u);
                 if (u.equals(url)) {
                     Log.d(TAG, u + " is loading");
                     handler.removeCallbacks(pageLoadTimeout);

@@ -115,12 +115,12 @@ public abstract class ServerDiscovery {
 
         @Override
         public void run() {
-            Log.d("MSK","Discover LMS servers");
+            Log.d(TAG,"Discover LMS servers");
 
             active = true;
             WifiManager.WifiLock wifiLock;
             DatagramSocket socket = null;
-            wifiLock = wifiManager.createWifiLock("MSK");
+            wifiLock = wifiManager.createWifiLock(TAG);
             wifiLock.acquire();
 
             try {
