@@ -1,11 +1,15 @@
 package com.craigd.lmsmaterial.app;
 
 import android.app.KeyguardManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +20,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -41,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean pageError = false;
     private boolean settingsShown = false;
     private int currentScale = 0;
+    private ConnectionChangeListener connectionChangeListener;
 
     private class Discovery extends ServerDiscovery {
         public Discovery(Context context) {
@@ -66,6 +72,13 @@ public class MainActivity extends AppCompatActivity {
                 pageError = false;
                 loadUrl(url);
             }
+        }
+    }
+
+    public class ConnectionChangeListener extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            checkNetworkConnection();
         }
     }
 
@@ -251,16 +264,47 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebChromeClient(new WebChromeClient() {
         });
 
-        url = getConfiguredUrl();
-        if (url == null) {
-            discoverServer();
-        } else {
-            Log.i(TAG, "URL:" + url);
-            Toast.makeText(getApplicationContext(),
-                    new Discovery.Server(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(SettingsActivity.SERVER_PREF_KEY,null)).describe(),
-                    Toast.LENGTH_SHORT).show();
+        checkNetworkConnection();
+    }
 
-            loadUrl(url);
+    private void checkNetworkConnection() {
+        Log.d(TAG, "Check network connection");
+        View progress = findViewById(R.id.progress);
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+        if (null!=info && info.isConnected()) {
+            Log.d(TAG, "Connected");
+            webView.setVisibility(View.VISIBLE);
+
+            if (connectionChangeListener != null) {
+                unregisterReceiver(connectionChangeListener);
+                // Progress was shown, so fade out
+                AlphaAnimation animation = new AlphaAnimation(1f, 0f);
+                animation.setDuration(200);
+                progress.setAnimation(animation);
+            }
+            progress.setVisibility(View.GONE);
+
+            url = getConfiguredUrl();
+            if (url == null) {
+                // No previous server, so try to find
+                discoverServer();
+            } else {
+                // Try to connect to previous server
+                Log.i(TAG, "URL:" + url);
+                Toast.makeText(getApplicationContext(),
+                        new Discovery.Server(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(SettingsActivity.SERVER_PREF_KEY, null)).describe(),
+                        Toast.LENGTH_SHORT).show();
+
+                loadUrl(url);
+            }
+        } else if (connectionChangeListener==null) {
+            Log.d(TAG, "Not connected");
+            // No network connection, show progress spinner until we are connected
+            webView.setVisibility(View.GONE);
+            progress.setVisibility(View.VISIBLE);
+            connectionChangeListener = new ConnectionChangeListener();
+            registerReceiver(connectionChangeListener, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
         }
     }
 
