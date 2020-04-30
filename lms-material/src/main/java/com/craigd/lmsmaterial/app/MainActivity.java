@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private final String TAG = "LMS";
     private final String SETTINGS_URL = "mska://settings";
     private final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
-    private final int PAGE_TIMEOUT = 10000;
+    private final int PAGE_TIMEOUT = 5000;
 
     private WebView webView;
     private String url;
