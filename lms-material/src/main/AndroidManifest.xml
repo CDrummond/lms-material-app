@@ -17,7 +17,7 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:icon="@mipmap/ic_launcher"></activity>
+            android:icon="@mipmap/ic_launcher"/>
         <activity
             android:name=".MainActivity"
             android:icon="@mipmap/ic_launcher">

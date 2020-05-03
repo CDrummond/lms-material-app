@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private Boolean hasCutout = null;
 
     private class Discovery extends ServerDiscovery {
-        public Discovery(Context context) {
+        Discovery(Context context) {
             super(context, false);
         }
 
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString(SettingsActivity.SERVER_PREF_KEY, servers.get(0).encode());
-                editor.commit();
+                editor.apply();
                 Toast.makeText(context, getResources().getString(R.string.server_discovered)+"\n\n"+servers.get(0).describe(), Toast.LENGTH_SHORT).show();
 
                 url = getConfiguredUrl();
@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (null!=activity) {
+            if (intent.getAction().equals("android.net.conn.CONNECTIVITY_CHANGE") && null!=activity) {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
 
-        return server==null || server.ip==null || server.ip.isEmpty() ? null : "http://"+server.ip+":"+server.port+"/material/?hide=notif,scale" + (null==playerLaunchIntent ? ",launchPlayer" : "") + "&appSettings="+SETTINGS_URL;
+        return server.ip == null || server.ip.isEmpty() ? null : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" + (null == playerLaunchIntent ? ",launchPlayer" : "") + "&appSettings=" + SETTINGS_URL;
     }
 
     private Boolean clearCache() {
@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         if (clear) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean(SettingsActivity.CLEAR_CACHE_PREF_KEY, false);
-            editor.commit();
+            editor.apply();
         }
         return clear;
     }
@@ -160,14 +160,14 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private Runnable pageLoadTimeout = new Runnable() {
+    private final Runnable pageLoadTimeout = new Runnable() {
         public void run() {
             Log.d(TAG, "Page failed to load");
             discoverServer();
         }
     };
 
-    Handler handler = new Handler(Looper.myLooper());
+    private final Handler handler = new Handler(Looper.myLooper());
 
     private void loadUrl(String u) {
         Log.d(TAG, "Load URL:"+url);
@@ -254,9 +254,9 @@ public class MainActivity extends AppCompatActivity {
                 if (url.startsWith("intent://")) {
                     try {
                         String[] fragment = Uri.parse(url).getFragment().split(";");
-                        for (int i = 0; i < fragment.length; ++i) {
-                            if (fragment[i].startsWith("package=")) {
-                                String pkg = fragment[i].substring(8);
+                        for (String s : fragment) {
+                            if (s.startsWith("package=")) {
+                                String pkg = s.substring(8);
                                 Intent intent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(pkg);
                                 if (intent != null) {
                                     startActivity(intent);
@@ -354,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setFullscreen() {
-        if (hasCutout!=null && hasCutout==true) {
+        if (hasCutout!=null && hasCutout) {
             // Have notch (top?) so don't hide clock, etc.
             getWindow().getDecorView().setSystemUiVisibility(
                       View.SYSTEM_UI_FLAG_HIDE_NAVIGATION

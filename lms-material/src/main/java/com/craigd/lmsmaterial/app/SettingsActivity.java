@@ -49,18 +49,17 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
-            case android.R.id.home:
-                onBackPressed();
-                visible = false;
-                return true;
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            visible = false;
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat {
         private class Discovery extends ServerDiscovery {
-            public Discovery(Context context) {
+            Discovery(Context context) {
                 super(context, true);
             }
 
@@ -69,7 +68,7 @@ public class SettingsActivity extends AppCompatActivity {
                 if (servers.size()<1) {
                     Toast.makeText(getContext(),getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT).show();
                 } else {
-                    SharedPreferences sharedPreferences = getPreferenceManager().getDefaultSharedPreferences(getContext());
+                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
                     Server serverToUse = servers.get(0);
                     Server current = new Server(sharedPreferences.getString(SERVER_PREF_KEY, null));
 
@@ -78,7 +77,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                         if (!current.isEmpty()) {
                             for (Server server: servers) {
-                                if (!server.equals(current)) {
+                                if (server.equals(current)) {
                                     serverToUse = server;
                                     break;
                                 }
@@ -86,20 +85,20 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     }
 
-                    if (current.isEmpty() || !current.equals(serverToUse)) {
+                    if (current.isEmpty() || current.equals(serverToUse)) {
                         if (current.isEmpty()) {
                             Toast.makeText(getContext(), getResources().getString(R.string.server_discovered)+"\n\n"+serverToUse.describe(), Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(getContext(), getResources().getString(R.string.server_changed)+"\n\n"+serverToUse.describe(), Toast.LENGTH_SHORT).show();
                         }
 
-                        Preference discoverButton = (Preference)getPreferenceManager().findPreference("discover");
+                        Preference discoverButton = getPreferenceManager().findPreference("discover");
                         if (discoverButton != null) {
                             discoverButton.setSummary(serverToUse.describe());
                         }
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString(SERVER_PREF_KEY, serverToUse.encode());
-                        editor.commit();
+                        editor.apply();
                     } else {
                         Toast.makeText(getContext(), getResources().getString(R.string.no_new_server), Toast.LENGTH_SHORT).show();
                     }
@@ -113,7 +112,7 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
             Log.d(TAG, "SETUP");
-            Preference discoverButton = (Preference)getPreferenceManager().findPreference("discover");
+            Preference discoverButton = getPreferenceManager().findPreference("discover");
             if (discoverButton != null) {
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
                 discoverButton.setSummary(new Discovery.Server(sharedPreferences.getString(SERVER_PREF_KEY,"")).describe());
@@ -130,17 +129,17 @@ public class SettingsActivity extends AppCompatActivity {
                 });
             }
 
-            Preference clearCacheButton = (Preference)getPreferenceManager().findPreference("clearcache");
+            Preference clearCacheButton = getPreferenceManager().findPreference("clearcache");
             if (clearCacheButton != null) {
                 clearCacheButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                        Boolean clear = sharedPreferences.getBoolean(CLEAR_CACHE_PREF_KEY,false);
+                        boolean clear = sharedPreferences.getBoolean(CLEAR_CACHE_PREF_KEY,false);
                         if (!clear) {
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putBoolean(CLEAR_CACHE_PREF_KEY, true);
-                            editor.commit();
+                            editor.apply();
                             Toast.makeText(getContext(), getResources().getString(R.string.cache_to_be_cleared), Toast.LENGTH_SHORT).show();
                         }
                         return true;

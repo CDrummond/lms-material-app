@@ -7,6 +7,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,13 +20,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class ServerDiscovery {
+abstract class ServerDiscovery {
     private static final String TAG = "LMS";
     private static final int SERVER_DISCOVERY_TIMEOUT = 1500;
 
     public static class Server implements Comparable<Server> {
         public String ip = "";
-        public String name = "";
+        String name = "";
         public int port = 9000;
 
         private static String getString(JSONObject json, String key, String def) {
@@ -56,12 +58,12 @@ public abstract class ServerDiscovery {
             }
         }
 
-        public Server(DatagramPacket pkt) {
+        Server(DatagramPacket pkt) {
             ip = pkt.getAddress().getHostAddress();
 
             // Try to get name of server for packet
             int pktLen = pkt.getLength();
-            byte bytes[] = pkt.getData();
+            byte[] bytes = pkt.getData();
 
             // Look for NAME:<Name> in list of key:value pairs
             for(int i=1; i < pktLen; ) {
@@ -92,17 +94,17 @@ public abstract class ServerDiscovery {
             }
         }
 
-        public boolean isEmpty() {
+        boolean isEmpty() {
             return null==ip || ip.isEmpty();
         }
 
         @Override
-        public int compareTo(Server o) {
+        public int compareTo(@NonNull Server o) {
             return null==ip ? (o.ip==null ? 0 : -1) : ip.compareTo(o.ip);
         }
 
-        public boolean equals(Server o) {
-                return Objects.equals(ip, o.ip);
+        boolean equals(Server o) {
+            return Objects.equals(ip, o.ip);
         }
 
         public String describe() {
@@ -112,7 +114,7 @@ public abstract class ServerDiscovery {
             return name+" ("+ip+")";
         }
 
-        public String encode() {
+        String encode() {
             try {
                 JSONObject json = new JSONObject();
                 json.put("ip", ip);
@@ -125,13 +127,12 @@ public abstract class ServerDiscovery {
         }
     }
 
-    public class DiscoveryRunnable implements Runnable {
+    class DiscoveryRunnable implements Runnable {
         private volatile boolean active = false;
-        private volatile boolean cancelled;
-        private WifiManager wifiManager;
-        private List<Server> servers = new LinkedList<>();
+        private final WifiManager wifiManager;
+        private final List<Server> servers = new LinkedList<>();
 
-        public DiscoveryRunnable(WifiManager wifiManager) {
+        DiscoveryRunnable(WifiManager wifiManager) {
             this.wifiManager = wifiManager;
         }
 
@@ -156,9 +157,6 @@ public abstract class ServerDiscovery {
                 socket.setSoTimeout(SERVER_DISCOVERY_TIMEOUT);
                 socket.send(reqPkt);
                 for (;;) {
-                    if (cancelled) {
-                        break;
-                    }
                     try {
                         socket.receive(respPkt);
                         if (resp[0]==(byte)'E') {
@@ -189,18 +187,14 @@ public abstract class ServerDiscovery {
             active = false;
         }
 
-        public void cancel() {
-            cancelled = true;
-        }
-
-        public boolean isActive() {
+        boolean isActive() {
             return active;
         }
     }
 
-    protected Context context;
-    private boolean discoverAll;
-    private Handler handler;
+    final Context context;
+    private final boolean discoverAll;
+    private final Handler handler;
     private DiscoveryRunnable runnable;
 
     ServerDiscovery(Context context, boolean discoverAll) {
@@ -218,10 +212,10 @@ public abstract class ServerDiscovery {
         if (runnable!=null && runnable.isActive()) {
             return;
         }
-        runnable = new DiscoveryRunnable((WifiManager) context.getSystemService(Context.WIFI_SERVICE));
+        runnable = new DiscoveryRunnable((WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE));
         Thread thread = new Thread(runnable);
         thread.start();
     }
 
-    public abstract void discoveryFinished(List<Server> servers);
+    protected abstract void discoveryFinished(List<Server> servers);
 }
