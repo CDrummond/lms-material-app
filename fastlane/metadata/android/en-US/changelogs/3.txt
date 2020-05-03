@@ -4,8 +4,8 @@ Improved
 • Add ability to zoom webview.
 • Show spinner if launched with not network connection.
 • If device has a cutout then dont hide status bar.
+• Use JSON port number from service discovery.
 
 Fixed
 
 • Use correct tag value for log messages.
-• Increase page load timeout from 5 seconds to 10 seconds.

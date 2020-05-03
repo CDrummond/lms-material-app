@@ -23,19 +23,35 @@ public abstract class ServerDiscovery {
     private static final int SERVER_DISCOVERY_TIMEOUT = 1500;
 
     public static class Server implements Comparable<Server> {
-        public String ip;
-        public String name;
+        public String ip = "";
+        public String name = "";
+        public int port = 9000;
+
+        private static String getString(JSONObject json, String key, String def) {
+            try {
+                return json.getString(key);
+            } catch (JSONException e) {
+                return def;
+            }
+        }
+
+        private static int getInt(JSONObject json, String key, int def) {
+            try {
+                return json.getInt(key);
+            } catch (JSONException e) {
+                return def;
+            }
+        }
 
         public Server(String str) {
             Log.d(TAG, "DECODE:"+str);
             if (str != null) {
                 try {
                     JSONObject json = new JSONObject(str);
-                    ip = json.getString("ip");
-                    name = json.getString("name");
+                    ip = getString(json, "ip", "");
+                    name = getString(json, "name", "");
+                    port = getInt(json, "port", 9000);
                 } catch (JSONException e) {
-                    ip = str;
-                    name = "";
                 }
             }
         }
@@ -62,10 +78,15 @@ public abstract class ServerDiscovery {
                     break;
                 }
 
-                // If 'NAME' found, then stop here. Otherwise skip onto next string
                 if (key.equals("NAME")) {
                     name = new String(bytes, i, valueLen);
-                    break;
+                    Log.d(TAG, "Name:"+name);
+                } else if (key.equals("JSON")) {
+                    try {
+                        port = Integer.parseInt(new String(bytes, i, valueLen));
+                        Log.d(TAG, "Port:"+port);
+                    } catch (NumberFormatException e) {
+                    }
                 }
                 i += valueLen;
             }
@@ -96,6 +117,7 @@ public abstract class ServerDiscovery {
                 JSONObject json = new JSONObject();
                 json.put("ip", ip);
                 json.put("name", name);
+                json.put("port", port);
                 return json.toString(0);
             } catch (JSONException e) {
                 return ip;
