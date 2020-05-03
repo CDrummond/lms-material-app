@@ -79,10 +79,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public class ConnectionChangeListener extends BroadcastReceiver {
+    // static class to keep lint happy...
+    public static class ConnectionChangeListener extends BroadcastReceiver {
+        private MainActivity activity;
+
+        public ConnectionChangeListener() {
+            // Empty constructor to keep lint happy...
+        }
+
+        ConnectionChangeListener(MainActivity activity) {
+            this.activity = activity;
+        }
+
         @Override
         public void onReceive(Context context, Intent intent) {
-            checkNetworkConnection();
+            if (null!=activity) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        activity.checkNetworkConnection();
+                    }
+                });
+            }
         }
     }
 
@@ -307,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
             // No network connection, show progress spinner until we are connected
             webView.setVisibility(View.GONE);
             progress.setVisibility(View.VISIBLE);
-            connectionChangeListener = new ConnectionChangeListener();
+            connectionChangeListener = new ConnectionChangeListener(this);
             registerReceiver(connectionChangeListener, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
         }
     }
