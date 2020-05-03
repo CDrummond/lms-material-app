@@ -77,7 +77,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                         if (!current.isEmpty()) {
                             for (Server server: servers) {
-                                if (server.equals(current)) {
+                                if (!server.equals(current)) {
                                     serverToUse = server;
                                     break;
                                 }
@@ -85,7 +85,7 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     }
 
-                    if (current.isEmpty() || current.equals(serverToUse)) {
+                    if (current.isEmpty() || !current.equals(serverToUse)) {
                         if (current.isEmpty()) {
                             Toast.makeText(getContext(), getResources().getString(R.string.server_discovered)+"\n\n"+serverToUse.describe(), Toast.LENGTH_SHORT).show();
                         } else {
@@ -135,7 +135,7 @@ public class SettingsActivity extends AppCompatActivity {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                        boolean clear = sharedPreferences.getBoolean(CLEAR_CACHE_PREF_KEY,false);
+                        boolean clear = sharedPreferences.getBoolean(CLEAR_CACHE_PREF_KEY, false);
                         if (!clear) {
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putBoolean(CLEAR_CACHE_PREF_KEY, true);
