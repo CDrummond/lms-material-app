@@ -20,7 +20,6 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -300,10 +299,6 @@ public class MainActivity extends AppCompatActivity {
 
             if (connectionChangeListener != null) {
                 unregisterReceiver(connectionChangeListener);
-                // Progress was shown, so fade out
-                AlphaAnimation animation = new AlphaAnimation(1f, 0f);
-                animation.setDuration(200);
-                progress.setAnimation(animation);
             }
             progress.setVisibility(View.GONE);
 
