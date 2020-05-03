@@ -1,3 +1,4 @@
 Fixed
 
 • No need to fade out progress animation.
+• Use device's display density to properly zoom webview.

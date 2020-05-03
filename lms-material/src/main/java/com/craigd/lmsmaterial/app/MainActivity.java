@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentScale = 0;
     private ConnectionChangeListener connectionChangeListener;
     private Boolean hasCutout = null;
+    private double initialWebviewScale;
 
     private class Discovery extends ServerDiscovery {
         Discovery(Context context) {
@@ -133,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     private int getScale() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         int pref = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
-        return 0==pref ? 0 : (250+(25*pref));
+        return 0==pref ? 0 : (int)Math.round(initialWebviewScale*(100+(10*pref)));
     }
 
     @Override
@@ -218,6 +219,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(false);
+        initialWebviewScale = getResources().getDisplayMetrics().density;
         currentScale = getScale();
         webView.setInitialScale(currentScale);
 
@@ -280,7 +282,11 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
                 return true;
             }
-
+            @Override
+            public void onScaleChanged(WebView view, float oldScale, float newScale) {
+                super.onScaleChanged(view, oldScale, newScale);
+                Log.d(TAG, "onScaleChanged os:"+oldScale+", ns:"+newScale);
+            }
         });
         webView.setWebChromeClient(new WebChromeClient() {
         });

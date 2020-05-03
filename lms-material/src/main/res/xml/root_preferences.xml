@@ -21,7 +21,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/display">
-        <SeekBarPreference app:title="@string/scale" app:key="scale" android:min="0" android:max="4"/>
+        <SeekBarPreference app:title="@string/scale" app:key="scale" android:min="0" android:max="5"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/cache">
