@@ -26,7 +26,7 @@ abstract class ServerDiscovery {
 
     public static class Server implements Comparable<Server> {
         public String ip = "";
-        String name = "";
+        public String name = "";
         public int port = 9000;
 
         private static String getString(JSONObject json, String key, String def) {
@@ -58,7 +58,7 @@ abstract class ServerDiscovery {
             }
         }
 
-        Server(DatagramPacket pkt) {
+        public Server(DatagramPacket pkt) {
             ip = pkt.getAddress().getHostAddress();
 
             // Try to get name of server for packet
@@ -94,7 +94,7 @@ abstract class ServerDiscovery {
             }
         }
 
-        boolean isEmpty() {
+        public boolean isEmpty() {
             return null==ip || ip.isEmpty();
         }
 
@@ -103,7 +103,7 @@ abstract class ServerDiscovery {
             return null==ip ? (o.ip==null ? 0 : -1) : ip.compareTo(o.ip);
         }
 
-        boolean equals(Server o) {
+        public boolean equals(Server o) {
             return Objects.equals(ip, o.ip);
         }
 
@@ -114,7 +114,7 @@ abstract class ServerDiscovery {
             return name+" ("+ip+")";
         }
 
-        String encode() {
+        public String encode() {
             try {
                 JSONObject json = new JSONObject();
                 json.put("ip", ip);
@@ -187,7 +187,7 @@ abstract class ServerDiscovery {
             active = false;
         }
 
-        boolean isActive() {
+        public boolean isActive() {
             return active;
         }
     }
