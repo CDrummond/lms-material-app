@@ -13,4 +13,5 @@
     <string name="discovering_server">Discovering server</string>
     <string name="display">Display</string>
     <string name="scale">Scale</string>
+    <string name="waiting_for_network">Waiting for network</string>
 </resources>

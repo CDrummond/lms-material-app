@@ -11,7 +11,9 @@
         android:id="@+id/webview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorPrimary"/>
+        android:background="@color/colorPrimary">
+
+    </WebView>
     <FrameLayout
         android:id="@+id/progress"
         android:animateLayoutChanges="true"
@@ -21,11 +23,25 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center">
         <ProgressBar
-            style="?android:attr/progressBarStyleLarge"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                android:layout_gravity="center"/>
+        <TextView
+            android:id="@+id/textView"
+            android:layout_marginTop="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:indeterminate="true"
-            android:layout_gravity="center" />
+            android:text="@string/waiting_for_network"
+            android:layout_gravity="center"
+            android:textSize="20dp"/>
+    </LinearLayout>
     </FrameLayout>
 </RelativeLayout>
