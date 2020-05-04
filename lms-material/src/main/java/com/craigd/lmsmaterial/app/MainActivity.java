@@ -193,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
         }
         setFullscreen();
         setContentView(R.layout.activity_main);
+        AndroidBug5497Workaround.assistActivity(this);
         // Allow to show above the lock screen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
