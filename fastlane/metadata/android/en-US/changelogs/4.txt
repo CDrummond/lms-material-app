@@ -1,7 +1,7 @@
 Improved
 
 • Don't recreate webiew when orientation changes.
-• Resize view when keyboard shown.
+• Don't hide statusbar, only navigation.
 
 Fixed
 

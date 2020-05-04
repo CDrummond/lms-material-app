@@ -30,11 +30,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.DisplayCutoutCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.preference.PreferenceManager;
 
-import java.lang.reflect.Constructor;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -49,8 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean settingsShown = false;
     private int currentScale = 0;
     private ConnectionChangeListener connectionChangeListener;
-    private Boolean hasCutout = null;
-    private double initialWebviewScale;
+    private double initialWebViewScale;
 
     private class Discovery extends ServerDiscovery {
         Discovery(Context context) {
@@ -117,7 +113,10 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
 
-        return server.ip == null || server.ip.isEmpty() ? null : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" + (null == playerLaunchIntent ? ",launchPlayer" : "") + "&appSettings=" + SETTINGS_URL;
+        return server.ip == null || server.ip.isEmpty()
+                ? null
+                : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
+                  (null == playerLaunchIntent ? ",launchPlayer" : "") + "&appSettings=" + SETTINGS_URL;
     }
 
     private Boolean clearCache() {
@@ -134,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
     private int getScale() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         int pref = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
-        return 0==pref ? 0 : (int)Math.round(initialWebviewScale*(100+(10*pref)));
+        return 0==pref ? 0 : (int)Math.round(initialWebViewScale*(100+(10*pref)));
     }
 
     @Override
@@ -193,7 +192,6 @@ public class MainActivity extends AppCompatActivity {
         }
         setFullscreen();
         setContentView(R.layout.activity_main);
-        AndroidBug5497Workaround.assistActivity(this);
         // Allow to show above the lock screen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
@@ -220,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(false);
-        initialWebviewScale = getResources().getDisplayMetrics().density;
+        initialWebViewScale = getResources().getDisplayMetrics().density;
         currentScale = getScale();
         webView.setInitialScale(currentScale);
 
@@ -342,62 +340,15 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
         }
     }
-     */
-
-    private static WindowInsetsCompat createWindowInsetsCompat(Object insets) {
-        try {
-            Constructor<WindowInsetsCompat> constructor = WindowInsetsCompat.class.getDeclaredConstructor(Object.class);
-            constructor.setAccessible(true);
-            return constructor.newInstance(insets);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+    */
 
     private void setFullscreen() {
-        if (hasCutout!=null && hasCutout) {
-            // Have notch (top?) so don't hide clock, etc.
-            getWindow().getDecorView().setSystemUiVisibility(
-                      View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        } else {
-            getWindow().getDecorView().setSystemUiVisibility(
-                      View.SYSTEM_UI_FLAG_IMMERSIVE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
-    }
-
-    @Override
-    public void onAttachedToWindow() {
-        if (hasCutout == null) {
-            WindowInsetsCompat insets = createWindowInsetsCompat(getWindow().getDecorView().getRootWindowInsets());
-            if (null != insets) {
-                DisplayCutoutCompat cutout = insets.getDisplayCutout();
-                if (null != cutout) {
-                    Log.d(TAG, "Device has a cutout");
-                    hasCutout = true;
-
-                    getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-                            @Override
-                            public void onSystemUiVisibilityChange(int visibility) {
-                                if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
-                                    // Re-hide nav controls
-                                    setFullscreen();
-                                }
-                            }
-                    });
-                    setFullscreen();
-                } else {
-                    hasCutout = false;
-                }
-            }
-        }
+        /**
+         * Not 100% fullscreen. Statusbar remains. This means we don't need to check if there is a notch.
+         * The WebView also automatically resizes when the on-screen keyboard is shown.
+         */
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
     @Override
