@@ -1,6 +1,9 @@
+Improved
+
+• Don't recreate webiew when orientation changes.
+• Resize view when keyboard shown.
+
 Fixed
 
 • No need to fade out progress animation.
 • Use device's display density to properly zoom webview.
-• Don't recreate webiew when orientation changes.
-• Resize view when keyboard shown.
