@@ -1,7 +1,7 @@
 Improved
 
 • Don't recreate webiew when orientation changes.
-• Don't hide statusbar, only navigation.
+• Add option to control status bar visibility; normal, blend with toolbar, or hidden.
 • Opt-out of WebView metrics.
 
 Fixed

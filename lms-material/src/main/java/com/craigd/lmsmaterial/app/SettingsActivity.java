@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
@@ -20,6 +21,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String SERVER_PREF_KEY = "server";
     public static final String CLEAR_CACHE_PREF_KEY = "clear_cache";
     public static final String SCALE_PREF_KEY = "scale";
+    public static final String STATUSBAR_PREF_KEY = "statusbar";
     private static final String TAG = "LMS";
     private static boolean visible = false;
     public static boolean isVisible() {
@@ -40,9 +42,20 @@ public class SettingsActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        //getWindow().setStatusBarColor(getColor(R.color.colorPrimary));
+        String sbar = PreferenceManager.getDefaultSharedPreferences(this).getString(SettingsActivity.STATUSBAR_PREF_KEY, "visible");
+        if ("blend".equals(sbar)) {
+            getWindow().setStatusBarColor(getColor(R.color.colorPrimary));
+        }
+        if ("hidden".equals(sbar)) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_IMMERSIVE
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
     }
 
     @Override
@@ -55,7 +68,7 @@ public class SettingsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public static class SettingsFragment extends PreferenceFragmentCompat {
+    public static class SettingsFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
         private class Discovery extends ServerDiscovery {
             Discovery(Context context) {
                 super(context, true);
@@ -143,6 +156,28 @@ public class SettingsActivity extends AppCompatActivity {
                         return true;
                     }
                 });
+            }
+            updateStatusbarPreSummary();
+            PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
+        }
+
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if (STATUSBAR_PREF_KEY.equals(key)) {
+                updateStatusbarPreSummary();
+            }
+        }
+
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            PreferenceManager.getDefaultSharedPreferences(getContext()).unregisterOnSharedPreferenceChangeListener(this);
+        }
+
+        private void updateStatusbarPreSummary() {
+            ListPreference statusBarPref = getPreferenceManager().findPreference(STATUSBAR_PREF_KEY);
+            if (statusBarPref != null) {
+                statusBarPref.setSummary(statusBarPref.getEntry());
             }
         }
     }

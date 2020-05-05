@@ -20,6 +20,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -39,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
     private final String SETTINGS_URL = "mska://settings";
     private final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
     private final int PAGE_TIMEOUT = 5000;
+    private final int STANDARD_STATUS_BAR = 0;
+    private final int BLEND_STATUS_BAR = 1;
+    private final int HIDE_STATUS_BAR = 2;
 
     private WebView webView;
     private String url;
@@ -47,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentScale = 0;
     private ConnectionChangeListener connectionChangeListener;
     private double initialWebViewScale;
+    private int statusbar = STANDARD_STATUS_BAR;
 
     private class Discovery extends ServerDiscovery {
         Discovery(Context context) {
@@ -116,7 +121,20 @@ public class MainActivity extends AppCompatActivity {
         return server.ip == null || server.ip.isEmpty()
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
-                  (null == playerLaunchIntent ? ",launchPlayer" : "") + /*"&native" +*/ "&appSettings=" + SETTINGS_URL;
+                  (null == playerLaunchIntent ? ",launchPlayer" : "") +
+                  (statusbar==BLEND_STATUS_BAR ? "&native" : "") +
+                  "&appSettings=" + SETTINGS_URL;
+    }
+
+    private int getStatusBarSetting() {
+        String val = PreferenceManager.getDefaultSharedPreferences(this).getString(SettingsActivity.STATUSBAR_PREF_KEY, "visible");
+        if ("visible".equals(val)) {
+            return STANDARD_STATUS_BAR;
+        }
+        if ("blend".equals(val)) {
+            return BLEND_STATUS_BAR;
+        }
+        return HIDE_STATUS_BAR;
     }
 
     private Boolean clearCache() {
@@ -185,6 +203,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        statusbar = getStatusBarSetting();
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
@@ -208,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
         webView = findViewById(R.id.webview);
         webView.setBackgroundColor(Color.TRANSPARENT);
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        //webView.addJavascriptInterface(this, "NativeReceiver");
+        webView.addJavascriptInterface(this, "NativeReceiver");
 
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -342,9 +361,11 @@ public class MainActivity extends AppCompatActivity {
     }
     */
 
-    /*
     @JavascriptInterface
     public void updateNavbarColor(final String color) {
+        if (statusbar != BLEND_STATUS_BAR) {
+            return;
+        }
         Log.d(TAG, color);
         if (null==color || color.length()<4) {
             return;
@@ -353,13 +374,13 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 public void run() {
                     try {
-                    final int flags = getWindow().getDecorView().getSystemUiVisibility();
+                        int flags = getWindow().getDecorView().getSystemUiVisibility();
 
-                    // TODO: Need better way of detecting ligh ttoolbar!
-                    boolean dark = !color.toLowerCase().equals("#f5f5f5");
-                    getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
-                } catch (Exception e) {
-                }
+                        // TODO: Need better way of detecting light toolbar!
+                        boolean dark = !color.toLowerCase().equals("#f5f5f5");
+                        getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
+                    } catch (Exception e) {
+                    }
                 }
             });
 
@@ -371,15 +392,21 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
         }
     }
-    */
 
     private void setFullscreen() {
-        /**
-         * Not 100% fullscreen. Statusbar remains. This means we don't need to check if there is a notch.
-         * The WebView also automatically resizes when the on-screen keyboard is shown.
-         */
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        if (statusbar==HIDE_STATUS_BAR) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_IMMERSIVE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
     }
 
     @Override
@@ -408,6 +435,8 @@ public class MainActivity extends AppCompatActivity {
         if (!settingsShown) {
             return;
         }
+        int prevSbar = statusbar;
+        statusbar = getStatusBarSetting();
         String u = getConfiguredUrl();
         boolean cacheCleared = false;
         boolean needReload = false;
@@ -421,6 +450,15 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG,"Clear cache");
             webView.clearCache(true);
             cacheCleared = true;
+        }
+        if (prevSbar!=statusbar) {
+            setFullscreen();
+            if (BLEND_STATUS_BAR==statusbar) {
+                needReload=true;
+            } else if (BLEND_STATUS_BAR==prevSbar) {
+                getWindow().setStatusBarColor(Color.parseColor("#000000"));
+                getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
         }
         Log.i(TAG, "onResume, URL:"+u);
         if (u==null) {

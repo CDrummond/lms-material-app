@@ -20,7 +20,12 @@
         <Preference app:title="@string/discover" app:key="discover" app:summary="@string/no_servers"/>
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/display">
+    <PreferenceCategory app:title="@string/ui">
+        <ListPreference
+            android:key="statusbar"
+            android:title="@string/statusbar"
+            android:entries="@array/statusbar"
+            android:entryValues="@array/statusbarAlias"/>
         <SeekBarPreference app:title="@string/scale" app:key="scale" android:min="0" android:max="5"/>
     </PreferenceCategory>
 
