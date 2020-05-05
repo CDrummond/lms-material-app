@@ -2,6 +2,7 @@ Improved
 
 • Don't recreate webiew when orientation changes.
 • Don't hide statusbar, only navigation.
+• Opt-out of WebView metrics.
 
 Fixed
 
