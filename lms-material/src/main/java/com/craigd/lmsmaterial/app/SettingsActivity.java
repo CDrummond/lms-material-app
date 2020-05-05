@@ -28,6 +28,7 @@ public class SettingsActivity extends AppCompatActivity {
         return visible;
     }
 
+    private boolean hideStatusbar = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,16 +47,8 @@ public class SettingsActivity extends AppCompatActivity {
         if ("blend".equals(sbar)) {
             getWindow().setStatusBarColor(getColor(R.color.colorPrimary));
         }
-        if ("hidden".equals(sbar)) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_IMMERSIVE
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        } else {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
+        hideStatusbar = "hidden".equals(sbar);
+        setFullscreen();
     }
 
     @Override
@@ -185,6 +178,27 @@ public class SettingsActivity extends AppCompatActivity {
             if (statusBarPref != null) {
                 statusBarPref.setSummary(statusBarPref.getEntry());
             }
+        }
+    }
+
+    private void setFullscreen() {
+        if (hideStatusbar) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_IMMERSIVE
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            setFullscreen();
         }
     }
 }
