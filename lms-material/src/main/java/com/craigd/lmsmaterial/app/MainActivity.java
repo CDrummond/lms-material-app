@@ -20,7 +20,6 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -117,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         return server.ip == null || server.ip.isEmpty()
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
-                  (null == playerLaunchIntent ? ",launchPlayer" : "") + "&native&appSettings=" + SETTINGS_URL;
+                  (null == playerLaunchIntent ? ",launchPlayer" : "") + /*"&native" +*/ "&appSettings=" + SETTINGS_URL;
     }
 
     private Boolean clearCache() {
@@ -343,6 +342,7 @@ public class MainActivity extends AppCompatActivity {
     }
     */
 
+    /*
     @JavascriptInterface
     public void updateNavbarColor(final String color) {
         Log.d(TAG, color);
@@ -371,6 +371,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
         }
     }
+    */
 
     private void setFullscreen() {
         /**

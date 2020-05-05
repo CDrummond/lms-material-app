@@ -42,7 +42,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        getWindow().setStatusBarColor(getColor(R.color.colorPrimary));
+        //getWindow().setStatusBarColor(getColor(R.color.colorPrimary));
     }
 
     @Override
