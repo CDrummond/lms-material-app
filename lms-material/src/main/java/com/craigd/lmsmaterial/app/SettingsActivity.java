@@ -68,6 +68,12 @@ public class SettingsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onBackPressed() {
+        visible = false;
+        super.onBackPressed();
+    }
+
     public static class SettingsFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
         private class Discovery extends ServerDiscovery {
             Discovery(Context context) {
