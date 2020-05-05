@@ -1,7 +1,8 @@
 Improved
 
 • Don't recreate webiew when orientation changes.
-• Add option to control status bar visibility; normal, blend with toolbar, or hidden.
+• Always show status bar, only hide navigation.
+• Add option to blen status bar with Material toolbars.
 • Opt-out of WebView metrics.
 
 Fixed

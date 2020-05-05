@@ -21,12 +21,16 @@
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/ui">
-        <ListPreference
-            android:key="statusbar"
-            android:title="@string/statusbar"
-            android:entries="@array/statusbar"
-            android:entryValues="@array/statusbarAlias"/>
-        <SeekBarPreference app:title="@string/scale" app:key="scale" android:min="0" android:max="5"/>
+        <SwitchPreference
+            android:key="blend_statusbar"
+            android:title="@string/blend_statusbar"
+            android:summary="@string/blend_statusbar_summary"/>
+        <SeekBarPreference
+            app:title="@string/scale"
+            app:summary="@string/scale_summary"
+            app:key="scale"
+            android:min="0"
+            android:max="5"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/cache">
