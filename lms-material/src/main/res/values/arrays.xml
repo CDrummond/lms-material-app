@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="statusbar">
+        <item>Visible</item>
+        <item>Blend with toolbar</item>
+        <item>Hidden</item>
+    </string-array>
+    <string-array name="statusbarAlias">
+        <item>visible</item>
+        <item>blend</item>
+        <item>hidden</item>
+    </string-array>
+</resources>
