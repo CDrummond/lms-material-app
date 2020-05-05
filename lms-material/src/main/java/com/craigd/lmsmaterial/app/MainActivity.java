@@ -20,6 +20,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -116,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         return server.ip == null || server.ip.isEmpty()
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
-                  (null == playerLaunchIntent ? ",launchPlayer" : "") + "&appSettings=" + SETTINGS_URL;
+                  (null == playerLaunchIntent ? ",launchPlayer" : "") + "&native&appSettings=" + SETTINGS_URL;
     }
 
     private Boolean clearCache() {
@@ -133,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     private int getScale() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         int pref = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
-        return 0==pref ? 0 : (int)Math.round(initialWebViewScale*(100+(10*pref)));
+        return 0==pref ? 0 : (int)Math.round(initialWebViewScale *(100+(10*pref)));
     }
 
     @Override
@@ -208,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         webView = findViewById(R.id.webview);
         webView.setBackgroundColor(Color.TRANSPARENT);
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        //webView.addJavascriptInterface(this, "NativeReceiver");
+        webView.addJavascriptInterface(this, "NativeReceiver");
 
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -341,6 +342,35 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     */
+
+    @JavascriptInterface
+    public void updateNavbarColor(final String color) {
+        Log.d(TAG, color);
+        if (null==color || color.length()<4) {
+            return;
+        }
+        try {
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    try {
+                    final int flags = getWindow().getDecorView().getSystemUiVisibility();
+
+                    // TODO: Need better way of detecting ligh ttoolbar!
+                    boolean dark = !color.toLowerCase().equals("#f5f5f5");
+                    getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
+                } catch (Exception e) {
+                }
+                }
+            });
+
+            if (color.length()<7) {
+                getWindow().setStatusBarColor(Color.parseColor("#"+color.charAt(1)+color.charAt(1)+color.charAt(2)+color.charAt(2)+color.charAt(3)+color.charAt(3)));
+            } else {
+                getWindow().setStatusBarColor(Color.parseColor(color));
+            }
+        } catch (Exception e) {
+        }
+    }
 
     private void setFullscreen() {
         /**
