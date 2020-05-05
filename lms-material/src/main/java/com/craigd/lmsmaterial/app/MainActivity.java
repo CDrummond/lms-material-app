@@ -300,11 +300,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
                 return true;
             }
-            @Override
-            public void onScaleChanged(WebView view, float oldScale, float newScale) {
-                super.onScaleChanged(view, oldScale, newScale);
-                Log.d(TAG, "onScaleChanged os:"+oldScale+", ns:"+newScale);
-            }
         });
         webView.setWebChromeClient(new WebChromeClient() {
         });
