@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -18,6 +19,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
@@ -27,6 +29,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
@@ -40,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
     private final String SETTINGS_URL = "mska://settings";
     private final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
     private final int PAGE_TIMEOUT = 5000;
+    private final int STANDARD_STATUS_BAR = 0;
+    private final int BLEND_STATUS_BAR = 1;
+    private final int HIDE_STATUS_BAR = 2;
 
     private WebView webView;
     private String url;
@@ -48,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentScale = 0;
     private ConnectionChangeListener connectionChangeListener;
     private double initialWebViewScale;
-    private boolean blendStatusbar = false;
+    private int statusbar = STANDARD_STATUS_BAR;
 
     private class Discovery extends ServerDiscovery {
         Discovery(Context context) {
@@ -119,8 +125,19 @@ public class MainActivity extends AppCompatActivity {
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
                   (null == playerLaunchIntent ? ",launchPlayer" : "") +
-                  (blendStatusbar ? "&native" : "") +
+                  (statusbar==BLEND_STATUS_BAR ? "&native" : "") +
                   "&appSettings=" + SETTINGS_URL;
+    }
+
+    private int getStatusBarSetting() {
+        String val = PreferenceManager.getDefaultSharedPreferences(this).getString(SettingsActivity.STATUSBAR_PREF_KEY, "visible");
+        if ("visible".equals(val)) {
+            return STANDARD_STATUS_BAR;
+        }
+        if ("blend".equals(val)) {
+            return BLEND_STATUS_BAR;
+        }
+        return HIDE_STATUS_BAR;
     }
 
     private Boolean clearCache() {
@@ -189,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        blendStatusbar = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(SettingsActivity.BLEND_STATUSBAR_PREF_KEY, false);
+        statusbar = getStatusBarSetting();
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
@@ -197,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
         }
         setFullscreen();
         setContentView(R.layout.activity_main);
+        init5497Workaround();
         // Allow to show above the lock screen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
@@ -344,7 +362,7 @@ public class MainActivity extends AppCompatActivity {
 
     @JavascriptInterface
     public void updateNavbarColor(final String color) {
-        if (!blendStatusbar) {
+        if (statusbar != BLEND_STATUS_BAR) {
             return;
         }
         Log.d(TAG, color);
@@ -375,8 +393,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setFullscreen() {
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        if (statusbar==HIDE_STATUS_BAR) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_IMMERSIVE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
     }
 
     @Override
@@ -405,8 +434,9 @@ public class MainActivity extends AppCompatActivity {
         if (!settingsShown) {
             return;
         }
-        boolean prevBlendSbar = blendStatusbar;
-        blendStatusbar = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(SettingsActivity.BLEND_STATUSBAR_PREF_KEY, false);
+        settingsShown = false;
+        int prevSbar = statusbar;
+        statusbar = getStatusBarSetting();
         String u = getConfiguredUrl();
         boolean cacheCleared = false;
         boolean needReload = false;
@@ -421,10 +451,14 @@ public class MainActivity extends AppCompatActivity {
             webView.clearCache(true);
             cacheCleared = true;
         }
-        if (prevBlendSbar!=blendStatusbar) {
-            if (blendStatusbar) {
+        if (prevSbar!=statusbar) {
+            setFullscreen();
+            if (HIDE_STATUS_BAR==prevSbar) {
+                recreate();
+            }
+            if (BLEND_STATUS_BAR==statusbar) {
                 needReload=true;
-            } else {
+            } else if (BLEND_STATUS_BAR==prevSbar) {
                 getWindow().setStatusBarColor(Color.parseColor("#000000"));
                 getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
             }
@@ -451,5 +485,49 @@ public class MainActivity extends AppCompatActivity {
         webView.destroy();
         webView = null;
         super.onDestroy();
+    }
+
+    /*
+    Work-around for android bug 5497 - https://issuetracker.google.com/issues/36911528
+     */
+    private View childOfContent;
+    private int usableHeightPrevious;
+    private FrameLayout.LayoutParams frameLayoutParams;
+
+    private void init5497Workaround() {
+        FrameLayout content = findViewById(android.R.id.content);
+        childOfContent = content.getChildAt(0);
+        childOfContent.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            public void onGlobalLayout() {
+                possiblyResizeChildOfContent();
+            }
+        });
+        frameLayoutParams = (FrameLayout.LayoutParams) childOfContent.getLayoutParams();
+    }
+
+    private void possiblyResizeChildOfContent() {
+        if (HIDE_STATUS_BAR!=statusbar) {
+            return;
+        }
+        int usableHeightNow = computeUsableHeight();
+        if (usableHeightNow != usableHeightPrevious) {
+            int usableHeightSansKeyboard = childOfContent.getRootView().getHeight();
+            int heightDifference = usableHeightSansKeyboard - usableHeightNow;
+            if (heightDifference > (usableHeightSansKeyboard/4)) {
+                // keyboard probably just became visible
+                frameLayoutParams.height = usableHeightSansKeyboard - heightDifference;
+            } else {
+                // keyboard probably just became hidden
+                frameLayoutParams.height = usableHeightSansKeyboard;
+            }
+            childOfContent.requestLayout();
+            usableHeightPrevious = usableHeightNow;
+        }
+    }
+
+    private int computeUsableHeight() {
+        Rect r = new Rect();
+        childOfContent.getWindowVisibleDisplayFrame(r);
+        return (r.bottom - r.top);
     }
 }

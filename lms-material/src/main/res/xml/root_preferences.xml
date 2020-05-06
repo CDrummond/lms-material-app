@@ -21,10 +21,11 @@
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/ui">
-        <SwitchPreference
-            android:key="blend_statusbar"
-            android:title="@string/blend_statusbar"
-            android:summary="@string/blend_statusbar_summary"/>
+        <ListPreference
+            android:key="statusbar"
+            android:title="@string/statusbar"
+            android:entries="@array/statusbar"
+            android:entryValues="@array/statusbarAlias"/>
         <SeekBarPreference
             app:title="@string/scale"
             app:summary="@string/scale_summary"

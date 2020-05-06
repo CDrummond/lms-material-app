@@ -12,8 +12,7 @@
     <string name="no_new_server">No new server found</string>
     <string name="discovering_server">Discovering server</string>
     <string name="ui">Interface</string>
-    <string name="blend_statusbar">Blend status and toolbar</string>
-    <string name="blend_statusbar_summary">Use the color of the toolbar for the status bar.</string>
+    <string name="statusbar">Status bar</string>
     <string name="scale">Scale</string>
     <string name="scale_summary">Increase zoom level of main view.</string>
     <string name="waiting_for_network">Waiting for network</string>
