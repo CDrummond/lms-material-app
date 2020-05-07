@@ -13,7 +13,9 @@
     <string name="discovering_server">Discovering server</string>
     <string name="ui">Interface</string>
     <string name="statusbar">Status bar</string>
+    <string name="navbar">Navigation bar</string>
+    <string name="navbar_summary">Always show system navigation bar</string>
     <string name="scale">Scale</string>
-    <string name="scale_summary">Increase zoom level of main view.</string>
+    <string name="scale_summary">Increase zoom level of main view</string>
     <string name="waiting_for_network">Waiting for network</string>
 </resources>

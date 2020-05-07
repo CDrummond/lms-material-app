@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private final int BLEND_STATUS_BAR = 1;
     private final int HIDE_STATUS_BAR = 2;
 
+    private SharedPreferences sharedPreferences;
     private WebView webView;
     private String url;
     private boolean pageError = false;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private ConnectionChangeListener connectionChangeListener;
     private double initialWebViewScale;
     private int statusbar = STANDARD_STATUS_BAR;
+    private boolean navbar = false;
 
     private class Discovery extends ServerDiscovery {
         Discovery(Context context) {
@@ -69,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
                 navigateToSettingsActivity();
             } else {
                 Log.d(TAG, "Discovered server");
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString(SettingsActivity.SERVER_PREF_KEY, servers.get(0).encode());
                 editor.apply();
@@ -118,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
 
     private String getConfiguredUrl() {
         Intent playerLaunchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
 
         return server.ip == null || server.ip.isEmpty()
@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private int getStatusBarSetting() {
-        String val = PreferenceManager.getDefaultSharedPreferences(this).getString(SettingsActivity.STATUSBAR_PREF_KEY, "visible");
+        String val = sharedPreferences.getString(SettingsActivity.STATUSBAR_PREF_KEY, "visible");
         if ("visible".equals(val)) {
             return STANDARD_STATUS_BAR;
         }
@@ -141,7 +141,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Boolean clearCache() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         Boolean clear = sharedPreferences.getBoolean(SettingsActivity.CLEAR_CACHE_PREF_KEY,false);
         if (clear) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -152,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private int getScale() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         int pref = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
         return 0==pref ? 0 : (int)Math.round(initialWebViewScale *(100+(10*pref)));
     }
@@ -206,7 +204,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         statusbar = getStatusBarSetting();
+        navbar = sharedPreferences.getBoolean(SettingsActivity.NAVBAR_PREF_KEY, navbar);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
@@ -394,15 +394,23 @@ public class MainActivity extends AppCompatActivity {
 
     private void setFullscreen() {
         if (statusbar==HIDE_STATUS_BAR) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_IMMERSIVE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        } else {
+            if (navbar) {
+                getWindow().getDecorView().setSystemUiVisibility(
+                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                | View.SYSTEM_UI_FLAG_FULLSCREEN);
+            } else {
+                getWindow().getDecorView().setSystemUiVisibility(
+                        View.SYSTEM_UI_FLAG_IMMERSIVE
+                                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            }
+        } else if (!navbar) {
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         }
@@ -436,7 +444,10 @@ public class MainActivity extends AppCompatActivity {
         }
         settingsShown = false;
         int prevSbar = statusbar;
+        boolean prevNavbar = navbar;
         statusbar = getStatusBarSetting();
+        navbar = sharedPreferences.getBoolean(SettingsActivity.NAVBAR_PREF_KEY, navbar);
+
         String u = getConfiguredUrl();
         boolean cacheCleared = false;
         boolean needReload = false;
@@ -462,6 +473,8 @@ public class MainActivity extends AppCompatActivity {
                 getWindow().setStatusBarColor(Color.parseColor("#000000"));
                 getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
             }
+        } else if (prevNavbar!=navbar) {
+            setFullscreen();
         }
         Log.i(TAG, "onResume, URL:"+u);
         if (u==null) {

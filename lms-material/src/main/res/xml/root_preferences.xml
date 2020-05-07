@@ -26,6 +26,10 @@
             android:title="@string/statusbar"
             android:entries="@array/statusbar"
             android:entryValues="@array/statusbarAlias"/>
+        <SwitchPreference
+            android:key="navbar"
+            android:title="@string/navbar"
+            android:summary="@string/navbar_summary"/>
         <SeekBarPreference
             app:title="@string/scale"
             app:summary="@string/scale_summary"

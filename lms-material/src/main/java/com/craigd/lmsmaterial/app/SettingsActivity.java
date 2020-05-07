@@ -21,6 +21,8 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String CLEAR_CACHE_PREF_KEY = "clear_cache";
     public static final String SCALE_PREF_KEY = "scale";
     public static final String STATUSBAR_PREF_KEY = "statusbar";
+    public static final String NAVBAR_PREF_KEY = "navbar";
+
     private static final String TAG = "LMS";
     private static boolean visible = false;
     public static boolean isVisible() {
