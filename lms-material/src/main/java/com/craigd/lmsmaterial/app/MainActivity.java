@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
                   (null == playerLaunchIntent ? ",launchPlayer" : "") +
-                  (statusbar==BLEND_STATUS_BAR ? "&native" : "") +
+                  (statusbar==BLEND_STATUS_BAR ? "&nativeColors" : "") +
                   "&appSettings=" + SETTINGS_URL;
     }
 
