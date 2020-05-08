@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -155,6 +156,17 @@ public class MainActivity extends AppCompatActivity {
         return 0==pref ? 0 : (int)Math.round(initialWebViewScale *(100+(10*pref)));
     }
 
+    private boolean gestureNavigtionEnabled() {
+        try {
+            Resources resources = getResources();
+            int resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
+            Log.d(TAG, "GN:" + resources.getInteger(resourceId));
+            return resources.getInteger(resourceId) == 2; // 2 = Androdid Q gesture nav?
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         int action = event.getAction();
@@ -209,7 +221,11 @@ public class MainActivity extends AppCompatActivity {
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         statusbar = getStatusBarSetting();
-        navbar = sharedPreferences.getBoolean(SettingsActivity.NAVBAR_PREF_KEY, navbar);
+        if (sharedPreferences.contains(SettingsActivity.NAVBAR_PREF_KEY)) {
+            navbar = sharedPreferences.getBoolean(SettingsActivity.NAVBAR_PREF_KEY, navbar);
+        } else {
+            navbar = gestureNavigtionEnabled();
+        }
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
