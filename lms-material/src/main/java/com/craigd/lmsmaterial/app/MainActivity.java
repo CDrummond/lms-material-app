@@ -130,15 +130,28 @@ public class MainActivity extends AppCompatActivity {
                   "&appSettings=" + SETTINGS_URL;
     }
 
+    private void setDefaults() {
+        if (!sharedPreferences.contains(SettingsActivity.STATUSBAR_PREF_KEY)) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(SettingsActivity.STATUSBAR_PREF_KEY, "visible");
+            editor.apply();
+        }
+        if (!sharedPreferences.contains(SettingsActivity.NAVBAR_PREF_KEY)) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(SettingsActivity.NAVBAR_PREF_KEY, gestureNavigationEnabled());
+            editor.apply();
+        }
+    }
+
     private int getStatusBarSetting() {
         String val = sharedPreferences.getString(SettingsActivity.STATUSBAR_PREF_KEY, "visible");
-        if ("visible".equals(val)) {
-            return STANDARD_STATUS_BAR;
+        if ("hidden".equals(val)) {
+            return HIDE_STATUS_BAR;
         }
         if ("blend".equals(val)) {
             return BLEND_STATUS_BAR;
         }
-        return HIDE_STATUS_BAR;
+        return STANDARD_STATUS_BAR;
     }
 
     private Boolean clearCache() {
@@ -156,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
         return 0==pref ? 0 : (int)Math.round(initialWebViewScale *(100+(10*pref)));
     }
 
-    private boolean gestureNavigtionEnabled() {
+    private boolean gestureNavigationEnabled() {
         try {
             Resources resources = getResources();
             int resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
@@ -220,12 +233,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        setDefaults();
         statusbar = getStatusBarSetting();
-        if (sharedPreferences.contains(SettingsActivity.NAVBAR_PREF_KEY)) {
-            navbar = sharedPreferences.getBoolean(SettingsActivity.NAVBAR_PREF_KEY, navbar);
-        } else {
-            navbar = gestureNavigtionEnabled();
-        }
+        navbar = sharedPreferences.getBoolean(SettingsActivity.NAVBAR_PREF_KEY, navbar);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
