@@ -171,6 +171,9 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case KeyEvent.KEYCODE_BACK:
+                if (action == KeyEvent.ACTION_UP) {
+                    webView.evaluateJavascript("navigateBack()", null);
+                }
                 break;
             default:
                 return super.dispatchKeyEvent(event);
