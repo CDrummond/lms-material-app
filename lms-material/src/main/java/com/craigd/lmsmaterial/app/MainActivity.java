@@ -44,9 +44,9 @@ public class MainActivity extends AppCompatActivity {
     private final String SETTINGS_URL = "mska://settings";
     private final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
     private final int PAGE_TIMEOUT = 5000;
-    private final int STANDARD_STATUS_BAR = 0;
-    private final int BLEND_STATUS_BAR = 1;
-    private final int HIDE_STATUS_BAR = 2;
+    private final int BAR_VISIBLE = 0;
+    private final int BAR_BLENDED = 1;
+    private final int BAR_HIDDEN = 2;
 
     private SharedPreferences sharedPreferences;
     private WebView webView;
@@ -56,8 +56,10 @@ public class MainActivity extends AppCompatActivity {
     private int currentScale = 0;
     private ConnectionChangeListener connectionChangeListener;
     private double initialWebViewScale;
-    private int statusbar = STANDARD_STATUS_BAR;
-    private boolean navbar = false;
+    private int defaultStatusbar;
+    private int defaultNavbar;
+    private int statusbar = BAR_VISIBLE;
+    private int navbar = BAR_HIDDEN;
 
     private class Discovery extends ServerDiscovery {
         Discovery(Context context) {
@@ -126,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
                   (null == playerLaunchIntent ? ",launchPlayer" : "") +
-                  (statusbar==BLEND_STATUS_BAR ? "&nativeColors" : "") +
+                  (statusbar==BAR_BLENDED || navbar==BAR_BLENDED? "&nativeColors" : "") +
                   "&appSettings=" + SETTINGS_URL;
     }
 
@@ -138,20 +140,26 @@ public class MainActivity extends AppCompatActivity {
         }
         if (!sharedPreferences.contains(SettingsActivity.NAVBAR_PREF_KEY)) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean(SettingsActivity.NAVBAR_PREF_KEY, gestureNavigationEnabled());
+            editor.putString(SettingsActivity.NAVBAR_PREF_KEY, gestureNavigationEnabled() ? "blend" : "hidden");
             editor.apply();
         }
     }
 
-    private int getStatusBarSetting() {
-        String val = sharedPreferences.getString(SettingsActivity.STATUSBAR_PREF_KEY, "visible");
-        if ("hidden".equals(val)) {
-            return HIDE_STATUS_BAR;
+    private int getBarSetting(String key, int def) {
+        try {
+            String val = sharedPreferences.getString(key, null);
+            if ("hidden".equals(val)) {
+                return BAR_HIDDEN;
+            }
+            if ("blend".equals(val)) {
+                return BAR_BLENDED;
+            }
+            if ("visible".equals(val)) {
+                return BAR_VISIBLE;
+            }
+        } catch (Exception e) {
         }
-        if ("blend".equals(val)) {
-            return BLEND_STATUS_BAR;
-        }
-        return STANDARD_STATUS_BAR;
+        return def;
     }
 
     private Boolean clearCache() {
@@ -173,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
         try {
             Resources resources = getResources();
             int resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
-            Log.d(TAG, "GN:" + resources.getInteger(resourceId));
             return resources.getInteger(resourceId) == 2; // 2 = Androdid Q gesture nav?
         } catch (Exception e) {
             return false;
@@ -232,10 +239,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        defaultStatusbar=getWindow().getStatusBarColor();
+        defaultNavbar=getWindow().getNavigationBarColor();
+
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         setDefaults();
-        statusbar = getStatusBarSetting();
-        navbar = sharedPreferences.getBoolean(SettingsActivity.NAVBAR_PREF_KEY, navbar);
+        statusbar = getBarSetting(SettingsActivity.STATUSBAR_PREF_KEY, statusbar);
+        navbar = getBarSetting(SettingsActivity.NAVBAR_PREF_KEY, navbar);
+        Log.d(TAG, "sb:"+statusbar+", nb:"+navbar);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
@@ -390,12 +401,13 @@ public class MainActivity extends AppCompatActivity {
     */
 
     @JavascriptInterface
-    public void updateNavbarColor(final String color) {
-        if (statusbar != BLEND_STATUS_BAR) {
+    public void updateToolbarColors(final String topColor, String botColor) {
+        if (statusbar != BAR_BLENDED && navbar != BAR_BLENDED) {
+            Log.d(TAG, "Ignore color update, as not blending");
             return;
         }
-        Log.d(TAG, color);
-        if (null==color || color.length()<4) {
+        Log.d(TAG, topColor+" "+botColor);
+        if (null==topColor || topColor.length()<4 || null==botColor || botColor.length()<4) {
             return;
         }
         try {
@@ -403,27 +415,37 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     try {
                         int flags = getWindow().getDecorView().getSystemUiVisibility();
-
                         // TODO: Need better way of detecting light toolbar!
-                        boolean dark = !color.toLowerCase().equals("#f5f5f5");
+                        boolean dark = !topColor.toLowerCase().equals("#f5f5f5");
                         getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
                     } catch (Exception e) {
                     }
                 }
             });
 
-            if (color.length()<7) {
-                getWindow().setStatusBarColor(Color.parseColor("#"+color.charAt(1)+color.charAt(1)+color.charAt(2)+color.charAt(2)+color.charAt(3)+color.charAt(3)));
-            } else {
-                getWindow().setStatusBarColor(Color.parseColor(color));
+            if (statusbar == BAR_BLENDED) {
+                Log.d(TAG, "Blend statusbar");
+                if (topColor.length() < 7) {
+                    getWindow().setStatusBarColor(Color.parseColor("#" + topColor.charAt(1) + topColor.charAt(1) + topColor.charAt(2) + topColor.charAt(2) + topColor.charAt(3) + topColor.charAt(3)));
+                } else {
+                    getWindow().setStatusBarColor(Color.parseColor(topColor));
+                }
+            }
+            if (navbar == BAR_BLENDED) {
+                Log.d(TAG, "Blend navbar");
+                if (botColor.length() < 7) {
+                    getWindow().setNavigationBarColor(Color.parseColor("#" + botColor.charAt(1) + botColor.charAt(1) + botColor.charAt(2) + botColor.charAt(2) + botColor.charAt(3) + botColor.charAt(3)));
+                } else {
+                    getWindow().setNavigationBarColor(Color.parseColor(botColor));
+                }
             }
         } catch (Exception e) {
         }
     }
 
     private void setFullscreen() {
-        if (statusbar==HIDE_STATUS_BAR) {
-            if (navbar) {
+        if (statusbar==BAR_HIDDEN) {
+            if (navbar==BAR_HIDDEN) {
                 getWindow().getDecorView().setSystemUiVisibility(
                                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -439,7 +461,7 @@ public class MainActivity extends AppCompatActivity {
                                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
             }
-        } else if (!navbar) {
+        } else if (navbar==BAR_HIDDEN) {
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         }
@@ -473,9 +495,9 @@ public class MainActivity extends AppCompatActivity {
         }
         settingsShown = false;
         int prevSbar = statusbar;
-        boolean prevNavbar = navbar;
-        statusbar = getStatusBarSetting();
-        navbar = sharedPreferences.getBoolean(SettingsActivity.NAVBAR_PREF_KEY, navbar);
+        int prevNavbar = navbar;
+        statusbar = getBarSetting(SettingsActivity.STATUSBAR_PREF_KEY, statusbar);
+        navbar = getBarSetting(SettingsActivity.NAVBAR_PREF_KEY, navbar);
 
         String u = getConfiguredUrl();
         boolean cacheCleared = false;
@@ -491,19 +513,24 @@ public class MainActivity extends AppCompatActivity {
             webView.clearCache(true);
             cacheCleared = true;
         }
-        if (prevSbar!=statusbar) {
+        if (prevSbar!=statusbar || prevNavbar!=navbar) {
             setFullscreen();
-            if (HIDE_STATUS_BAR==prevSbar) {
+            if (BAR_HIDDEN==prevSbar || BAR_HIDDEN==prevNavbar) {
                 recreate();
             }
-            if (BLEND_STATUS_BAR==statusbar) {
+            if (BAR_BLENDED==statusbar) {
                 needReload=true;
-            } else if (BLEND_STATUS_BAR==prevSbar) {
-                getWindow().setStatusBarColor(Color.parseColor("#000000"));
+            } else if (BAR_BLENDED==prevSbar) {
+                getWindow().setStatusBarColor(defaultStatusbar);
+            }
+            if (BAR_BLENDED==navbar) {
+                needReload=true;
+            } else if (BAR_BLENDED==prevNavbar) {
+                getWindow().setNavigationBarColor(defaultStatusbar);
+            }
+            if (BAR_BLENDED==prevSbar || BAR_BLENDED==prevNavbar) {
                 getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
             }
-        } else if (prevNavbar!=navbar) {
-            setFullscreen();
         }
         Log.i(TAG, "onResume, URL:"+u);
         if (u==null) {
@@ -548,7 +575,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void possiblyResizeChildOfContent() {
-        if (HIDE_STATUS_BAR!=statusbar) {
+        if (BAR_HIDDEN !=statusbar) {
             return;
         }
         int usableHeightNow = computeUsableHeight();

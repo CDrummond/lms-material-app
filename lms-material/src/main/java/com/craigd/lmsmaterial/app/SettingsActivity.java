@@ -150,14 +150,15 @@ public class SettingsActivity extends AppCompatActivity {
                 });
             }
 
-            updateStatusbarPrefSummary();
+            updateBarPrefSummary(STATUSBAR_PREF_KEY);
+            updateBarPrefSummary(NAVBAR_PREF_KEY);
             PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
         }
 
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            if (STATUSBAR_PREF_KEY.equals(key)) {
-                updateStatusbarPrefSummary();
+            if (STATUSBAR_PREF_KEY.equals(key) || NAVBAR_PREF_KEY.equals(key)) {
+                updateBarPrefSummary(key);
             }
         }
 
@@ -167,8 +168,8 @@ public class SettingsActivity extends AppCompatActivity {
             PreferenceManager.getDefaultSharedPreferences(getContext()).unregisterOnSharedPreferenceChangeListener(this);
         }
 
-        private void updateStatusbarPrefSummary() {
-            ListPreference statusBarPref = getPreferenceManager().findPreference(STATUSBAR_PREF_KEY);
+        private void updateBarPrefSummary(String key) {
+            ListPreference statusBarPref = getPreferenceManager().findPreference(key);
             if (statusBarPref != null) {
                 statusBarPref.setSummary(statusBarPref.getEntry());
             }
