@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentScale = 0;
     private ConnectionChangeListener connectionChangeListener;
     private double initialWebViewScale;
+    private boolean haveDefaultColors = false;
     private int defaultStatusbar;
     private int defaultNavbar;
     private int statusbar = BAR_VISIBLE;
@@ -128,7 +129,8 @@ public class MainActivity extends AppCompatActivity {
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
                   (null == playerLaunchIntent ? ",launchPlayer" : "") +
-                  (statusbar==BAR_BLENDED || navbar==BAR_BLENDED? "&nativeColors" : "") +
+                  (statusbar==BAR_BLENDED || navbar==BAR_BLENDED ? "&nativeColors" : "") +
+                  (navbar==BAR_BLENDED && gestureNavigationEnabled() ? "&agn" : "" ) +
                   "&appSettings=" + SETTINGS_URL;
     }
 
@@ -238,9 +240,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        defaultStatusbar=getWindow().getStatusBarColor();
-        defaultNavbar=getWindow().getNavigationBarColor();
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         setDefaults();
@@ -406,6 +405,11 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Ignore color update, as not blending");
             return;
         }
+        if (!haveDefaultColors) {
+            defaultStatusbar = getWindow().getStatusBarColor();
+            defaultNavbar = getWindow().getNavigationBarColor();
+            haveDefaultColors = true;
+        }
         Log.d(TAG, topColor+" "+botColor);
         if (null==topColor || topColor.length()<4 || null==botColor || botColor.length()<4) {
             return;
@@ -526,7 +530,7 @@ public class MainActivity extends AppCompatActivity {
             if (BAR_BLENDED==navbar) {
                 needReload=true;
             } else if (BAR_BLENDED==prevNavbar) {
-                getWindow().setNavigationBarColor(defaultStatusbar);
+                getWindow().setNavigationBarColor(defaultNavbar);
             }
             if (BAR_BLENDED==prevSbar || BAR_BLENDED==prevNavbar) {
                 getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
