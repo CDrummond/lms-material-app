@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
                   (null == playerLaunchIntent ? ",launchPlayer" : "") +
                   (statusbar==BAR_BLENDED || navbar==BAR_BLENDED ? "&nativeColors" : "") +
-                  (navbar==BAR_BLENDED && gestureNavigationEnabled() ? "&agn" : "" ) +
+                  //(navbar==BAR_BLENDED && gestureNavigationEnabled() ? "&agn" : "" ) +
                   "&appSettings=" + SETTINGS_URL;
     }
 
