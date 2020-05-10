@@ -1,0 +1,3 @@
+Fixed
+
+• Crash when switching from hidden status (or navigatation) bar to visible.
