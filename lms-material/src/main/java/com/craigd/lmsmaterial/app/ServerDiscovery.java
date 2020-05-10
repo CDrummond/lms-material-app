@@ -2,6 +2,7 @@ package com.craigd.lmsmaterial.app;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -183,12 +184,19 @@ abstract class ServerDiscovery {
                 wifiLock.release();
             }
 
+            if (servers.isEmpty() && isEmulator()) {
+                servers.add(new Server("{\"ip\":\"10.0.2.2\",\"port\":9000,\"name\":\"Emulator\"}"));
+            }
             handler.sendMessage(new Message());
             active = false;
         }
 
         public boolean isActive() {
             return active;
+        }
+
+        private boolean isEmulator() {
+            return Build.MANUFACTURER.equals("Google") && Build.MODEL.contains("Android SDK built for x86");
         }
     }
 
