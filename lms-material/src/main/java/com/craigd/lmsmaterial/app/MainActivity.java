@@ -521,6 +521,7 @@ public class MainActivity extends AppCompatActivity {
             setFullscreen();
             if (BAR_HIDDEN==prevSbar || BAR_HIDDEN==prevNavbar) {
                 recreate();
+                return;
             }
             if (BAR_BLENDED==statusbar) {
                 needReload=true;
