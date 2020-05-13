@@ -5,3 +5,4 @@ Improved
 Fixed
 
 • Crash when switching from hidden status (or navigatation) bar to visible.
+• Set Android 7.1 as minimum supported version.
