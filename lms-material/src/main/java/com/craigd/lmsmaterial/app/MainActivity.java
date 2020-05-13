@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
     private void setDefaults() {
         if (!sharedPreferences.contains(SettingsActivity.STATUSBAR_PREF_KEY)) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString(SettingsActivity.STATUSBAR_PREF_KEY, "visible");
+            editor.putString(SettingsActivity.STATUSBAR_PREF_KEY, "blend");
             editor.apply();
         }
         if (!sharedPreferences.contains(SettingsActivity.NAVBAR_PREF_KEY)) {
