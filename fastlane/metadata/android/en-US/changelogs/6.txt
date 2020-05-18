@@ -1,0 +1,3 @@
+Fixed
+
+• Correctly handle vsibility of navbar when statubar is hidden.
