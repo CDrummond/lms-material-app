@@ -17,7 +17,8 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory app:title="@string/server_settings">
-        <Preference app:title="@string/discover" app:key="discover" app:summary="@string/no_servers"/>
+        <Preference app:title="@string/server_address" app:key="server_address" app:summary="@string/no_servers"/>
+        <Preference app:title="@string/discover" app:key="discover"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/ui">

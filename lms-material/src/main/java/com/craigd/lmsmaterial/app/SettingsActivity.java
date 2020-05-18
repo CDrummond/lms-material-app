@@ -1,13 +1,17 @@
 package com.craigd.lmsmaterial.app;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
@@ -115,10 +119,62 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
             Log.d(TAG, "SETUP");
+
+            final Preference addressButton = getPreferenceManager().findPreference("server_address");
+            if (addressButton != null) {
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                addressButton.setSummary(new Discovery.Server(sharedPreferences.getString(SERVER_PREF_KEY,"")).describe());
+                addressButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference arg0) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        builder.setTitle(R.string.server_address);
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                        Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
+
+
+                        int padding = getResources().getDimensionPixelOffset(R.dimen.dlg_padding);
+                        final EditText input = new EditText(getContext());
+                        input.setInputType(InputType.TYPE_CLASS_TEXT);
+
+                        if (null!=server) {
+                            input.setText(server.address());
+                        }
+
+                        input.setPadding(padding, input.getPaddingTop(), padding, input.getPaddingBottom());
+                        builder.setView(input);
+
+                        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String str = input.getText().toString();
+                                if (null!=str) {
+                                    str=str.replaceAll("\\s+","");
+                                    String parts[]=str.split(":");
+                                    Discovery.Server server=new Discovery.Server(parts[0], parts.length>1 ? Integer.parseInt(parts[1]) : Discovery.Server.DEFAULT_PORT, null);
+                                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putString(SERVER_PREF_KEY, server.encode());
+                                    editor.apply();
+                                    addressButton.setSummary(server.describe());
+                                }
+                            }
+                        });
+                        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+                        builder.show();
+                        return true;
+                    }
+                });
+            }
+
             Preference discoverButton = getPreferenceManager().findPreference("discover");
             if (discoverButton != null) {
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                discoverButton.setSummary(new Discovery.Server(sharedPreferences.getString(SERVER_PREF_KEY,"")).describe());
                 discoverButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {

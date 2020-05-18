@@ -2,7 +2,6 @@ package com.craigd.lmsmaterial.app;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -26,9 +25,10 @@ abstract class ServerDiscovery {
     private static final int SERVER_DISCOVERY_TIMEOUT = 1500;
 
     public static class Server implements Comparable<Server> {
+        public static final int DEFAULT_PORT = 9000;
         public String ip = "";
         public String name = "";
-        public int port = 9000;
+        public int port = DEFAULT_PORT;
 
         private static String getString(JSONObject json, String key, String def) {
             try {
@@ -53,10 +53,16 @@ abstract class ServerDiscovery {
                     JSONObject json = new JSONObject(str);
                     ip = getString(json, "ip", "");
                     name = getString(json, "name", "");
-                    port = getInt(json, "port", 9000);
+                    port = getInt(json, "port", DEFAULT_PORT);
                 } catch (JSONException e) {
                 }
             }
+        }
+
+        public Server(String ip, int port, String name) {
+            this.ip=ip;
+            this.port=port;
+            this.name=name;
         }
 
         public Server(DatagramPacket pkt) {
@@ -110,9 +116,13 @@ abstract class ServerDiscovery {
 
         public String describe() {
             if (null==name || name.isEmpty()) {
-                return ip;
+                return address();
             }
-            return name+" ("+ip+")";
+            return name+" ("+address()+")";
+        }
+
+        public String address() {
+            return ip + (DEFAULT_PORT==port ? "" : (":"+port));
         }
 
         public String encode() {
@@ -184,19 +194,12 @@ abstract class ServerDiscovery {
                 wifiLock.release();
             }
 
-            if (servers.isEmpty() && isEmulator()) {
-                servers.add(new Server("{\"ip\":\"10.0.2.2\",\"port\":9000,\"name\":\"Emulator\"}"));
-            }
             handler.sendMessage(new Message());
             active = false;
         }
 
         public boolean isActive() {
             return active;
-        }
-
-        private boolean isEmulator() {
-            return Build.MANUFACTURER.equals("Google") && Build.MODEL.contains("Android SDK built for x86");
         }
     }
 
