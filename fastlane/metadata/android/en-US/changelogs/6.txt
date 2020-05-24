@@ -4,4 +4,4 @@ Improved
 
 Fixed
 
-• Correctly handle vsibility of navbar when statubar is hidden.
+• Correctly handle visibility of navbar when statubar is hidden.
