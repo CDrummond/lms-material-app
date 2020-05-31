@@ -1,0 +1,3 @@
+Fixed
+
+• Set Android 6.0 as minimum supported version.
