@@ -1,3 +1,4 @@
 Improved
 
 • Added 'Quit' action to main menu.
+• Back button closes app if not connected to network.

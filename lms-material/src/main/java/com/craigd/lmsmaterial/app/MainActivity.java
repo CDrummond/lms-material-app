@@ -208,7 +208,11 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case KeyEvent.KEYCODE_BACK:
                 if (action == KeyEvent.ACTION_UP) {
-                    webView.evaluateJavascript("navigateBack()", null);
+                    if (webView.getVisibility()==View.VISIBLE) {
+                        webView.evaluateJavascript("navigateBack()", null);
+                    } else {
+                        finishAffinity();
+                    }
                 }
                 break;
             default:
