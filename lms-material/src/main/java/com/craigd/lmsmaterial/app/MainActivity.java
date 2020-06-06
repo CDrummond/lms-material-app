@@ -42,6 +42,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "LMS";
     private final String SETTINGS_URL = "mska://settings";
+    private final String QUIT_URL = "mska://quit";
     private final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
     private final int PAGE_TIMEOUT = 5000;
     private final int BAR_VISIBLE = 0;
@@ -131,7 +132,8 @@ public class MainActivity extends AppCompatActivity {
                   (null == playerLaunchIntent ? ",launchPlayer" : "") +
                   (statusbar==BAR_BLENDED || navbar==BAR_BLENDED ? "&nativeColors" : "") +
                   //(navbar==BAR_BLENDED && gestureNavigationEnabled() ? "&agn" : "" ) +
-                  "&appSettings=" + SETTINGS_URL;
+                  "&appSettings=" + SETTINGS_URL +
+                  "&appQuit=" + QUIT_URL;
     }
 
     private void setDefaults() {
@@ -311,6 +313,10 @@ public class MainActivity extends AppCompatActivity {
 
                 if (url.equals(SETTINGS_URL)) {
                     navigateToSettingsActivity();
+                    return true;
+                }
+                if (url.equals(QUIT_URL)) {
+                    finishAffinity();
                     return true;
                 }
                 // Is this an intent:// URL - used by Material to launch SB Player

@@ -1,0 +1,3 @@
+Improved
+
+• Added 'Quit' action to main menu.
