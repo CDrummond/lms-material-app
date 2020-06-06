@@ -1,4 +1,5 @@
 Improved
 
 • Added 'Quit' action to main menu.
+• Added 'Quit' action to settings actionbar.
 • Back button closes app if not connected to network.

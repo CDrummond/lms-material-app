@@ -212,6 +212,7 @@ public class MainActivity extends AppCompatActivity {
                         webView.evaluateJavascript("navigateBack()", null);
                     } else {
                         finishAffinity();
+                        System.exit(0);
                     }
                 }
                 break;
@@ -321,6 +322,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (url.equals(QUIT_URL)) {
                     finishAffinity();
+                    System.exit(0);
                     return true;
                 }
                 // Is this an intent:// URL - used by Material to launch SB Player
