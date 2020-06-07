@@ -15,12 +15,12 @@
     <string name="statusbar">Status bar</string>
     <string name="navbar">Navigation bar</string>
     <string name="scale">Scale</string>
-    <string name="scale_summary">Increase zoom level of main view</string>
+    <string name="scale_summary">Increase zoom level</string>
     <string name="waiting_for_network">Waiting for network</string>
     <string name="server_address">Server IP address or hostname</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="quit">Quit</string>
     <string name="keep_screen_on">Keep screen on</string>
-    <string name="keep_screen_on_sub">Keep screen on whilst using Material</string>
+    <string name="keep_screen_on_sub">Keep screen on whilst in use</string>
 </resources>
