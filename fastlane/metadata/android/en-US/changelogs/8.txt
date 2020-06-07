@@ -4,3 +4,4 @@ Improved
 • Added 'Quit' action to settings actionbar.
 • Added option to keep screen on.
 • Back button closes app if not connected to network.
+• Removed dividers in setings view.
