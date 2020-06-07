@@ -21,4 +21,6 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="quit">Quit</string>
+    <string name="keep_screen_on">Keep screen on</string>
+    <string name="keep_screen_on_sub">Keep screen on whilst using Material</string>
 </resources>

@@ -27,6 +27,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String SCALE_PREF_KEY = "scale";
     public static final String STATUSBAR_PREF_KEY = "statusbar";
     public static final String NAVBAR_PREF_KEY = "navbar";
+    public static final String KEEP_SCREEN_ON = "keep_screen_on";
 
     private static final String TAG = "LMS";
     private static boolean visible = false;

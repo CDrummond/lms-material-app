@@ -137,14 +137,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setDefaults() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        boolean modified = false;
         if (!sharedPreferences.contains(SettingsActivity.STATUSBAR_PREF_KEY)) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString(SettingsActivity.STATUSBAR_PREF_KEY, "blend");
-            editor.apply();
+            modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.NAVBAR_PREF_KEY)) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString(SettingsActivity.NAVBAR_PREF_KEY, gestureNavigationEnabled() ? "blend" : "hidden");
+            modified=true;
+        }
+        if (!sharedPreferences.contains(SettingsActivity.KEEP_SCREEN_ON)) {
+            editor.putBoolean(SettingsActivity.KEEP_SCREEN_ON, false);
+            modified=true;
+        }
+        if (modified) {
             editor.apply();
         }
     }
@@ -257,6 +264,9 @@ public class MainActivity extends AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
             ab.hide();
+        }
+        if (sharedPreferences.getBoolean(SettingsActivity.KEEP_SCREEN_ON, false)) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         setFullscreen();
         setContentView(R.layout.activity_main);
@@ -563,6 +573,12 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "Reload URL");
             pageError = false;
             webView.reload();
+        }
+
+        if (sharedPreferences.getBoolean(SettingsActivity.KEEP_SCREEN_ON, false)) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
 

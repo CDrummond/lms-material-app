@@ -32,6 +32,10 @@
             android:title="@string/navbar"
             android:entries="@array/statusbar"
             android:entryValues="@array/statusbarAlias"/>
+        <SwitchPreference
+            app:title="@string/keep_screen_on"
+            app:summary="@string/keep_screen_on_sub"
+            app:key="keep_screen_on"/>
         <SeekBarPreference
             app:title="@string/scale"
             app:summary="@string/scale_summary"
