@@ -4,7 +4,7 @@
     <string name="server_settings">Server Settings</string>
     <string name="discover">Click here to discover server</string>
     <string name="cache">Cache</string>
-    <string name="clear_cache">Click to clear cache</string>
+    <string name="clear_cache">Click here to clear cache</string>
     <string name="cache_to_be_cleared">Cache will be cleared</string>
     <string name="no_servers">No servers found</string>
     <string name="server_changed">Server changed</string>
