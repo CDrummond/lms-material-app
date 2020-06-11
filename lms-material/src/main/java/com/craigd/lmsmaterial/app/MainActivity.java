@@ -315,7 +315,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                Log.i(TAG, "onReceivedError:" + error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    Log.i(TAG, "onReceivedError:" + error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
+                } else {
+                    Log.i(TAG, "onReceivedError, mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
+                }
                 if (request.isForMainFrame()) {
                     pageError = true;
                     discoverServer();
