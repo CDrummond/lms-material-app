@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -147,8 +148,12 @@ public class MainActivity extends AppCompatActivity {
             editor.putString(SettingsActivity.NAVBAR_PREF_KEY, gestureNavigationEnabled() ? "blend" : "hidden");
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.KEEP_SCREEN_ON)) {
-            editor.putBoolean(SettingsActivity.KEEP_SCREEN_ON, false);
+        if (!sharedPreferences.contains(SettingsActivity.KEEP_SCREEN_ON_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.KEEP_SCREEN_ON_PREF_KEY, false);
+            modified=true;
+        }
+        if (!sharedPreferences.contains(SettingsActivity.ORIENTATION_PREF_KEY)) {
+            editor.putString(SettingsActivity.ORIENTATION_PREF_KEY, "auto");
             modified=true;
         }
         if (modified) {
@@ -259,13 +264,14 @@ public class MainActivity extends AppCompatActivity {
         setDefaults();
         statusbar = getBarSetting(SettingsActivity.STATUSBAR_PREF_KEY, statusbar);
         navbar = getBarSetting(SettingsActivity.NAVBAR_PREF_KEY, navbar);
+        setOrientation();
         Log.d(TAG, "sb:"+statusbar+", nb:"+navbar);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
             ab.hide();
         }
-        if (sharedPreferences.getBoolean(SettingsActivity.KEEP_SCREEN_ON, false)) {
+        if (sharedPreferences.getBoolean(SettingsActivity.KEEP_SCREEN_ON_PREF_KEY, false)) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         setFullscreen();
@@ -579,10 +585,22 @@ public class MainActivity extends AppCompatActivity {
             webView.reload();
         }
 
-        if (sharedPreferences.getBoolean(SettingsActivity.KEEP_SCREEN_ON, false)) {
+        if (sharedPreferences.getBoolean(SettingsActivity.KEEP_SCREEN_ON_PREF_KEY, false)) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        setOrientation();
+    }
+
+    private void setOrientation() {
+        String o = sharedPreferences.getString(SettingsActivity.ORIENTATION_PREF_KEY, null);
+        if ("landscape".equals(o)) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        } else if ("portrait".equals(o)) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        } else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
         }
     }
 

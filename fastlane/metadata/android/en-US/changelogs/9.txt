@@ -1,0 +1,4 @@
+Improved
+
+• Added 'Orientation' setting.
+

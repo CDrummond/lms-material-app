@@ -27,7 +27,9 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String SCALE_PREF_KEY = "scale";
     public static final String STATUSBAR_PREF_KEY = "statusbar";
     public static final String NAVBAR_PREF_KEY = "navbar";
-    public static final String KEEP_SCREEN_ON = "keep_screen_on";
+    public static final String KEEP_SCREEN_ON_PREF_KEY = "keep_screen_on";
+    public static final String ORIENTATION_PREF_KEY = "orientation";
+
 
     private static final String TAG = "LMS";
     private static boolean visible = false;
@@ -218,15 +220,16 @@ public class SettingsActivity extends AppCompatActivity {
                 });
             }
 
-            updateBarPrefSummary(STATUSBAR_PREF_KEY);
-            updateBarPrefSummary(NAVBAR_PREF_KEY);
+            updateListSummary(STATUSBAR_PREF_KEY);
+            updateListSummary(NAVBAR_PREF_KEY);
+            updateListSummary(ORIENTATION_PREF_KEY);
             PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
         }
 
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            if (STATUSBAR_PREF_KEY.equals(key) || NAVBAR_PREF_KEY.equals(key)) {
-                updateBarPrefSummary(key);
+            if (STATUSBAR_PREF_KEY.equals(key) || NAVBAR_PREF_KEY.equals(key) || ORIENTATION_PREF_KEY.equals(key)) {
+                updateListSummary(key);
             }
         }
 
@@ -236,10 +239,10 @@ public class SettingsActivity extends AppCompatActivity {
             PreferenceManager.getDefaultSharedPreferences(getContext()).unregisterOnSharedPreferenceChangeListener(this);
         }
 
-        private void updateBarPrefSummary(String key) {
-            ListPreference statusBarPref = getPreferenceManager().findPreference(key);
-            if (statusBarPref != null) {
-                statusBarPref.setSummary(statusBarPref.getEntry());
+        private void updateListSummary(String key) {
+            ListPreference pref = getPreferenceManager().findPreference(key);
+            if (pref != null) {
+                pref.setSummary(pref.getEntry());
             }
         }
     }

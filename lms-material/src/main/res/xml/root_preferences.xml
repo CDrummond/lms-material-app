@@ -32,6 +32,11 @@
             android:title="@string/navbar"
             android:entries="@array/statusbar"
             android:entryValues="@array/statusbarAlias"/>
+        <ListPreference
+            android:key="orientation"
+            android:title="@string/orientation"
+            android:entries="@array/orientation"
+            android:entryValues="@array/orientationAlias"/>
         <SwitchPreference
             app:title="@string/keep_screen_on"
             app:summary="@string/keep_screen_on_sub"

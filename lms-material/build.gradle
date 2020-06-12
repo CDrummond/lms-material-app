@@ -7,8 +7,8 @@ android {
         applicationId "com.craigd.lmsmaterial.app"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 8
-        versionName "0.0.8"
+        versionCode 9
+        versionName "0.0.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
