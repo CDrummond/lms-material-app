@@ -4,3 +4,6 @@ Improved
 • Added 'Enable WiFi' setting.
 • Added 'During phone call' setting to pause, or mute, active player, or all players.
 
+Improved
+
+• Update correct 'summary' field when auto-discover server.

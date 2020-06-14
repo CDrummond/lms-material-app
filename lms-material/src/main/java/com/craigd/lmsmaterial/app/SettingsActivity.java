@@ -122,9 +122,9 @@ public class SettingsActivity extends AppCompatActivity {
                             Toast.makeText(getContext(), getResources().getString(R.string.server_changed)+"\n\n"+serverToUse.describe(), Toast.LENGTH_SHORT).show();
                         }
 
-                        Preference discoverButton = getPreferenceManager().findPreference("discover");
-                        if (discoverButton != null) {
-                            discoverButton.setSummary(serverToUse.describe());
+                        Preference addressButton = getPreferenceManager().findPreference("server_address");
+                        if (addressButton != null) {
+                            addressButton.setSummary(serverToUse.describe());
                         }
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString(SERVER_PREF_KEY, serverToUse.encode());
