@@ -3,8 +3,10 @@
     <string name="app_name">LMS</string>
     <string name="server_settings">Server Settings</string>
     <string name="discover">Tap here to discover server</string>
-    <string name="cache">Cache</string>
+    <string name="discover_summary">Attempt to auto-locate media server</string>
+    <string name="misc">Miscellaneous</string>
     <string name="clear_cache">Tap here to clear cache</string>
+    <string name="clear_cache_summary">Clear web cache, and cause page to be reloaded</string>
     <string name="cache_to_be_cleared">Cache will be cleared</string>
     <string name="no_servers">No servers found</string>
     <string name="server_changed">Server changed</string>
@@ -22,6 +24,8 @@
     <string name="cancel">Cancel</string>
     <string name="quit">Quit</string>
     <string name="keep_screen_on">Keep screen on</string>
-    <string name="keep_screen_on_sub">Keep screen on whilst in use</string>
+    <string name="keep_screen_on_summary">Keep screen on whilst in use</string>
+    <string name="enable_wifi">Enable WiFi</string>
+    <string name="enable_wifi_summary">Enable WiFi when app is launched</string>
     <string name="orientation">Orientation</string>
 </resources>

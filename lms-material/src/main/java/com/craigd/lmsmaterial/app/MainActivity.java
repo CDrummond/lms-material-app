@@ -14,6 +14,7 @@ import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -156,6 +157,10 @@ public class MainActivity extends AppCompatActivity {
             editor.putString(SettingsActivity.ORIENTATION_PREF_KEY, "auto");
             modified=true;
         }
+        if (!sharedPreferences.contains(SettingsActivity.ENABLE_WIFI_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.ENABLE_WIFI_PREF_KEY, true);
+            modified=true;
+        }
         if (modified) {
             editor.apply();
         }
@@ -262,6 +267,7 @@ public class MainActivity extends AppCompatActivity {
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         setDefaults();
+        enableWifi();
         statusbar = getBarSetting(SettingsActivity.STATUSBAR_PREF_KEY, statusbar);
         navbar = getBarSetting(SettingsActivity.NAVBAR_PREF_KEY, navbar);
         setOrientation();
@@ -383,6 +389,14 @@ public class MainActivity extends AppCompatActivity {
         checkNetworkConnection();
     }
 
+    private void enableWifi() {
+        if (sharedPreferences.getBoolean(SettingsActivity.ENABLE_WIFI_PREF_KEY, true)) {
+            Log.d(TAG, "Enable WiFi");
+            WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            wifi.setWifiEnabled(true);
+        }
+    }
+
     private void checkNetworkConnection() {
         Log.d(TAG, "Check network connection");
         View progress = findViewById(R.id.progress);
@@ -417,6 +431,7 @@ public class MainActivity extends AppCompatActivity {
             progress.setVisibility(View.VISIBLE);
             connectionChangeListener = new ConnectionChangeListener(this);
             registerReceiver(connectionChangeListener, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
+            enableWifi();
         }
     }
 

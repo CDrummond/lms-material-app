@@ -17,8 +17,14 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory app:title="@string/server_settings">
-        <Preference app:title="@string/server_address" app:key="server_address" app:summary="@string/no_servers"/>
-        <Preference app:title="@string/discover" app:key="discover"/>
+        <Preference
+            app:key="server_address"
+            app:title="@string/server_address"
+            app:summary="@string/no_servers"/>
+        <Preference
+            app:key="discover"
+            app:title="@string/discover"
+            app:summary="@string/discover_summary"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/ui">
@@ -37,10 +43,6 @@
             android:title="@string/orientation"
             android:entries="@array/orientation"
             android:entryValues="@array/orientationAlias"/>
-        <SwitchPreference
-            app:title="@string/keep_screen_on"
-            app:summary="@string/keep_screen_on_sub"
-            app:key="keep_screen_on"/>
         <SeekBarPreference
             app:title="@string/scale"
             app:summary="@string/scale_summary"
@@ -49,7 +51,16 @@
             android:max="5"/>
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/cache">
-        <Preference app:title="@string/clear_cache" app:key="clearcache"/>
+    <PreferenceCategory app:title="@string/misc">
+        <SwitchPreference
+            app:title="@string/keep_screen_on"
+            app:summary="@string/keep_screen_on_summary"
+            app:key="keep_screen_on"/>
+        <SwitchPreference
+            app:title="@string/enable_wifi"
+            app:summary="@string/enable_wifi_summary"
+            app:key="enable_wifi"/>
+        <Preference app:title="@string/clear_cache" app:key="clear_cache"
+            app:summary="@string/clear_cache_summary"/>
     </PreferenceCategory>
 </PreferenceScreen>

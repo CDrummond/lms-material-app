@@ -1,4 +1,5 @@
 Improved
 
 • Added 'Orientation' setting.
+• Added 'Enable WiFi' setting.
 
