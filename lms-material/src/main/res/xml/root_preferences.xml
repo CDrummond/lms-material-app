@@ -60,6 +60,11 @@
             app:title="@string/enable_wifi"
             app:summary="@string/enable_wifi_summary"
             app:key="enable_wifi"/>
+        <ListPreference
+            android:key="on_call"
+            android:title="@string/oncall"
+            android:entries="@array/oncall"
+            android:entryValues="@array/oncallAlias"/>
         <Preference app:title="@string/clear_cache" app:key="clear_cache"
             app:summary="@string/clear_cache_summary"/>
     </PreferenceCategory>

@@ -1,8 +1,10 @@
 package com.craigd.lmsmaterial.app;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -14,6 +16,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -30,6 +34,8 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String KEEP_SCREEN_ON_PREF_KEY = "keep_screen_on";
     public static final String ENABLE_WIFI_PREF_KEY = "enable_wifi";
     public static final String ORIENTATION_PREF_KEY = "orientation";
+    public static final String ON_CALL_PREF_KEY = "on_call";
+    private static final int PERMISSION_READ_PHONE_STATE = 1;
 
     private static final String TAG = "LMS";
     private static boolean visible = false;
@@ -37,14 +43,17 @@ public class SettingsActivity extends AppCompatActivity {
         return visible;
     }
 
+    private SettingsFragment fragment;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         visible = true;
         setContentView(R.layout.settings_activity);
+        fragment = new SettingsFragment();
+        fragment.setActivity(this);
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.settings, new SettingsFragment())
+                .replace(R.id.settings, fragment)
                 .commit();
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -127,7 +136,12 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
 
+        private SettingsActivity activity = null;
         private Discovery discovery = null;
+
+        public void setActivity(SettingsActivity activity) {
+            this.activity = activity;
+        }
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -223,6 +237,7 @@ public class SettingsActivity extends AppCompatActivity {
             updateListSummary(STATUSBAR_PREF_KEY);
             updateListSummary(NAVBAR_PREF_KEY);
             updateListSummary(ORIENTATION_PREF_KEY);
+            updateListSummary(ON_CALL_PREF_KEY);
             PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
         }
 
@@ -230,6 +245,13 @@ public class SettingsActivity extends AppCompatActivity {
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
             if (STATUSBAR_PREF_KEY.equals(key) || NAVBAR_PREF_KEY.equals(key) || ORIENTATION_PREF_KEY.equals(key)) {
                 updateListSummary(key);
+            }
+
+            if (ON_CALL_PREF_KEY.equals(key)) {
+                updateListSummary(key);
+                if (! "nothing".equals(sharedPreferences.getString(key, PhoneStateReceiver.DO_NOTHING))) {
+                    activity.checkOnCallPermission();
+                }
             }
         }
 
@@ -243,6 +265,36 @@ public class SettingsActivity extends AppCompatActivity {
             ListPreference pref = getPreferenceManager().findPreference(key);
             if (pref != null) {
                 pref.setSummary(pref.getEntry());
+            }
+        }
+
+        public void resetOnCall() {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING);
+            editor.apply();
+            ListPreference pref = getPreferenceManager().findPreference("on_call");
+            if (pref != null) {
+                pref.setValue(PhoneStateReceiver.DO_NOTHING);
+            }
+            updateListSummary(ON_CALL_PREF_KEY);
+        }
+    }
+
+    public void checkOnCallPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, PERMISSION_READ_PHONE_STATE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_READ_PHONE_STATE: {
+                if (grantResults.length < 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    fragment.resetOnCall();
+                }
+                return;
             }
         }
     }

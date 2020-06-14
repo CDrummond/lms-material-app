@@ -1,5 +1,6 @@
 package com.craigd.lmsmaterial.app;
 
+import android.Manifest;
 import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -37,6 +39,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 import java.util.List;
@@ -64,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
     private int defaultNavbar;
     private int statusbar = BAR_VISIBLE;
     private int navbar = BAR_HIDDEN;
+
+    public static String activePlayer = null;
 
     private class Discovery extends ServerDiscovery {
         Discovery(Context context) {
@@ -127,13 +132,14 @@ public class MainActivity extends AppCompatActivity {
     private String getConfiguredUrl() {
         Intent playerLaunchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
+        String onCall = sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY,PhoneStateReceiver.DO_NOTHING);
 
         return server.ip == null || server.ip.isEmpty()
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
                   (null == playerLaunchIntent ? ",launchPlayer" : "") +
                   (statusbar==BAR_BLENDED || navbar==BAR_BLENDED ? "&nativeColors" : "") +
-                  //(navbar==BAR_BLENDED && gestureNavigationEnabled() ? "&agn" : "" ) +
+                  (PhoneStateReceiver.MUTE_ACTIVE.equals(onCall) || PhoneStateReceiver.PAUSE_ACTIVE.equals(onCall) ? "&nativePlayer" : "") +
                   "&appSettings=" + SETTINGS_URL +
                   "&appQuit=" + QUIT_URL;
     }
@@ -159,6 +165,15 @@ public class MainActivity extends AppCompatActivity {
         }
         if (!sharedPreferences.contains(SettingsActivity.ENABLE_WIFI_PREF_KEY)) {
             editor.putBoolean(SettingsActivity.ENABLE_WIFI_PREF_KEY, true);
+            modified=true;
+        }
+        if (!sharedPreferences.contains(SettingsActivity.ON_CALL_PREF_KEY)) {
+            editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING);
+            modified=true;
+        }
+        if (! PhoneStateReceiver.DO_NOTHING.equals(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING)) &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING);
             modified=true;
         }
         if (modified) {
@@ -446,6 +461,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     */
+
+    @JavascriptInterface
+    public void updatePlayer(String player) {
+        Log.d(TAG, "Active player: "+player);
+        activePlayer = player;
+    }
 
     @JavascriptInterface
     public void updateToolbarColors(final String topColor, String botColor) {
