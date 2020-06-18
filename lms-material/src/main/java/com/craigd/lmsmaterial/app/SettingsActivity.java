@@ -216,7 +216,7 @@ public class SettingsActivity extends AppCompatActivity {
                 });
             }
 
-            Preference clearCacheButton = getPreferenceManager().findPreference("clearcache");
+            Preference clearCacheButton = getPreferenceManager().findPreference(CLEAR_CACHE_PREF_KEY);
             if (clearCacheButton != null) {
                 clearCacheButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
