@@ -3,6 +3,7 @@ Improved
 • Added 'Orientation' setting.
 • Added 'Enable WiFi' setting.
 • Added 'During phone call' setting to pause, or mute, active player, or all players.
+• Added 'Show notification' setting to show current player name in nofification.
 
 Improved
 

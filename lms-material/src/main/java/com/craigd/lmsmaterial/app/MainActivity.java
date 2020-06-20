@@ -3,9 +3,11 @@ package com.craigd.lmsmaterial.app;
 import android.Manifest;
 import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -20,7 +22,11 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -45,7 +51,7 @@ import androidx.preference.PreferenceManager;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private final String TAG = "LMS";
+    public final static String TAG = "LMS";
     private final String SETTINGS_URL = "mska://settings";
     private final String QUIT_URL = "mska://quit";
     private final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
@@ -69,6 +75,22 @@ public class MainActivity extends AppCompatActivity {
     private int navbar = BAR_HIDDEN;
 
     public static String activePlayer = null;
+    public static String activePlayerName = null;
+
+    private boolean foregroundServiceBound = false;
+    private Messenger foregroundServiceMessenger;
+    private ServiceConnection foregroundServiceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            foregroundServiceMessenger = new Messenger(service);
+            if (null!=activePlayerName) {
+                updateService(activePlayerName);
+            }
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            foregroundServiceMessenger = null;
+        }
+    };
 
     private class Discovery extends ServerDiscovery {
         Discovery(Context context) {
@@ -133,13 +155,13 @@ public class MainActivity extends AppCompatActivity {
         Intent playerLaunchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
         String onCall = sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY,PhoneStateReceiver.DO_NOTHING);
-
+        boolean notif = sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, true);
         return server.ip == null || server.ip.isEmpty()
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
                   (null == playerLaunchIntent ? ",launchPlayer" : "") +
                   (statusbar==BAR_BLENDED || navbar==BAR_BLENDED ? "&nativeColors" : "") +
-                  (PhoneStateReceiver.MUTE_ACTIVE.equals(onCall) || PhoneStateReceiver.PAUSE_ACTIVE.equals(onCall) ? "&nativePlayer" : "") +
+                  (notif || PhoneStateReceiver.MUTE_ACTIVE.equals(onCall) || PhoneStateReceiver.PAUSE_ACTIVE.equals(onCall) ? "&nativePlayer" : "") +
                   "&appSettings=" + SETTINGS_URL +
                   "&appQuit=" + QUIT_URL;
     }
@@ -174,6 +196,10 @@ public class MainActivity extends AppCompatActivity {
         if (! PhoneStateReceiver.DO_NOTHING.equals(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING)) &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING);
+            modified=true;
+        }
+        if (!sharedPreferences.contains(SettingsActivity.ENABLE_NOTIF_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, true);
             modified=true;
         }
         if (modified) {
@@ -283,6 +309,7 @@ public class MainActivity extends AppCompatActivity {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         setDefaults();
         enableWifi();
+        controlService();
         statusbar = getBarSetting(SettingsActivity.STATUSBAR_PREF_KEY, statusbar);
         navbar = getBarSetting(SettingsActivity.NAVBAR_PREF_KEY, navbar);
         setOrientation();
@@ -463,9 +490,11 @@ public class MainActivity extends AppCompatActivity {
     */
 
     @JavascriptInterface
-    public void updatePlayer(String player) {
-        Log.d(TAG, "Active player: "+player);
-        activePlayer = player;
+    public void updatePlayer(String playerId, String playerName) {
+        Log.d(TAG, "Active player: "+playerId+", name: "+playerName);
+        activePlayer = playerId;
+        activePlayerName = playerName;
+        updateService(playerName);
     }
 
     @JavascriptInterface
@@ -551,7 +580,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         Log.i(TAG, "Pause");
-        webView.onPause();
+        //webView.onPause();
         webView.pauseTimers();
         super.onPause();
     }
@@ -559,7 +588,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         Log.i(TAG, "Resume");
-        webView.onResume();
+        //webView.onResume();
         webView.resumeTimers();
         super.onResume();
 
@@ -627,6 +656,7 @@ public class MainActivity extends AppCompatActivity {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         setOrientation();
+        controlService();
     }
 
     private void setOrientation() {
@@ -645,7 +675,51 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "Destroy");
         webView.destroy();
         webView = null;
+        unbindService();
         super.onDestroy();
+    }
+
+    void controlService() {
+        if (sharedPreferences.getBoolean(SettingsActivity.ENABLE_WIFI_PREF_KEY, true)) {
+            startService();
+        } else {
+            stopService();
+        }
+    }
+
+    void startService() {
+        if (foregroundServiceBound) {
+            return;
+        }
+
+        Intent intent = new Intent(MainActivity.this, ForegroundService.class);
+        intent.setAction(ForegroundService.START);
+        //startService(intent);
+        bindService(intent, foregroundServiceConnection, Context.BIND_AUTO_CREATE);
+        foregroundServiceBound = true;
+    }
+
+    void stopService() {
+        Intent intent = new Intent(MainActivity.this, ForegroundService.class);
+        stopService(intent);
+    }
+
+    void unbindService() {
+        if (foregroundServiceBound) {
+            unbindService(foregroundServiceConnection);
+            foregroundServiceBound = false;
+        }
+    }
+
+    private void updateService(String playerName) {
+        if (foregroundServiceBound && foregroundServiceMessenger!=null) {
+            Message msg = Message.obtain(null, ForegroundService.PLAYER_NAME, playerName);
+            try {
+                foregroundServiceMessenger.send(msg);
+            } catch (RemoteException e) {
+                Log.d(TAG, "Failed to update service");
+            }
+        }
     }
 
     /*

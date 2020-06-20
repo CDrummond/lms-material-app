@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Objects;
 
 abstract class ServerDiscovery {
-    private static final String TAG = "LMS";
     private static final int SERVER_DISCOVERY_TIMEOUT = 1500;
 
     public static class Server implements Comparable<Server> {
@@ -47,7 +46,7 @@ abstract class ServerDiscovery {
         }
 
         public Server(String str) {
-            Log.d(TAG, "DECODE:"+str);
+            Log.d(MainActivity.TAG, "DECODE:"+str);
             if (str != null) {
                 try {
                     JSONObject json = new JSONObject(str);
@@ -89,11 +88,11 @@ abstract class ServerDiscovery {
 
                 if (key.equals("NAME")) {
                     name = new String(bytes, i, valueLen);
-                    Log.d(TAG, "Name:"+name);
+                    Log.d(MainActivity.TAG, "Name:"+name);
                 } else if (key.equals("JSON")) {
                     try {
                         port = Integer.parseInt(new String(bytes, i, valueLen));
-                        Log.d(TAG, "Port:"+port);
+                        Log.d(MainActivity.TAG, "Port:"+port);
                     } catch (NumberFormatException e) {
                     }
                 }
@@ -149,12 +148,12 @@ abstract class ServerDiscovery {
 
         @Override
         public void run() {
-            Log.d(TAG,"Discover LMS servers");
+            Log.d(MainActivity.TAG,"Discover LMS servers");
 
             active = true;
             WifiManager.WifiLock wifiLock;
             DatagramSocket socket = null;
-            wifiLock = wifiManager.createWifiLock(TAG);
+            wifiLock = wifiManager.createWifiLock(MainActivity.TAG);
             wifiLock.acquire();
 
             try {
@@ -190,7 +189,7 @@ abstract class ServerDiscovery {
                     socket.close();
                 }
 
-                Log.v(TAG, "Scanning complete, unlocking WiFi");
+                Log.v(MainActivity.TAG, "Scanning complete, unlocking WiFi");
                 wifiLock.release();
             }
 

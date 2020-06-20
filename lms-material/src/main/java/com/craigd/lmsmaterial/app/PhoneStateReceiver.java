@@ -19,8 +19,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class PhoneStateReceiver extends BroadcastReceiver {
-    private static final String TAG = "LMS";
-
     public static final String DO_NOTHING = "nothing";
     public static final String MUTE_ALL = "muteall";
     public static final String MUTE_ACTIVE = "muteactive";
@@ -36,20 +34,20 @@ public class PhoneStateReceiver extends BroadcastReceiver {
         public void onCallStateChanged(int state, String incomingNumber) {
             switch (state) {
                 case TelephonyManager.CALL_STATE_IDLE:
-                    Log.d(TAG, "OnCall: Idle, pausedOrMutedPlayers:"+pausedOrMutedPlayers);
+                    Log.d(MainActivity.TAG, "OnCall: Idle, pausedOrMutedPlayers:"+pausedOrMutedPlayers);
                     if (pausedOrMutedPlayers && sendMessage(false)) {
                         pausedOrMutedPlayers = false;
                         sendMessage(false);
                     }
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:
-                    Log.d(TAG, "OnCall: OffHook, pausedOrMutedPlayers:"+pausedOrMutedPlayers);
+                    Log.d(MainActivity.TAG, "OnCall: OffHook, pausedOrMutedPlayers:"+pausedOrMutedPlayers);
                     if (!pausedOrMutedPlayers) {
                         pausedOrMutedPlayers = sendMessage(true);
                     }
                     break;
                 case TelephonyManager.CALL_STATE_RINGING:
-                    Log.d(TAG, "OnCall: Ringing, pausedOrMutedPlayers:"+pausedOrMutedPlayers);
+                    Log.d(MainActivity.TAG, "OnCall: Ringing, pausedOrMutedPlayers:"+pausedOrMutedPlayers);
                     break;
             }
         }
@@ -74,7 +72,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
                 command=new String[]{"material-skin", "playercontrol", "action:muting", "val:"+(inCall ? "1" : "0")};
             } else if (MUTE_ACTIVE.equals(action)) {
                 if (MainActivity.activePlayer==null) {
-                    Log.e(TAG, "OnCall: No current player stored");
+                    Log.e(MainActivity.TAG, "OnCall: No current player stored");
                     return false;
                 }
                 command=new String[]{"mixer", "muting", inCall ? "1" : "0"};
@@ -83,7 +81,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
                 command=new String[]{"material-skin", "playercontrol", "action:pause", "val:"+(inCall ? "1" : "0")};
             } else if (PAUSE_ACTIVE.equals(action)) {
                 if (MainActivity.activePlayer==null) {
-                    Log.e(TAG, "OnCall: No current player stored");
+                    Log.e(MainActivity.TAG, "OnCall: No current player stored");
                     return false;
                 }
                 command=new String[]{"pause", inCall ? "1" : "0"};
@@ -105,11 +103,11 @@ public class PhoneStateReceiver extends BroadcastReceiver {
                 request.put("method", "slim.request");
                 request.put("params", params);
 
-                Log.i(TAG, "OnCall: MSG:" + request.toString());
+                Log.i(MainActivity.TAG, "OnCall: MSG:" + request.toString());
 
                 requestQueue.add(new JsonObjectRequest(Request.Method.POST, "http://" + server.ip + ":" + server.port + "/jsonrpc.js", request, null, null));
             } catch (Exception e) {
-                Log.e(TAG, "OnCall: Failed to send control message", e);
+                Log.e(MainActivity.TAG, "OnCall: Failed to send control message", e);
             }
             return true;
         }

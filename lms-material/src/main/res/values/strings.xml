@@ -29,4 +29,7 @@
     <string name="enable_wifi_summary">Enable WiFi when app is launched</string>
     <string name="oncall">During phone call</string>
     <string name="orientation">Orientation</string>
+    <string name="no_player">No player</string>
+    <string name="enable_notif">Show notification</string>
+    <string name="enable_notif_summary">Display current player name in notification</string>
 </resources>

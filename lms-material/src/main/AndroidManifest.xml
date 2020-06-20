@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:allowBackup="true"
@@ -25,13 +26,19 @@
             android:name=".MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|layoutDirection|uiMode"
             android:windowSoftInputMode="adjustResize"
-            android:icon="@mipmap/ic_launcher">
+            android:icon="@mipmap/ic_launcher"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".ForegroundService"
+            android:enabled="true"
+            android:exported="true" />
 
         <receiver android:name=".MainActivity$ConnectionChangeListener"
             android:label="NetworkConnection">

@@ -35,9 +35,9 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String ENABLE_WIFI_PREF_KEY = "enable_wifi";
     public static final String ORIENTATION_PREF_KEY = "orientation";
     public static final String ON_CALL_PREF_KEY = "on_call";
+    public static final String ENABLE_NOTIF_PREF_KEY = "enable_notif";
     private static final int PERMISSION_READ_PHONE_STATE = 1;
 
-    private static final String TAG = "LMS";
     private static boolean visible = false;
     public static boolean isVisible() {
         return visible;
@@ -94,7 +94,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
 
             public void discoveryFinished(List<Server> servers) {
-                Log.d(TAG, "Discovery finished");
+                Log.d(MainActivity.TAG, "Discovery finished");
                 if (servers.size()<1) {
                     Toast.makeText(getContext(),getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT).show();
                 } else {
@@ -146,7 +146,7 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
-            Log.d(TAG, "SETUP");
+            Log.d(MainActivity.TAG, "SETUP");
 
             final Preference addressButton = getPreferenceManager().findPreference("server_address");
             if (addressButton != null) {
