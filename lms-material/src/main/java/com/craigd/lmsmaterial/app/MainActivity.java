@@ -671,9 +671,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleIntent(Intent intent) {
-        if (null!=intent) {
-            Log.d(TAG, intent.getAction());
-        }
         if (intent!=null && "android.intent.action.SEND".equals(intent.getAction())) {
             try {
                 new URL(intent.getStringExtra(Intent.EXTRA_TEXT));
