@@ -6,7 +6,7 @@
     <string name="discover_summary">Attempt to auto-locate media server</string>
     <string name="misc">Miscellaneous</string>
     <string name="clear_cache">Tap here to clear cache</string>
-    <string name="clear_cache_summary">Clear web cache, and cause page to be reloaded</string>
+    <string name="clear_cache_summary">Clear web cache and cause page to be reloaded</string>
     <string name="cache_to_be_cleared">Cache will be cleared</string>
     <string name="no_servers">No servers found</string>
     <string name="server_changed">Server changed</string>
@@ -31,5 +31,5 @@
     <string name="orientation">Orientation</string>
     <string name="no_player">No player</string>
     <string name="enable_notif">Show notification</string>
-    <string name="enable_notif_summary">Display current player name and basic controls in the notification bar and lockscreen.\nNOTE: Playback state is not reflected in these controls, and the \'play\' button will simply toggle the \'pause\' state of the active player.</string>
+    <string name="enable_notif_summary">Display current player name and basic controls in notification and lockscreen.\nNOTE: Playback state is not reflected in these controls, and the \'play\' button will simply toggle the \'pause\' state of the current player.</string>
 </resources>
