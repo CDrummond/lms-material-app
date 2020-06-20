@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
         Intent playerLaunchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
         String onCall = sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY,PhoneStateReceiver.DO_NOTHING);
-        boolean notif = sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, true);
+        boolean notif = sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
         return server.ip == null || server.ip.isEmpty()
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
@@ -199,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.ENABLE_NOTIF_PREF_KEY)) {
-            editor.putBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, true);
+            editor.putBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
             modified=true;
         }
         if (modified) {
@@ -680,7 +680,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void controlService() {
-        if (sharedPreferences.getBoolean(SettingsActivity.ENABLE_WIFI_PREF_KEY, true)) {
+        if (sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false)) {
             startService();
         } else {
             stopService();
