@@ -10,14 +10,6 @@ import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 public class PhoneStateReceiver extends BroadcastReceiver {
     public static final String DO_NOTHING = "nothing";
     public static final String MUTE_ALL = "muteall";
@@ -28,7 +20,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
     private TelephonyManager telephony;
     private static boolean pausedOrMutedPlayers = false;
     private SharedPreferences prefs ;
-    private RequestQueue requestQueue;
+    private JsonRpc rpc;
 
     private final PhoneStateListener phoneListener = new PhoneStateListener() {
         public void onCallStateChanged(int state, String incomingNumber) {
@@ -58,7 +50,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         telephony.listen(phoneListener, PhoneStateListener.LISTEN_CALL_STATE);
-        requestQueue = Volley.newRequestQueue(context);
+        rpc = new JsonRpc(context);
     }
 
     private boolean sendMessage(boolean inCall) {
@@ -89,27 +81,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
             } else {
                 return false;
             }
-
-            try {
-                JSONObject request = new JSONObject();
-                JSONArray params = new JSONArray();
-                JSONArray cmd = new JSONArray();
-                params.put(0, player);
-                for (String c : command) {
-                    cmd.put(cmd.length(), c);
-                }
-                params.put(1, cmd);
-                request.put("id", 1);
-                request.put("method", "slim.request");
-                request.put("params", params);
-
-                Log.i(MainActivity.TAG, "OnCall: MSG:" + request.toString());
-
-                requestQueue.add(new JsonObjectRequest(Request.Method.POST, "http://" + server.ip + ":" + server.port + "/jsonrpc.js", request, null, null));
-            } catch (Exception e) {
-                Log.e(MainActivity.TAG, "OnCall: Failed to send control message", e);
-            }
-            return true;
+            return rpc.sendMessage(player, command);
         }
         return false;
     }

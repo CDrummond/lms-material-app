@@ -13,20 +13,31 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 public class ForegroundService extends Service {
     public static final String START = ForegroundService.class.getCanonicalName()+".START";
-    public static final String STOP = ForegroundService.class.getCanonicalName()+"STOP";
+    public static final String STOP = ForegroundService.class.getCanonicalName()+".STOP";
+    private static final String NEXT_TRACK = ForegroundService.class.getCanonicalName()+".NEXT_TRACK";
+    private static final String PREV_TRACK = ForegroundService.class.getCanonicalName()+".PREV_TRACK";
+    private static final String PLAY_PAUSE = ForegroundService.class.getCanonicalName()+".PLAY_PAUSE";
     public static final int PLAYER_NAME = 1;
 
     private static final int MSG_ID = 1;
+    private static final String[] PREV_COMMAND = {"button", "jump_rew"};
+    private static final String[] PLAY_PAUSE_COMMAND = {"pause"};
+    private static final String[] NEXT_COMMAND = {"playlist", "index", "+1"};
+
+    private JsonRpc rpc;
+    private MediaSessionCompat mediaSession;
     private NotificationCompat.Builder notificationBuilder;
-    NotificationManagerCompat notificationManager;
+    private NotificationManagerCompat notificationManager;
     private final Messenger messenger = new Messenger(
             new IncomingHandler()
     );
@@ -60,12 +71,28 @@ public class ForegroundService extends Service {
         startForegroundService();
     }
 
+    private void sendCommand(String[] command) {
+        if (null==MainActivity.activePlayer) {
+            return;
+        }
+        if (null==rpc) {
+            rpc=new JsonRpc(getApplicationContext());
+        }
+        rpc.sendMessage(MainActivity.activePlayer, command);
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             String action = intent.getAction();
             if (STOP.equals(action)) {
                 stopForegroundService();
+            } else if (PREV_TRACK.equals(action)) {
+                sendCommand(PREV_COMMAND);
+            } else if (PLAY_PAUSE.equals(action)) {
+                sendCommand(PLAY_PAUSE_COMMAND);
+            } else if (NEXT_TRACK.equals(action)) {
+                sendCommand(NEXT_COMMAND);
             }
         }
         return super.onStartCommand(intent, flags, startId);
@@ -76,30 +103,13 @@ public class ForegroundService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel("lms_service", "LMS Service");
         } else {
-            Intent intent = new Intent(this, MainActivity.class);
-            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             notificationBuilder = new NotificationCompat.Builder(this);
-
-            NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
-            bigTextStyle.setBigContentTitle(getResources().getString(R.string.no_player));
-            Notification notification = notificationBuilder.setStyle(bigTextStyle)
-                    .setOnlyAlertOnce(true)
-                    .setSmallIcon(R.drawable.ic_mono_icon)
-                    .setContentTitle(getResources().getString(R.string.no_player))
-                    .setPriority(NotificationManager.IMPORTANCE_MIN)
-                    .setCategory(Notification.CATEGORY_SERVICE)
-                    .setContentIntent(pendingIntent)
-                    .build();
-            notificationManager = NotificationManagerCompat.from(this);
-            startForeground(MSG_ID, notification);
         }
+        createNotification();
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private void createNotificationChannel(String channelId, String channelName) {
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
         NotificationChannel chan = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
         chan.setLightColor(Color.BLUE);
         chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
@@ -110,8 +120,22 @@ public class ForegroundService extends Service {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         assert manager != null;
         manager.createNotificationChannel(chan);
-
         notificationBuilder = new NotificationCompat.Builder(this, channelId);
+    }
+
+    @NonNull
+    private PendingIntent getPendingIntent(@NonNull String action){
+        Intent intent = new Intent(this, ForegroundService.class);
+        intent.setAction(action);
+        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private void createNotification() {
+        Intent intent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        if (null==mediaSession) {
+            mediaSession = new MediaSessionCompat(getApplicationContext(), "LMS");
+        }
         Notification notification = notificationBuilder.setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setSmallIcon(R.drawable.ic_mono_icon)
@@ -119,6 +143,14 @@ public class ForegroundService extends Service {
                 .setPriority(NotificationManager.IMPORTANCE_MIN)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .setContentIntent(pendingIntent)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setShowWhen(false)
+                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                        .setShowActionsInCompactView(0, 1, 2)
+                        .setMediaSession(mediaSession.getSessionToken()))
+                .addAction(new NotificationCompat.Action(R.drawable.ic_prev, "Previous", getPendingIntent(PREV_TRACK)))
+                .addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play/Pause", getPendingIntent(PLAY_PAUSE)))
+                .addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)))
                 .build();
         notificationManager = NotificationManagerCompat.from(this);
         notificationManager.notify(1, notificationBuilder.build());
