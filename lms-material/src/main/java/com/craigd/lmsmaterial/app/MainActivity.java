@@ -48,6 +48,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -73,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
     private int defaultNavbar;
     private int statusbar = BAR_VISIBLE;
     private int navbar = BAR_HIDDEN;
+    private String addUrl; // URL to add to play queue...
+    private JsonRpc rpc;
 
     public static String activePlayer = null;
     public static String activePlayerName = null;
@@ -154,14 +158,12 @@ public class MainActivity extends AppCompatActivity {
     private String getConfiguredUrl() {
         Intent playerLaunchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
-        String onCall = sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY,PhoneStateReceiver.DO_NOTHING);
-        boolean notif = sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
         return server.ip == null || server.ip.isEmpty()
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
                   (null == playerLaunchIntent ? ",launchPlayer" : "") +
                   (statusbar==BAR_BLENDED || navbar==BAR_BLENDED ? "&nativeColors" : "") +
-                  (notif || PhoneStateReceiver.MUTE_ACTIVE.equals(onCall) || PhoneStateReceiver.PAUSE_ACTIVE.equals(onCall) ? "&nativePlayer" : "") +
+                  "&nativePlayer" +
                   "&appSettings=" + SETTINGS_URL +
                   "&appQuit=" + QUIT_URL;
     }
@@ -429,6 +431,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         checkNetworkConnection();
+        handleIntent(getIntent());
     }
 
     private void enableWifi() {
@@ -495,6 +498,7 @@ public class MainActivity extends AppCompatActivity {
         activePlayer = playerId;
         activePlayerName = playerName;
         updateService(playerName);
+        addUrlToPlayer();
     }
 
     @JavascriptInterface
@@ -657,6 +661,40 @@ public class MainActivity extends AppCompatActivity {
         }
         setOrientation();
         controlService();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        Log.d(TAG, "onNewIntent: "+intent.getAction());
+        handleIntent(intent);
+        super.onNewIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (null!=intent) {
+            Log.d(TAG, intent.getAction());
+        }
+        if (intent!=null && "android.intent.action.SEND".equals(intent.getAction())) {
+            try {
+                new URL(intent.getStringExtra(Intent.EXTRA_TEXT));
+                addUrl = intent.getStringExtra(Intent.EXTRA_TEXT);
+                Log.d(TAG, "Received: "+addUrl);
+                addUrlToPlayer();
+            } catch (MalformedURLException e) {
+                Log.d(TAG, "Malformed URL", e);
+            }
+        }
+    }
+
+    private void addUrlToPlayer() {
+        if (null!=activePlayer && null!=addUrl) {
+            if (null==rpc) {
+                rpc = new JsonRpc(this);
+            }
+            Log.d(TAG, "Add:"+addUrl+" to:"+activePlayer);
+            rpc.sendMessage(activePlayer, new String[]{"playlist", "add", addUrl});
+            addUrl = null;
+        }
     }
 
     private void setOrientation() {
