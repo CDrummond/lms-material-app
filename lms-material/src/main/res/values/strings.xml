@@ -31,5 +31,5 @@
     <string name="orientation">Orientation</string>
     <string name="no_player">No player</string>
     <string name="enable_notif">Show notification</string>
-    <string name="enable_notif_summary">Display current player name and basic controls in notification and lockscreen.\nNOTE: Playback state is not reflected in these controls, and the \'play/pause\' button will simply toggle the \'pause\' state of the current player.</string>
+    <string name="enable_notif_summary">Display current player name and basic controls in notification and lockscreen.\nNOTE: Playback state is not reflected in these controls, both \'play\' and \'pause\' buttons wil be visible.</string>
 </resources>

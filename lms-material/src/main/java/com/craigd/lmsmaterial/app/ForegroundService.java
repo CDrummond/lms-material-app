@@ -13,7 +13,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -26,16 +25,17 @@ public class ForegroundService extends Service {
     public static final String STOP = ForegroundService.class.getCanonicalName()+".STOP";
     private static final String NEXT_TRACK = ForegroundService.class.getCanonicalName()+".NEXT_TRACK";
     private static final String PREV_TRACK = ForegroundService.class.getCanonicalName()+".PREV_TRACK";
-    private static final String PLAY_PAUSE = ForegroundService.class.getCanonicalName()+".PLAY_PAUSE";
+    private static final String PLAY_TRACK = ForegroundService.class.getCanonicalName()+".PLAY_TRACK";
+    private static final String PAUSE_TRACK = ForegroundService.class.getCanonicalName()+".PAUSE_TRACK";
     public static final int PLAYER_NAME = 1;
 
     private static final int MSG_ID = 1;
     private static final String[] PREV_COMMAND = {"button", "jump_rew"};
-    private static final String[] PLAY_PAUSE_COMMAND = {"pause"};
+    private static final String[] PLAY_COMMAND = {"pause", "1"};
+    private static final String[] PAUSE_COMMAND = {"pause", "1"};
     private static final String[] NEXT_COMMAND = {"playlist", "index", "+1"};
 
     private JsonRpc rpc;
-    private MediaSessionCompat mediaSession;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManagerCompat notificationManager;
     private final Messenger messenger = new Messenger(
@@ -89,8 +89,10 @@ public class ForegroundService extends Service {
                 stopForegroundService();
             } else if (PREV_TRACK.equals(action)) {
                 sendCommand(PREV_COMMAND);
-            } else if (PLAY_PAUSE.equals(action)) {
-                sendCommand(PLAY_PAUSE_COMMAND);
+            } else if (PLAY_TRACK.equals(action)) {
+                sendCommand(PLAY_COMMAND);
+            } else if (PAUSE_TRACK.equals(action)) {
+                sendCommand(PAUSE_COMMAND);
             } else if (NEXT_TRACK.equals(action)) {
                 sendCommand(NEXT_COMMAND);
             }
@@ -133,9 +135,6 @@ public class ForegroundService extends Service {
     private void createNotification() {
         Intent intent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        if (null==mediaSession) {
-            mediaSession = new MediaSessionCompat(getApplicationContext(), "LMS");
-        }
         Notification notification = notificationBuilder.setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setSmallIcon(R.drawable.ic_mono_icon)
@@ -146,10 +145,10 @@ public class ForegroundService extends Service {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setShowWhen(false)
                 .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                        .setShowActionsInCompactView(0, 1, 2)
-                        .setMediaSession(mediaSession.getSessionToken()))
+                        .setShowActionsInCompactView(1, 2, 3))
                 .addAction(new NotificationCompat.Action(R.drawable.ic_prev, "Previous", getPendingIntent(PREV_TRACK)))
-                .addAction(new NotificationCompat.Action(R.drawable.ic_play_pause, "Play/Pause", getPendingIntent(PLAY_PAUSE)))
+                .addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play", getPendingIntent(PLAY_TRACK)))
+                .addAction(new NotificationCompat.Action(R.drawable.ic_pause, "Pause", getPendingIntent(PAUSE_TRACK)))
                 .addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)))
                 .build();
         notificationManager = NotificationManagerCompat.from(this);
