@@ -149,7 +149,7 @@ public class ForegroundService extends Service {
                         .setShowActionsInCompactView(0, 1, 2)
                         .setMediaSession(mediaSession.getSessionToken()))
                 .addAction(new NotificationCompat.Action(R.drawable.ic_prev, "Previous", getPendingIntent(PREV_TRACK)))
-                .addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play/Pause", getPendingIntent(PLAY_PAUSE)))
+                .addAction(new NotificationCompat.Action(R.drawable.ic_play_pause, "Play/Pause", getPendingIntent(PLAY_PAUSE)))
                 .addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)))
                 .build();
         notificationManager = NotificationManagerCompat.from(this);
