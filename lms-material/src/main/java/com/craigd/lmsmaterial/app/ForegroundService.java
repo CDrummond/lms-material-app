@@ -31,7 +31,7 @@ public class ForegroundService extends Service {
 
     private static final int MSG_ID = 1;
     private static final String[] PREV_COMMAND = {"button", "jump_rew"};
-    private static final String[] PLAY_COMMAND = {"pause", "1"};
+    private static final String[] PLAY_COMMAND = {"play"};
     private static final String[] PAUSE_COMMAND = {"pause", "1"};
     private static final String[] NEXT_COMMAND = {"playlist", "index", "+1"};
 

@@ -1,0 +1,3 @@
+Fixed
+
+• Send correct command when 'play' is pressed on notification.
