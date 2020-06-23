@@ -6,6 +6,6 @@ Improved
 • Added 'Show notification' setting to show current player name in nofification, and display basic media controls (these do not reflect state).
 • Register to receive links via 'Share Link'
 
-Improved
+Fixed
 
 • Update correct 'summary' field when auto-discover server.
