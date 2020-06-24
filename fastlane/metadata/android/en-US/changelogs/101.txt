@@ -2,3 +2,4 @@ Fixed
 
 • Send correct command when 'play' is pressed on notification.
 • Opening 'Application settings' if these were previously open when app put into background.
+• Open '/updateinfo.html' in user's browser.

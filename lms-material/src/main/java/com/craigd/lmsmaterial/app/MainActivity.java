@@ -417,7 +417,8 @@ public class MainActivity extends AppCompatActivity {
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 String server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, "")).ip;
 
-                if (server.equals(Uri.parse(url).getHost())) {
+                //...also open 'updateinfo' in separate browser...
+                if (server.equals(Uri.parse(url).getHost()) && url.indexOf("/updateinfo.html")<0) {
                     return false;
                 }
 
