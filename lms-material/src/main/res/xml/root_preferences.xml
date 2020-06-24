@@ -69,7 +69,9 @@
             app:title="@string/enable_notif"
             app:summary="@string/enable_notif_summary"
             app:key="enable_notif"/>
-        <Preference app:title="@string/clear_cache" app:key="clear_cache"
-            app:summary="@string/clear_cache_summary"/>
+        <Preference
+            app:title="@string/clear_cache"
+            app:summary="@string/clear_cache_summary"
+            app:key="clear_cache"/>
     </PreferenceCategory>
 </PreferenceScreen>

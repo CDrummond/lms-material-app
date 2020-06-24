@@ -87,6 +87,24 @@ public class SettingsActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
+    @Override
+    public void onDestroy() {
+        visible = false;
+        super.onDestroy();
+    }
+
+    @Override
+    public void onResume() {
+        visible = true;
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        visible = false;
+        super.onPause();
+    }
+
     public static class SettingsFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
         private class Discovery extends ServerDiscovery {
             Discovery(Context context) {
@@ -104,7 +122,6 @@ public class SettingsActivity extends AppCompatActivity {
 
                     if (servers.size()>1) {
                         // If more than 1 server found, then select one that is different to the currently selected one.
-
                         if (!current.isEmpty()) {
                             for (Server server: servers) {
                                 if (!server.equals(current)) {
@@ -206,6 +223,7 @@ public class SettingsActivity extends AppCompatActivity {
                 discoverButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {
+                        Log.d(MainActivity.TAG, "Discover clicked");
                         Toast.makeText(getContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT).show();
                         if (discovery == null) {
                             discovery = new Discovery(getContext().getApplicationContext());
@@ -223,6 +241,7 @@ public class SettingsActivity extends AppCompatActivity {
                     public boolean onPreferenceClick(Preference arg0) {
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
                         boolean clear = sharedPreferences.getBoolean(CLEAR_CACHE_PREF_KEY, false);
+                        Log.d(MainActivity.TAG, "Clear clicked, config:"+clear);
                         if (!clear) {
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putBoolean(CLEAR_CACHE_PREF_KEY, true);
@@ -249,7 +268,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             if (ON_CALL_PREF_KEY.equals(key)) {
                 updateListSummary(key);
-                if (! "nothing".equals(sharedPreferences.getString(key, PhoneStateReceiver.DO_NOTHING))) {
+                if (! PhoneStateReceiver.DO_NOTHING.equals(sharedPreferences.getString(key, PhoneStateReceiver.DO_NOTHING))) {
                     activity.checkOnCallPermission();
                 }
             }
