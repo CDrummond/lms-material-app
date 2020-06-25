@@ -4,3 +4,4 @@ Fixed
 • Opening 'Application settings' if these were previously open when app put into background.
 • Open '/updateinfo.html' in user's browser.
 • Fix notification, and action, icon colors on older Android.
+• Register for more 'Share Link' actions.
