@@ -416,14 +416,13 @@ public class MainActivity extends AppCompatActivity {
                 // Is URL for LMS server? If so we handle this
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 String server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, "")).ip;
-
-                //...also open 'updateinfo' in separate browser...
-                if (server.equals(Uri.parse(url).getHost()) && url.indexOf("/updateinfo.html")<0) {
+                Uri uri=Uri.parse(url);
+                if (server.equals(uri.getHost()) && uri.getPath().startsWith("/material")) {
                     return false;
                 }
 
                 // Nope, so launch an intent to handle the URL...
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
                 return true;
             }

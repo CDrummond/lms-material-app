@@ -1,0 +1,3 @@
+Fixed
+
+• Only open '/material' links in this app, open others in user's browser.
