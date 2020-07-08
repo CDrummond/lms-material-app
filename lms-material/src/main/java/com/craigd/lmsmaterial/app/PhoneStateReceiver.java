@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -26,36 +25,10 @@ public class PhoneStateReceiver extends BroadcastReceiver {
     public static final String PAUSE_ALL = "pauseall";
     public static final String PAUSE_CURRENT = "pausecurrent";
 
-    private TelephonyManager telephony;
-    private SharedPreferences prefs ;
-    private JsonRpc rpc;
+    private SharedPreferences prefs = null;
+    private JsonRpc rpc = null;
     private List<String> activePlayers = new LinkedList<String>();
     private boolean inCall = false;
-
-    private final PhoneStateListener phoneListener = new PhoneStateListener() {
-        public void onCallStateChanged(int state, String incomingNumber) {
-            switch (state) {
-                case TelephonyManager.CALL_STATE_IDLE:
-                    Log.d(MainActivity.TAG, "OnCall: Idle, activePlayers:"+activePlayers);
-                    inCall = false;
-                    controlPlayers();
-                    activePlayers.clear();
-                    break;
-                case TelephonyManager.CALL_STATE_OFFHOOK:
-                    Log.d(MainActivity.TAG, "OnCall: OffHook, activePlayers:"+activePlayers);
-                    if (MainActivity.isActive() || ForegroundService.isActive()) {
-                        inCall = true;
-                        getActivePlayers();
-                    } else {
-                        Log.d(MainActivity.TAG, "OnCall: App is not currently active");
-                    }
-                    break;
-                case TelephonyManager.CALL_STATE_RINGING:
-                    Log.d(MainActivity.TAG, "OnCall: Ringing, activePlayers:"+activePlayers);
-                    break;
-            }
-        }
-    };
 
     private Response.Listener<JSONObject> rpcResponse = new Response.Listener<JSONObject> () {
         @Override
@@ -84,10 +57,39 @@ public class PhoneStateReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        telephony.listen(phoneListener, PhoneStateListener.LISTEN_CALL_STATE);
-        rpc = new JsonRpc(context);
+        if (!"android.intent.action.PHONE_STATE".equals(intent.getAction())) {
+            return;
+        }
+        if (null==prefs) {
+            prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        }
+        if (null==rpc) {
+            rpc = new JsonRpc(context);
+        }
+        String state = intent.getExtras().getString(TelephonyManager.EXTRA_STATE);
+        Log.d(MainActivity.TAG, "Call state:" + state);
+        if (TelephonyManager.EXTRA_STATE_IDLE.equals(state)) {
+            callEnded();
+        } else if(TelephonyManager.EXTRA_STATE_OFFHOOK.equals(state)) {
+            callStarted();
+        }
+    }
+
+    private void callStarted() {
+        Log.d(MainActivity.TAG, "Call started, activePlayers:"+activePlayers);
+        if (MainActivity.isActive() || ForegroundService.isActive()) {
+            inCall = true;
+            getActivePlayers();
+        } else {
+            Log.d(MainActivity.TAG, "App is not currently active");
+        }
+    }
+
+    private void callEnded() {
+        Log.d(MainActivity.TAG, "Call ended, activePlayers:"+activePlayers);
+        inCall = false;
+        controlPlayers();
+        activePlayers.clear();
     }
 
     private void getActivePlayers() {
