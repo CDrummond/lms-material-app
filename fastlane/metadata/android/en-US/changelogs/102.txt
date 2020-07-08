@@ -2,3 +2,4 @@ Fixed
 
 • Only open '/material' links in this app, open others in user's browser.
 • When set to pause or mute players during calls, get list of powered on and playing players and only control those.
+• When set to pause or mute players during calls, only perform action if webview was acive within 5 seconds or notification is shown.

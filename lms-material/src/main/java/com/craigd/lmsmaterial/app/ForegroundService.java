@@ -35,6 +35,11 @@ public class ForegroundService extends Service {
     private static final String[] PAUSE_COMMAND = {"pause", "1"};
     private static final String[] NEXT_COMMAND = {"playlist", "index", "+1"};
 
+    private static boolean isRunning = false;
+    public static boolean isActive() {
+        return isRunning;
+    }
+
     private JsonRpc rpc;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManagerCompat notificationManager;
@@ -108,6 +113,7 @@ public class ForegroundService extends Service {
             notificationBuilder = new NotificationCompat.Builder(this);
         }
         createNotification();
+        isRunning = true;
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -162,5 +168,6 @@ public class ForegroundService extends Service {
         Log.d(MainActivity.TAG, "Stop foreground service.");
         stopForeground(true);
         stopSelf();
+        isRunning = false;
     }
 }

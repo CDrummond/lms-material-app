@@ -43,8 +43,12 @@ public class PhoneStateReceiver extends BroadcastReceiver {
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:
                     Log.d(MainActivity.TAG, "OnCall: OffHook, activePlayers:"+activePlayers);
-                    inCall = true;
-                    getActivePlayers();
+                    if (MainActivity.isActive() || ForegroundService.isActive()) {
+                        inCall = true;
+                        getActivePlayers();
+                    } else {
+                        Log.d(MainActivity.TAG, "OnCall: App is not currently active");
+                    }
                     break;
                 case TelephonyManager.CALL_STATE_RINGING:
                     Log.d(MainActivity.TAG, "OnCall: Ringing, activePlayers:"+activePlayers);

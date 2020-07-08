@@ -50,6 +50,7 @@ import androidx.preference.PreferenceManager;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -80,6 +81,22 @@ public class MainActivity extends AppCompatActivity {
 
     public static String activePlayer = null;
     public static String activePlayerName = null;
+    private static boolean isCurrentActivity = false;
+    private static Date pausedDate = null;
+
+    /**
+     * Check whether activty is active, or was in the last 5 seconds...
+     * @return
+     */
+    public static boolean isActive() {
+        if (isCurrentActivity) {
+            return true;
+        }
+        if (null!=pausedDate) {
+            return (new Date().getTime() - pausedDate.getTime())<5000;
+        }
+        return false;
+    }
 
     private boolean foregroundServiceBound = false;
     private Messenger foregroundServiceMessenger;
@@ -587,6 +604,8 @@ public class MainActivity extends AppCompatActivity {
         webView.onPause();
         webView.pauseTimers();
         super.onPause();
+        isCurrentActivity = false;
+        pausedDate = new Date();
     }
 
     @Override
@@ -595,6 +614,7 @@ public class MainActivity extends AppCompatActivity {
         webView.onResume();
         webView.resumeTimers();
         super.onResume();
+        isCurrentActivity = true;
 
         if (!settingsShown) {
             return;
