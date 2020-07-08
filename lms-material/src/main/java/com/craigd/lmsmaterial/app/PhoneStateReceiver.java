@@ -56,20 +56,23 @@ public class PhoneStateReceiver extends BroadcastReceiver {
     private Response.Listener<JSONObject> rpcResponse = new Response.Listener<JSONObject> () {
         @Override
         public void onResponse(JSONObject response) {
+            activePlayers.clear();
             if (inCall) {
                 try {
                     Log.d(MainActivity.TAG, "RESP" + response.toString(4));
-                    JSONArray players = response.getJSONObject("result").getJSONArray("players");
-                    if (null!=players && players.length()>0) {
-                        for (int i=0; i<players.length(); ++i) {
-                            activePlayers.add(players.getJSONObject(i).getString("id"));
+                    JSONObject result = response.getJSONObject("result");
+                    if (null!=result && result.has("players")) {
+                        JSONArray players = result.getJSONArray("players");
+                        if (null != players && players.length() > 0) {
+                            for (int i = 0; i < players.length(); ++i) {
+                                activePlayers.add(players.getJSONObject(i).getString("id"));
+                            }
+                            Log.d(MainActivity.TAG, "RPC response, activePlayers:" + activePlayers);
+                            controlPlayers();
                         }
-                        Log.d(MainActivity.TAG, "RPC response, activePlayers:"+activePlayers);
-                        controlPlayers();
                     }
                 } catch (JSONException e) {
                     Log.e(MainActivity.TAG, "Failed to parse response", e);
-                    activePlayers.clear();
                 }
             }
         }
