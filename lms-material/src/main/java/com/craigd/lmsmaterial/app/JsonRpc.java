@@ -8,6 +8,7 @@ import androidx.preference.PreferenceManager;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -24,6 +25,10 @@ public class JsonRpc {
     }
 
     public boolean sendMessage(String id, String[] command) {
+        return sendMessage(id, command, null);
+    }
+
+    public boolean sendMessage(String id, String[] command, Response.Listener<JSONObject> responseListener) {
         ServerDiscovery.Server server = new ServerDiscovery.Server(prefs.getString(SettingsActivity.SERVER_PREF_KEY,null));
         if (null!=server.ip) {
             try {
@@ -39,10 +44,10 @@ public class JsonRpc {
                 request.put("method", "slim.request");
                 request.put("params", params);
 
-                Log.i(MainActivity.TAG, "OnCall: MSG:" + request.toString());
-                requestQueue.add(new JsonObjectRequest(Request.Method.POST, "http://" + server.ip + ":" + server.port + "/jsonrpc.js", request, null, null));
+                Log.i(MainActivity.TAG, "MSG:" + request.toString());
+                requestQueue.add(new JsonObjectRequest(Request.Method.POST, "http://" + server.ip + ":" + server.port + "/jsonrpc.js", request, responseListener, null));
             } catch (Exception e) {
-                Log.e(MainActivity.TAG, "OnCall: Failed to send control message", e);
+                Log.e(MainActivity.TAG, "Failed to send control message", e);
             }
             return true;
         }

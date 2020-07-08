@@ -22,16 +22,16 @@
     </string-array>
     <string-array name="oncall">
         <item>Do nothing</item>
-        <item>Mute all players</item>
-        <item>Mute active player</item>
-        <item>Pause all players</item>
-        <item>Pause active player</item>
+        <item>Mute all activeplayers</item>
+        <item>Mute current player</item>
+        <item>Pause all active players</item>
+        <item>Pause current player</item>
     </string-array>
     <string-array name="oncallAlias">
         <item>nothing</item>
         <item>muteall</item>
-        <item>muteactive</item>
+        <item>muteecurrent</item>
         <item>pauseall</item>
-        <item>pausective</item>
+        <item>pausecurrent</item>
     </string-array>
 </resources>
