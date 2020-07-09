@@ -1,3 +1,7 @@
+Improved
+
+• Added support for servers requiring authentication.
+
 Fixed
 
 • Only open '/material' links in this app, open others in user's browser.

@@ -5,6 +5,7 @@ import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -33,6 +34,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.HttpAuthHandler;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -40,10 +42,12 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
@@ -55,17 +59,20 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     public final static String TAG = "LMS";
-    private final String SETTINGS_URL = "mska://settings";
-    private final String QUIT_URL = "mska://quit";
-    private final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
-    private final int PAGE_TIMEOUT = 5000;
-    private final int BAR_VISIBLE = 0;
-    private final int BAR_BLENDED = 1;
-    private final int BAR_HIDDEN = 2;
+    private static final String SETTINGS_URL = "mska://settings";
+    private static final String QUIT_URL = "mska://quit";
+    private static final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
+    private static final String LMS_USERNAME_KEY = "lms-username";
+    private static final String LMS_PASSWORD_KEY = "lms-password";
+    private static final int PAGE_TIMEOUT = 5000;
+    private static final int BAR_VISIBLE = 0;
+    private static final int BAR_BLENDED = 1;
+    private static final int BAR_HIDDEN = 2;
 
     private SharedPreferences sharedPreferences;
     private WebView webView;
     private String url;
+    private boolean reloadUrlAfterSettings = false; // Should URL be reloaded after settings closed, regardless if changed?
     private boolean pageError = false;
     private boolean settingsShown = false;
     private int currentScale = 0;
@@ -162,6 +169,49 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         }
+    }
+
+    public void promptForUserNameAndPassword(final HttpAuthHandler httpAuthHandler)  {
+        View layout = getLayoutInflater().inflate(R.layout.auth_prompt, null);
+        final EditText username = layout.findViewById(R.id.username);
+        final EditText password = layout.findViewById(R.id.password);
+        username.setText(sharedPreferences.getString(LMS_USERNAME_KEY, ""));
+        password.setText(sharedPreferences.getString(LMS_PASSWORD_KEY, ""));
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String user = username.getText().toString();
+                String pass = password.getText().toString();
+                if (null!=user) {
+                    user=user.trim();
+                }
+                if (null!=pass) {
+                    pass=pass.trim();
+                }
+                if (null!=user && user.length()>0 && null!=pass && pass.length()>0) {
+                    dialog.dismiss();
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString(LMS_USERNAME_KEY, user);
+                    editor.putString(LMS_PASSWORD_KEY, pass);
+                    editor.commit();
+
+                    httpAuthHandler.proceed(user, pass);
+                }
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+                dialog.dismiss();
+                reloadUrlAfterSettings=true;
+                navigateToSettingsActivity();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.setView(layout);
+        dialog.show();
     }
 
     private void navigateToSettingsActivity() {
@@ -306,13 +356,13 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private final Handler handler = new Handler(Looper.myLooper());
+    private final Handler pageLoadHandler = new Handler(Looper.myLooper());
 
     private void loadUrl(String u) {
         Log.d(TAG, "Load URL:"+url);
-        handler.removeCallbacks(pageLoadTimeout);
+        pageLoadHandler.removeCallbacks(pageLoadTimeout);
         webView.loadUrl(u);
-        handler.postDelayed(pageLoadTimeout, PAGE_TIMEOUT);
+        pageLoadHandler.postDelayed(pageLoadTimeout, PAGE_TIMEOUT);
     }
 
     private void discoverServer() {
@@ -376,12 +426,14 @@ public class MainActivity extends AppCompatActivity {
         webView.setInitialScale(currentScale);
 
         webView.setWebViewClient(new WebViewClient() {
+            private boolean firstAuthReq = true;
             @Override
             public void onPageStarted(WebView view, String u, Bitmap favicon) {
                 Log.d(TAG, "onPageStarted:" + u);
                 if (u.equals(url)) {
                     Log.d(TAG, u + " is loading");
-                    handler.removeCallbacks(pageLoadTimeout);
+                    pageLoadHandler.removeCallbacks(pageLoadTimeout);
+                    firstAuthReq=true;
                 }
                 super.onPageStarted(view, u, favicon);
             }
@@ -442,6 +494,24 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
                 return true;
+            }
+
+            public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler httpAuthHandler, String host, String realm) {
+                Log.i(TAG, "onReceivedHttpAuthRequest");
+                pageLoadHandler.removeCallbacks(pageLoadTimeout);
+                // If this is the first time we have been asked for auth on this page, then use and settings stored in preferences.
+                if (firstAuthReq) {
+                    firstAuthReq = false;
+                    String user = sharedPreferences.getString(LMS_USERNAME_KEY, null);
+                    String pass = sharedPreferences.getString(LMS_PASSWORD_KEY, null);
+                    if (user!=null && pass!=null) {
+                        Log.i(TAG, "Try prev auth detail");
+                        httpAuthHandler.proceed(user, pass);
+                        return;
+                    }
+                }
+                Log.i(TAG, "Prompt for auth details");
+                promptForUserNameAndPassword(httpAuthHandler);
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
@@ -668,7 +738,7 @@ public class MainActivity extends AppCompatActivity {
             pageError = false;
             url = u;
             loadUrl(u);
-        } else if (pageError || cacheCleared || needReload) {
+        } else if (pageError || cacheCleared || needReload || reloadUrlAfterSettings) {
             Log.i(TAG, "Reload URL");
             pageError = false;
             webView.reload();
@@ -681,6 +751,7 @@ public class MainActivity extends AppCompatActivity {
         }
         setOrientation();
         controlService();
+        reloadUrlAfterSettings=false;
     }
 
     @Override
