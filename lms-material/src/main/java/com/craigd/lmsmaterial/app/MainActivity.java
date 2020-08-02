@@ -486,7 +486,7 @@ public class MainActivity extends AppCompatActivity {
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 String server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, "")).ip;
                 Uri uri=Uri.parse(url);
-                if (server.equals(uri.getHost()) && uri.getPath().startsWith("/material")) {
+                if (server.equals(uri.getHost()) && uri.getPath().startsWith("/material") && !uri.getPath().contains("/docs/")) {
                     return false;
                 }
 

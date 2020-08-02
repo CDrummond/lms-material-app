@@ -1,0 +1,4 @@
+Fixed
+
+• Don't open '/docs/' in this app, open in user's browser.
+
