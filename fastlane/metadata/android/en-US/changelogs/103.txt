@@ -1,4 +1,3 @@
 Fixed
 
-• Don't open '/docs/' in this app, open in user's browser.
-
+• Pass all URLs (apart from settings, quit, and launch player) onto user's browser.

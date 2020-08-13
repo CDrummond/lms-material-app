@@ -482,13 +482,17 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
 
+                Uri uri=Uri.parse(url);
+
                 // Is URL for LMS server? If so we handle this
+                /*
+                NO - don't handle URLs, not required?
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 String server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, "")).ip;
-                Uri uri=Uri.parse(url);
                 if (server.equals(uri.getHost()) && uri.getPath().startsWith("/material") && !uri.getPath().contains("/docs/")) {
                     return false;
                 }
+                */
 
                 // Nope, so launch an intent to handle the URL...
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
