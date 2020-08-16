@@ -675,7 +675,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         Log.i(TAG, "Pause");
-        webView.onPause();
+        //webView.onPause();
         webView.pauseTimers();
         super.onPause();
         isCurrentActivity = false;
@@ -685,7 +685,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         Log.i(TAG, "Resume");
-        webView.onResume();
+        //webView.onResume();
         webView.resumeTimers();
         super.onResume();
         isCurrentActivity = true;
