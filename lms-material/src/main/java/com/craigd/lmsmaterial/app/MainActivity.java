@@ -411,7 +411,11 @@ public class MainActivity extends AppCompatActivity {
         webView.setBackgroundColor(Color.TRANSPARENT);
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         webView.addJavascriptInterface(this, "NativeReceiver");
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        } else {
+            webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
@@ -421,6 +425,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(false);
+        webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
         initialWebViewScale = getResources().getDisplayMetrics().density;
         currentScale = getScale();
         webView.setInitialScale(currentScale);
