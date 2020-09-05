@@ -238,6 +238,16 @@ public class MainActivity extends AppCompatActivity {
     private void setDefaults() {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         boolean modified = false;
+        if (!sharedPreferences.contains(SettingsActivity.SCALE_PREF_KEY)) {
+            // Convert from previous...
+            if (sharedPreferences.contains("scale")) {
+                editor.putInt(SettingsActivity.SCALE_PREF_KEY, sharedPreferences.getInt("scale", 0) + 5);
+                editor.remove("scale");
+            } else {
+                editor.putInt(SettingsActivity.SCALE_PREF_KEY, 5);
+            }
+            modified=true;
+        }
         if (!sharedPreferences.contains(SettingsActivity.STATUSBAR_PREF_KEY)) {
             editor.putString(SettingsActivity.STATUSBAR_PREF_KEY, "blend");
             modified=true;
@@ -305,7 +315,13 @@ public class MainActivity extends AppCompatActivity {
 
     private int getScale() {
         int pref = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
-        return 0==pref ? 0 : (int)Math.round(initialWebViewScale *(100+(10*pref)));
+        if (5==pref) {
+            return 0;
+        }
+        if (pref<5) {
+            return (int)Math.round(initialWebViewScale *(100+(5*(pref-5))));
+        }
+        return (int)Math.round(initialWebViewScale *(100+(10*(pref-5))));
     }
 
     private boolean gestureNavigationEnabled() {

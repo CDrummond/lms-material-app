@@ -46,9 +46,10 @@
         <SeekBarPreference
             app:title="@string/scale"
             app:summary="@string/scale_summary"
-            app:key="scale"
+            app:key="zoomscale"
             android:min="0"
-            android:max="5"/>
+            android:max="10"
+            android:progress="5"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/misc">
