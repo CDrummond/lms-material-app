@@ -432,6 +432,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
+        webView.setVerticalScrollBarEnabled(false);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
