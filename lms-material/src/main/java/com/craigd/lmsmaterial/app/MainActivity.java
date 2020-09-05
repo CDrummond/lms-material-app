@@ -425,7 +425,6 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(false);
-        webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
         initialWebViewScale = getResources().getDisplayMetrics().density;
         currentScale = getScale();
         webView.setInitialScale(currentScale);
