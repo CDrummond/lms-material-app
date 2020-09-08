@@ -35,4 +35,6 @@
     <string name="auth_request">Server requires authentication</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
+    <string name="show_over_lock_screen">Show over lock screen</string>
+    <string name="show_over_lock_screen_summary">If application is the current application when the screen is locked, it will be shown before the PIN entry screen.</string>
 </resources>

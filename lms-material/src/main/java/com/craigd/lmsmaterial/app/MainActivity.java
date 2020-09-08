@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
     private int defaultNavbar;
     private int statusbar = BAR_VISIBLE;
     private int navbar = BAR_HIDDEN;
+    private boolean showOverLockscreen = false;
     private String addUrl; // URL to add to play queue...
     private JsonRpc rpc;
 
@@ -281,6 +282,10 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
             modified=true;
         }
+        if (!sharedPreferences.contains(SettingsActivity.SHOW_OVER_LOCK_SCREEN_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.SHOW_OVER_LOCK_SCREEN_PREF_KEY, true);
+            modified=true;
+        }
         if (modified) {
             editor.apply();
         }
@@ -410,19 +415,7 @@ public class MainActivity extends AppCompatActivity {
         setFullscreen();
         setContentView(R.layout.activity_main);
         init5497Workaround();
-        // Allow to show above the lock screen
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true);
-            setTurnScreenOn(true);
-            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-            if (keyguardManager != null) {
-                keyguardManager.requestDismissKeyguard(this, null);
-            }
-        } else {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-        }
+        controlShowOverLockscreen();
         webView = findViewById(R.id.webview);
         webView.setBackgroundColor(Color.TRANSPARENT);
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
@@ -776,6 +769,7 @@ public class MainActivity extends AppCompatActivity {
         }
         setOrientation();
         controlService();
+        controlShowOverLockscreen();
         reloadUrlAfterSettings=false;
     }
 
@@ -870,6 +864,35 @@ public class MainActivity extends AppCompatActivity {
             } catch (RemoteException e) {
                 Log.d(TAG, "Failed to update service");
             }
+        }
+    }
+
+    private Boolean lockScreenInit = false;
+    private void controlShowOverLockscreen() {
+        Boolean showOver = sharedPreferences.getBoolean(SettingsActivity.SHOW_OVER_LOCK_SCREEN_PREF_KEY, true);
+        if (showOver==showOverLockscreen) {
+            return;
+        }
+        showOverLockscreen = showOver;
+        // Allow to show above the lock screen
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(showOverLockscreen);
+            setTurnScreenOn(showOverLockscreen);
+
+            if (showOverLockscreen && !lockScreenInit) {
+                KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+                if (keyguardManager != null) {
+                    keyguardManager.requestDismissKeyguard(this, null);
+                }
+            }
+        } else if (showOverLockscreen) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         }
     }
 

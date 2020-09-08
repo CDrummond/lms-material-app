@@ -1,3 +1,5 @@
 Improved
 
 • Add ability to decrease zoom, not just increase.
+• Add option to control whether application is shown over lock screen or not.
+

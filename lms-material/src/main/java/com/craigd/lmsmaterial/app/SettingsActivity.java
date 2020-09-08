@@ -36,6 +36,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String ORIENTATION_PREF_KEY = "orientation";
     public static final String ON_CALL_PREF_KEY = "on_call";
     public static final String ENABLE_NOTIF_PREF_KEY = "enable_notif";
+    public static final String SHOW_OVER_LOCK_SCREEN_PREF_KEY ="show_over_lock_screen";
     private static final int PERMISSION_READ_PHONE_STATE = 1;
 
     private static boolean visible = false;
