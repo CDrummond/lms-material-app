@@ -344,10 +344,14 @@ public class MainActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
-                webView.evaluateJavascript("incrementVolume()", null);
+                if (0==(event.getRepeatCount()%2)) {
+                    webView.evaluateJavascript("incrementVolume()", null);
+                }
                 return true;
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                webView.evaluateJavascript("decrementVolume()", null);
+                if (0==(event.getRepeatCount()%2)) {
+                    webView.evaluateJavascript("decrementVolume()", null);
+                }
                 return true;
         }
 
