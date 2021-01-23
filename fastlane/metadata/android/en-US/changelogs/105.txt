@@ -1,0 +1,4 @@
+Improved
+
+• Incrementally change volume when press-and-hold hardware buttons.
+
