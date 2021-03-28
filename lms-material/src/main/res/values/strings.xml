@@ -1,5 +1,5 @@
 <resources>
-    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_settings">Application settings</string>
     <string name="app_name">LMS</string>
     <string name="server_settings">Server Settings</string>
     <string name="discover">Tap here to discover server</string>
