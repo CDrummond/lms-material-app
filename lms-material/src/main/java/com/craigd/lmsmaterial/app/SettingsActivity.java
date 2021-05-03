@@ -269,7 +269,7 @@ public class SettingsActivity extends AppCompatActivity {
                                     SharedPreferences.Editor editor = sharedPreferences.edit();
                                     editor.putString(DEFAULT_PLAYER_PREF_KEY, str);
                                     editor.apply();
-                                    defaultPlayerButton.setSummary(str);
+                                    defaultPlayerButton.setSummary(str.isEmpty() ? getResources().getString(R.string.default_player_summary) : str);
                                 }
                             }
                         });
