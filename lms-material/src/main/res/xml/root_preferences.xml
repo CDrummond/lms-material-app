@@ -74,6 +74,17 @@
             app:title="@string/enable_notif"
             app:summary="@string/enable_notif_summary"
             app:key="enable_notif"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/advanced">
+        <Preference
+            app:key="default_player"
+            app:title="@string/default_player"
+            app:summary="@string/default_player_summary"/>
+        <SwitchPreference
+            app:title="@string/single_player"
+            app:summary="@string/single_player_summary"
+            app:key="single_player"/>
         <Preference
             app:title="@string/clear_cache"
             app:summary="@string/clear_cache_summary"

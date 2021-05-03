@@ -37,4 +37,9 @@
     <string name="password">Password</string>
     <string name="show_over_lock_screen">Show over lock screen</string>
     <string name="show_over_lock_screen_summary">If application is the current application when the screen is locked, it will be shown before the PIN entry screen.</string>
+    <string name="advanced">Advanced</string>
+    <string name="default_player">Default player</string>
+    <string name="default_player_summary">Set name, or ID, of default player</string>
+    <string name="single_player">Only control default</string>
+    <string name="single_player_summary">Only show, and control, the default player (as configured above)</string>
 </resources>

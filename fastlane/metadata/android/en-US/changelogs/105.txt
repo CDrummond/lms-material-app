@@ -1,4 +1,5 @@
 Improved
 
 • Incrementally change volume when press-and-hold hardware buttons.
-
+• Add 'Default player' setting
+• Add 'Control control default' setting

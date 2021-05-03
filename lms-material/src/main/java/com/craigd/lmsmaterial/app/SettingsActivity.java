@@ -37,6 +37,9 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String ON_CALL_PREF_KEY = "on_call";
     public static final String ENABLE_NOTIF_PREF_KEY = "enable_notif";
     public static final String SHOW_OVER_LOCK_SCREEN_PREF_KEY ="show_over_lock_screen";
+    public static final String DEFAULT_PLAYER_PREF_KEY ="default_player";
+    public static final String SINGLE_PLAYER_PREF_KEY ="single_player";
+
     private static final int PERMISSION_READ_PHONE_STATE = 1;
 
     private static boolean visible = false;
@@ -230,6 +233,54 @@ public class SettingsActivity extends AppCompatActivity {
                             discovery = new Discovery(getContext().getApplicationContext());
                         }
                         discovery.discover();
+                        return true;
+                    }
+                });
+            }
+
+            final Preference defaultPlayerButton = getPreferenceManager().findPreference("default_player");
+            if (defaultPlayerButton != null) {
+                defaultPlayerButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference arg0) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        builder.setTitle(R.string.default_player);
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                        String value = sharedPreferences.getString(SettingsActivity.DEFAULT_PLAYER_PREF_KEY,null);
+
+                        int padding = getResources().getDimensionPixelOffset(R.dimen.dlg_padding);
+                        final EditText input = new EditText(getContext());
+                        input.setInputType(InputType.TYPE_CLASS_TEXT);
+
+                        if (null!=value) {
+                            input.setText(value);
+                        }
+
+                        input.setPadding(padding, input.getPaddingTop(), padding, input.getPaddingBottom());
+                        builder.setView(input);
+
+                        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String str = input.getText().toString();
+                                if (null!=str) {
+                                    str = str.trim();
+                                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putString(DEFAULT_PLAYER_PREF_KEY, str);
+                                    editor.apply();
+                                    defaultPlayerButton.setSummary(str);
+                                }
+                            }
+                        });
+                        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+                        builder.show();
                         return true;
                     }
                 });

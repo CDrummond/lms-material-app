@@ -53,8 +53,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
@@ -105,6 +108,14 @@ public class MainActivity extends AppCompatActivity {
             return (new Date().getTime() - pausedDate.getTime())<5000;
         }
         return false;
+    }
+
+    private static String urlEncode(String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString()).replace("+", "%20");
+        } catch (UnsupportedEncodingException ex) {
+            return value;
+        }
     }
 
     private boolean foregroundServiceBound = false;
@@ -227,11 +238,14 @@ public class MainActivity extends AppCompatActivity {
     private String getConfiguredUrl() {
         Intent playerLaunchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
+        String defaultPlayer = sharedPreferences.getString(SettingsActivity.DEFAULT_PLAYER_PREF_KEY, null);
+        Boolean singlePlayer = sharedPreferences.getBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false);
         return server.ip == null || server.ip.isEmpty()
                 ? null
                 : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
                   (null == playerLaunchIntent ? ",launchPlayer" : "") +
                   (statusbar==BAR_BLENDED || navbar==BAR_BLENDED ? "&nativeColors" : "") +
+                  (null == defaultPlayer || defaultPlayer.isEmpty() ? "" : (("&player=" + urlEncode(defaultPlayer)) + (singlePlayer ? "&single" : ""))) +
                   "&nativePlayer" +
                   "&appSettings=" + SETTINGS_URL +
                   "&appQuit=" + QUIT_URL;
@@ -285,6 +299,10 @@ public class MainActivity extends AppCompatActivity {
         }
         if (!sharedPreferences.contains(SettingsActivity.SHOW_OVER_LOCK_SCREEN_PREF_KEY)) {
             editor.putBoolean(SettingsActivity.SHOW_OVER_LOCK_SCREEN_PREF_KEY, true);
+            modified=true;
+        }
+        if (!sharedPreferences.contains(SettingsActivity.SINGLE_PLAYER_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false);
             modified=true;
         }
         if (modified) {
