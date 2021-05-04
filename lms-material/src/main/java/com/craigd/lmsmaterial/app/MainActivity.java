@@ -456,7 +456,6 @@ public class MainActivity extends AppCompatActivity {
         controlShowOverLockscreen();
         webView = findViewById(R.id.webview);
         webView.setBackgroundColor(Color.TRANSPARENT);
-        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         webView.addJavascriptInterface(this, "NativeReceiver");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
