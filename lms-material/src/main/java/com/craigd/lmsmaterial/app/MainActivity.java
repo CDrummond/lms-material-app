@@ -53,11 +53,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
@@ -108,14 +105,6 @@ public class MainActivity extends AppCompatActivity {
             return (new Date().getTime() - pausedDate.getTime())<5000;
         }
         return false;
-    }
-
-    private static String urlEncode(String value) {
-        try {
-            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString()).replace("+", "%20");
-        } catch (UnsupportedEncodingException ex) {
-            return value;
-        }
     }
 
     private boolean foregroundServiceBound = false;
@@ -239,16 +228,31 @@ public class MainActivity extends AppCompatActivity {
         Intent playerLaunchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
         String defaultPlayer = sharedPreferences.getString(SettingsActivity.DEFAULT_PLAYER_PREF_KEY, null);
-        Boolean singlePlayer = sharedPreferences.getBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false);
-        return server.ip == null || server.ip.isEmpty()
-                ? null
-                : "http://" + server.ip + ":" + server.port + "/material/?hide=notif,scale" +
-                  (null == playerLaunchIntent ? ",launchPlayer" : "") +
-                  (statusbar==BAR_BLENDED || navbar==BAR_BLENDED ? "&nativeColors" : "") +
-                  (null == defaultPlayer || defaultPlayer.isEmpty() ? "" : (("&player=" + urlEncode(defaultPlayer)) + (singlePlayer ? "&single" : ""))) +
-                  "&nativePlayer" +
-                  "&appSettings=" + SETTINGS_URL +
-                  "&appQuit=" + QUIT_URL;
+        if (server.ip == null || server.ip.isEmpty()) {
+            return null;
+        }
+
+        try {
+            Uri.Builder builder = Uri.parse("http://" + server.ip + ":" + server.port + "/material/").buildUpon();
+            if (statusbar==BAR_BLENDED || navbar==BAR_BLENDED) {
+                builder.appendQueryParameter("nativeColors", "1");
+            }
+            if (defaultPlayer!=null && !defaultPlayer.isEmpty()) {
+                builder.appendQueryParameter("player", defaultPlayer);
+                if (sharedPreferences.getBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false)) {
+                    builder.appendQueryParameter("single", "1");
+                }
+            }
+            builder.appendQueryParameter("nativePlayer", "1");
+            return builder.build().toString()+
+                    // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
+                    "&hide=notif,scale" + (null == playerLaunchIntent ? ",launchPlayer" : "")+
+                    "&appSettings="+SETTINGS_URL+
+                    "&quitUrl="+QUIT_URL;
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to build URL", e);
+        }
+        return null;
     }
 
     private void setDefaults() {
