@@ -1,3 +1,4 @@
 Fixed
 
 • Show default player name / ID in preferences if set.
+• Use Uri.Builder to construct connection URL.
