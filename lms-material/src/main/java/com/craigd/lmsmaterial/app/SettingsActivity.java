@@ -169,9 +169,9 @@ public class SettingsActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
             Log.d(MainActivity.TAG, "SETUP");
 
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
             final Preference addressButton = getPreferenceManager().findPreference("server_address");
             if (addressButton != null) {
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
                 addressButton.setSummary(new Discovery.Server(sharedPreferences.getString(SERVER_PREF_KEY,"")).describe());
                 addressButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
@@ -180,7 +180,6 @@ public class SettingsActivity extends AppCompatActivity {
                         builder.setTitle(R.string.server_address);
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
                         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
-
 
                         int padding = getResources().getDimensionPixelOffset(R.dimen.dlg_padding);
                         final EditText input = new EditText(getContext());
@@ -240,6 +239,11 @@ public class SettingsActivity extends AppCompatActivity {
 
             final Preference defaultPlayerButton = getPreferenceManager().findPreference("default_player");
             if (defaultPlayerButton != null) {
+                String defaultPlayer = sharedPreferences.getString(SettingsActivity.DEFAULT_PLAYER_PREF_KEY, null);
+                if (defaultPlayer!=null && !defaultPlayer.isEmpty()) {
+                    defaultPlayerButton.setSummary(defaultPlayer);
+                }
+
                 defaultPlayerButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {
