@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" + (null == playerLaunchIntent ? ",launchPlayer" : "")+
                     "&appSettings="+SETTINGS_URL+
-                    "&quitUrl="+QUIT_URL;
+                    "&appQuit="+QUIT_URL;
         } catch (Exception e) {
             Log.e(TAG, "Failed to build URL", e);
         }
