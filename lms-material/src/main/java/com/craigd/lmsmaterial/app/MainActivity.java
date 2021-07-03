@@ -441,7 +441,7 @@ public class MainActivity extends AppCompatActivity {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         setDefaults();
         enableWifi();
-        controlService();
+        manageControlService();
         statusbar = getBarSetting(SettingsActivity.STATUSBAR_PREF_KEY, statusbar);
         navbar = getBarSetting(SettingsActivity.NAVBAR_PREF_KEY, navbar);
         setOrientation();
@@ -457,7 +457,7 @@ public class MainActivity extends AppCompatActivity {
         setFullscreen();
         setContentView(R.layout.activity_main);
         init5497Workaround();
-        controlShowOverLockscreen();
+        manageShowOverLockscreen();
         webView = findViewById(R.id.webview);
         webView.setBackgroundColor(Color.TRANSPARENT);
         webView.addJavascriptInterface(this, "NativeReceiver");
@@ -809,8 +809,8 @@ public class MainActivity extends AppCompatActivity {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         setOrientation();
-        controlService();
-        controlShowOverLockscreen();
+        manageControlService();
+        manageShowOverLockscreen();
         reloadUrlAfterSettings=false;
     }
 
@@ -865,15 +865,15 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    void controlService() {
+    void manageControlService() {
         if (sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false)) {
-            startService();
+            startControlService();
         } else {
-            stopService();
+            stopControlService();
         }
     }
 
-    void startService() {
+    void startControlService() {
         if (controlServiceBound) {
             return;
         }
@@ -883,7 +883,7 @@ public class MainActivity extends AppCompatActivity {
         controlServiceBound = true;
     }
 
-    void stopService() {
+    void stopControlService() {
         Intent intent = new Intent(MainActivity.this, ControlService.class);
         stopService(intent);
     }
@@ -907,7 +907,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Boolean lockScreenInit = false;
-    private void controlShowOverLockscreen() {
+    private void manageShowOverLockscreen() {
         Boolean showOver = sharedPreferences.getBoolean(SettingsActivity.SHOW_OVER_LOCK_SCREEN_PREF_KEY, true);
         if (showOver==showOverLockscreen) {
             return;
