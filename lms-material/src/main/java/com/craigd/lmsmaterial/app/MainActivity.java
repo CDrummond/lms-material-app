@@ -107,18 +107,24 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private boolean controlServiceBound = false;
     private Messenger controlServiceMessenger;
-    private ServiceConnection controlServiceConnection = new ServiceConnection() {
+    private ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
-            controlServiceMessenger = new Messenger(service);
-            if (null!=activePlayerName) {
-                updateService(activePlayerName);
+            Log.d(TAG, "onServiceConnected: "+className.getClassName());
+            if (className.getClassName().equals(ControlService.class.getCanonicalName())) {
+                Log.d(TAG, "Setup control messenger");
+                controlServiceMessenger = new Messenger(service);
+                if (null != activePlayerName) {
+                    updateService(activePlayerName);
+                }
             }
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            controlServiceMessenger = null;
+            Log.d(TAG, "onServiceDisconnected:" + className.getClassName());
+            if (className.getClassName().equals(ControlService.class.getCanonicalName())) {
+                controlServiceMessenger = null;
+            }
         }
     };
 
@@ -861,7 +867,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "Destroy");
         webView.destroy();
         webView = null;
-        unbindControlService();
+        stopControlService();
         super.onDestroy();
     }
 
@@ -874,31 +880,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void startControlService() {
-        if (controlServiceBound) {
+        if (controlServiceMessenger!=null) {
             return;
         }
         Log.d(TAG, "Start control service");
         Intent intent = new Intent(MainActivity.this, ControlService.class);
-        bindService(intent, controlServiceConnection, Context.BIND_AUTO_CREATE);
-        controlServiceBound = true;
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     void stopControlService() {
-        Log.d(TAG, "Stop control service");
-        unbindControlService();
-        Intent intent = new Intent(MainActivity.this, ControlService.class);
-        stopService(intent);
-    }
-
-    void unbindControlService() {
-        if (controlServiceBound) {
-            unbindService(controlServiceConnection);
-            controlServiceBound = false;
+        if (controlServiceMessenger!=null) {
+            Log.d(TAG, "Stop control service");
+            unbindService(serviceConnection);
+            controlServiceMessenger = null;
         }
     }
 
     private void updateService(String playerName) {
-        if (controlServiceBound && controlServiceMessenger !=null) {
+        if (controlServiceMessenger !=null) {
             Message msg = Message.obtain(null, ControlService.PLAYER_NAME, playerName);
             try {
                 controlServiceMessenger.send(msg);
