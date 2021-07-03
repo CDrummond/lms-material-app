@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private boolean foregroundServiceBound = false;
+    private boolean controlServiceBound = false;
     private Messenger foregroundServiceMessenger;
     private ServiceConnection foregroundServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -874,32 +874,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void startService() {
-        if (foregroundServiceBound) {
+        if (controlServiceBound) {
             return;
         }
 
-        Intent intent = new Intent(MainActivity.this, ForegroundService.class);
-        intent.setAction(ForegroundService.START);
-        //startService(intent);
+        Intent intent = new Intent(MainActivity.this, ControlService.class);
         bindService(intent, foregroundServiceConnection, Context.BIND_AUTO_CREATE);
-        foregroundServiceBound = true;
+        controlServiceBound = true;
     }
 
     void stopService() {
-        Intent intent = new Intent(MainActivity.this, ForegroundService.class);
+        Intent intent = new Intent(MainActivity.this, ControlService.class);
         stopService(intent);
     }
 
     void unbindService() {
-        if (foregroundServiceBound) {
+        if (controlServiceBound) {
             unbindService(foregroundServiceConnection);
-            foregroundServiceBound = false;
+            controlServiceBound = false;
         }
     }
 
     private void updateService(String playerName) {
-        if (foregroundServiceBound && foregroundServiceMessenger!=null) {
-            Message msg = Message.obtain(null, ForegroundService.PLAYER_NAME, playerName);
+        if (controlServiceBound && foregroundServiceMessenger!=null) {
+            Message msg = Message.obtain(null, ControlService.PLAYER_NAME, playerName);
             try {
                 foregroundServiceMessenger.send(msg);
             } catch (RemoteException e) {

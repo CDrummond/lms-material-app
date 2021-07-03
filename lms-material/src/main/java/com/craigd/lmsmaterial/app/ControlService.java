@@ -20,13 +20,11 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-public class ForegroundService extends Service {
-    public static final String START = ForegroundService.class.getCanonicalName()+".START";
-    public static final String STOP = ForegroundService.class.getCanonicalName()+".STOP";
-    private static final String NEXT_TRACK = ForegroundService.class.getCanonicalName()+".NEXT_TRACK";
-    private static final String PREV_TRACK = ForegroundService.class.getCanonicalName()+".PREV_TRACK";
-    private static final String PLAY_TRACK = ForegroundService.class.getCanonicalName()+".PLAY_TRACK";
-    private static final String PAUSE_TRACK = ForegroundService.class.getCanonicalName()+".PAUSE_TRACK";
+public class ControlService extends Service {
+    private static final String NEXT_TRACK = ControlService.class.getCanonicalName()+".NEXT_TRACK";
+    private static final String PREV_TRACK = ControlService.class.getCanonicalName()+".PREV_TRACK";
+    private static final String PLAY_TRACK = ControlService.class.getCanonicalName()+".PLAY_TRACK";
+    private static final String PAUSE_TRACK = ControlService.class.getCanonicalName()+".PAUSE_TRACK";
     public static final int PLAYER_NAME = 1;
 
     private static final int MSG_ID = 1;
@@ -61,7 +59,7 @@ public class ForegroundService extends Service {
         }
     }
 
-    public ForegroundService() {
+    public ControlService() {
     }
 
     @Override
@@ -90,9 +88,7 @@ public class ForegroundService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             String action = intent.getAction();
-            if (STOP.equals(action)) {
-                stopForegroundService();
-            } else if (PREV_TRACK.equals(action)) {
+            if (PREV_TRACK.equals(action)) {
                 sendCommand(PREV_COMMAND);
             } else if (PLAY_TRACK.equals(action)) {
                 sendCommand(PLAY_COMMAND);
@@ -133,7 +129,7 @@ public class ForegroundService extends Service {
 
     @NonNull
     private PendingIntent getPendingIntent(@NonNull String action){
-        Intent intent = new Intent(this, ForegroundService.class);
+        Intent intent = new Intent(this, ControlService.class);
         intent.setAction(action);
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }

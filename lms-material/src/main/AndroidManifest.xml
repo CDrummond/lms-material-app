@@ -56,7 +56,7 @@
         </activity>
 
         <service
-            android:name=".ForegroundService"
+            android:name=".ControlService"
             android:enabled="true"
             android:exported="true" />
 

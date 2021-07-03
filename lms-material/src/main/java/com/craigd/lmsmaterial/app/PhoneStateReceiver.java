@@ -77,7 +77,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
 
     private void callStarted() {
         Log.d(MainActivity.TAG, "Call started, activePlayers:"+activePlayers);
-        if (MainActivity.isActive() || ForegroundService.isActive()) {
+        if (MainActivity.isActive() || ControlService.isActive()) {
             inCall = true;
             getActivePlayers();
         } else {
