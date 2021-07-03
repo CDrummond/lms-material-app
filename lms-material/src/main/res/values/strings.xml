@@ -43,4 +43,6 @@
     <string name="single_player">Only control default</string>
     <string name="single_player_summary">Only show, and control, the default player (as configured above)</string>
     <string name="downloading">Downloading</string>
+    <string name="transcode">Transcode to MP3</string>
+    <string name="transcode_summary">Convert downloaded files to MP3. Transcoding is performed on the server, which must be properly configured.</string>
 </resources>

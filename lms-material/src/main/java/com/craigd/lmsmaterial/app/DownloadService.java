@@ -82,7 +82,7 @@ public class DownloadService extends Service {
     }
 
     class DownloadItem {
-        public DownloadItem(JSONObject obj) {
+        public DownloadItem(JSONObject obj, boolean transcode) {
             id=getInt(obj, "id");
             filename=getString(obj, "filename");
             title=getString(obj, "title");
@@ -103,7 +103,12 @@ public class DownloadService extends Service {
                 } else if (filename.length()>0) {
                     filename+=" ";
                 }
-                filename+=title+"."+ext;
+                filename+=title+"."+(transcode ? "mp3" : ext);
+            } else if (transcode) {
+                int pos = filename.lastIndexOf('.');
+                if (pos>0) {
+                    filename=filename.substring(0, pos)+".mp3";
+                }
             }
         }
 
@@ -247,13 +252,14 @@ public class DownloadService extends Service {
 
     void addTracks(JSONArray tracks) {
         Log.d(MainActivity.TAG, "addTracks");
+        boolean transcode = sharedPreferences.getBoolean("transcode", false);
 
         synchronized (items) {
             try {
                 int before = items.size();
                 List<DownloadItem> newAlbumCovers = new LinkedList<DownloadItem>();
                 for (int i = 0; i < tracks.length(); ++i) {
-                    DownloadItem track = new DownloadItem((JSONObject) tracks.get(i));
+                    DownloadItem track = new DownloadItem((JSONObject) tracks.get(i), transcode);
                     if (!trackIds.contains(track.id)) {
                         trackIds.add(track.id);
                         items.add(track);
@@ -379,7 +385,8 @@ public class DownloadService extends Service {
 
     void enqueueDownload(DownloadItem item) {
         ServerDiscovery.Server server = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
-        Uri url = item.isTrack ? Uri.parse("http://" + server.ip + ":" + server.port + "/music/" + item.id + "/download")
+        boolean transcode = sharedPreferences.getBoolean("transcode", false);
+        Uri url = item.isTrack ? Uri.parse("http://" + server.ip + ":" + server.port + "/music/" + item.id + "/download" + (transcode ? ".mp3" : ""))
                                : Uri.parse("http://" + server.ip + ":" + server.port + "/music/" + (item.id*-1) + "/cover.jpg");
         DownloadManager.Request request = new DownloadManager.Request(url)
                 .setTitle(item.title)

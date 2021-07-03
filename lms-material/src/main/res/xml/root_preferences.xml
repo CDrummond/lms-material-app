@@ -76,6 +76,13 @@
             app:key="enable_notif"/>
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/downloading">
+        <SwitchPreference
+            app:title="@string/transcode"
+            app:summary="@string/transcode_summary"
+            app:key="transcode"/>
+    </PreferenceCategory>
+
     <PreferenceCategory app:title="@string/advanced">
         <Preference
             app:key="default_player"
