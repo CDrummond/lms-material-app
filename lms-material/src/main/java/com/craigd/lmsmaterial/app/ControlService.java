@@ -163,7 +163,7 @@ public class ControlService extends Service {
                 .addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)))
                 .build();
         notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(1, notificationBuilder.build());
+        notificationManager.notify(MSG_ID, notificationBuilder.build());
         startForeground(MSG_ID, notification);
     }
 

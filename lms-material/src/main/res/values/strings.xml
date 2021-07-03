@@ -42,4 +42,5 @@
     <string name="default_player_summary">Set name, or ID, of default player</string>
     <string name="single_player">Only control default</string>
     <string name="single_player_summary">Only show, and control, the default player (as configured above)</string>
+    <string name="downloading">Downloading</string>
 </resources>

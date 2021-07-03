@@ -53,6 +53,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
+import org.json.JSONArray;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
@@ -87,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean showOverLockscreen = false;
     private String addUrl; // URL to add to play queue...
     private JsonRpc rpc;
+    private JSONArray downloadData = null;
 
     public static String activePlayer = null;
     public static String activePlayerName = null;
@@ -108,23 +111,59 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Messenger controlServiceMessenger;
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    private ServiceConnection controlServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             Log.d(TAG, "onServiceConnected: "+className.getClassName());
-            if (className.getClassName().equals(ControlService.class.getCanonicalName())) {
-                Log.d(TAG, "Setup control messenger");
-                controlServiceMessenger = new Messenger(service);
-                if (null != activePlayerName) {
-                    updateService(activePlayerName);
-                }
+            Log.d(TAG, "Setup control messenger");
+            controlServiceMessenger = new Messenger(service);
+            if (null != activePlayerName) {
+                updateControlService(activePlayerName);
             }
         }
 
         public void onServiceDisconnected(ComponentName className) {
             Log.d(TAG, "onServiceDisconnected:" + className.getClassName());
-            if (className.getClassName().equals(ControlService.class.getCanonicalName())) {
-                controlServiceMessenger = null;
+            controlServiceMessenger = null;
+        }
+    };
+
+    private Messenger downloadServiceMessenger = null;
+    private BroadcastReceiver downloadStatusReceiver = null;
+    private ServiceConnection downloadServiceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            Log.d(TAG, "Setup download messenger");
+            downloadServiceMessenger = new Messenger(service);
+            downloadStatusReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.d(MainActivity.TAG, "Download status received: " + intent.getStringExtra(DownloadService.STATUS_BODY));
+                    String msg  = intent.getStringExtra(DownloadService.STATUS_BODY).replace("\n", "")
+                            .replace("\\\"", "\\\\\"")
+                            .replace("\"", "\\\"");
+                    webView.evaluateJavascript("downloadStatus(\"" + msg +"\")", null);
+
+                    if (0==intent.getIntExtra(DownloadService.STATUS_LEN, -1)) {
+                        try {
+                            unbindService(downloadServiceConnection);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to unbind download service");
+                        }
+                        downloadServiceMessenger = null;
+                    }
+                }
+            };
+
+            registerReceiver(downloadStatusReceiver, new IntentFilter(DownloadService.STATUS));
+            if (null != downloadData) {
+                startDownload(downloadData);
             }
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            Log.d(TAG, "onServiceDisconnected:" + className.getClassName());
+            downloadServiceMessenger = null;
+            unregisterReceiver(downloadStatusReceiver);
+            downloadStatusReceiver = null;
         }
     };
 
@@ -254,7 +293,8 @@ public class MainActivity extends AppCompatActivity {
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" + (null == playerLaunchIntent ? ",launchPlayer" : "")+
                     "&appSettings="+SETTINGS_URL+
-                    "&appQuit="+QUIT_URL;
+                    "&appQuit="+QUIT_URL +
+                    "&download=native";
         } catch (Exception e) {
             Log.e(TAG, "Failed to build URL", e);
         }
@@ -649,7 +689,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Active player: "+playerId+", name: "+playerName);
         activePlayer = playerId;
         activePlayerName = playerName;
-        updateService(playerName);
+        updateControlService(playerName);
         addUrlToPlayer();
     }
 
@@ -698,6 +738,60 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         } catch (Exception e) {
+        }
+    }
+
+    @JavascriptInterface
+    public void cancelDownload(String str) {
+        Log.d(TAG, "cancelDownload: " + str);
+
+        try {
+            if (downloadServiceMessenger!=null) {
+                Message msg = Message.obtain(null, DownloadService.CANCEL_LIST, new JSONArray(str));
+                try {
+                    downloadServiceMessenger.send(msg);
+                } catch (RemoteException e) {
+                    Log.d(TAG, "Failed to request download cancel");
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "failed to decode cancelDownload", e);
+        }
+    }
+
+    @JavascriptInterface
+    public void download(String str) {
+        Log.d(TAG, "download: " + str);
+
+        try {
+            doDownload(new JSONArray(str));
+        } catch (Exception e) {
+            Log.e(TAG, "failed to decode download", e);
+        }
+    }
+
+    private void doDownload(JSONArray data) {
+        if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.M &&
+                ( checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) ) {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            downloadData = data;
+        } else {
+            startDownload(data);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 1:
+                for (int result: grantResults) {
+                    if (PackageManager.PERMISSION_GRANTED != result) {
+                        return;
+                    }
+                }
+                startDownload(downloadData);
+                break;
         }
     }
 
@@ -752,6 +846,7 @@ public class MainActivity extends AppCompatActivity {
         isCurrentActivity = true;
 
         if (!settingsShown) {
+            updateDownloadStatus();
             return;
         }
         settingsShown = false;
@@ -818,6 +913,18 @@ public class MainActivity extends AppCompatActivity {
         manageControlService();
         manageShowOverLockscreen();
         reloadUrlAfterSettings=false;
+        updateDownloadStatus();
+    }
+
+    private void updateDownloadStatus() {
+        if (downloadServiceMessenger!=null) {
+            Message msg = Message.obtain(null, DownloadService.STATUS_REQ);
+            try {
+                downloadServiceMessenger.send(msg);
+            } catch (RemoteException e) {
+                Log.d(TAG, "Failed to request download update");
+            }
+        }
     }
 
     @Override
@@ -885,25 +992,47 @@ public class MainActivity extends AppCompatActivity {
         }
         Log.d(TAG, "Start control service");
         Intent intent = new Intent(MainActivity.this, ControlService.class);
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        bindService(intent, controlServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     void stopControlService() {
         if (controlServiceMessenger!=null) {
             Log.d(TAG, "Stop control service");
-            unbindService(serviceConnection);
+            try {
+                unbindService(controlServiceConnection);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to unbind control service");
+            }
             controlServiceMessenger = null;
         }
     }
 
-    private void updateService(String playerName) {
-        if (controlServiceMessenger !=null) {
+    private void updateControlService(String playerName) {
+        if (controlServiceMessenger!=null) {
             Message msg = Message.obtain(null, ControlService.PLAYER_NAME, playerName);
             try {
                 controlServiceMessenger.send(msg);
             } catch (RemoteException e) {
                 Log.d(TAG, "Failed to update service");
             }
+        }
+    }
+
+    void startDownload(JSONArray data) {
+        if (downloadServiceMessenger!= null) {
+            Log.d(TAG, "Send track list to download service");
+            Message msg = Message.obtain(null, DownloadService.DOWNLOAD_LIST, data);
+            try {
+                downloadServiceMessenger.send(msg);
+            } catch (RemoteException e) {
+                Log.d(TAG, "Failed to send data to download service");
+            }
+            downloadData = null;
+        } else {
+            downloadData = data;
+            Log.d(TAG, "Start download service");
+            Intent intent = new Intent(MainActivity.this, DownloadService.class);
+            bindService(intent, downloadServiceConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
