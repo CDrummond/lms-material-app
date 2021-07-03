@@ -108,17 +108,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean controlServiceBound = false;
-    private Messenger foregroundServiceMessenger;
-    private ServiceConnection foregroundServiceConnection = new ServiceConnection() {
+    private Messenger controlServiceMessenger;
+    private ServiceConnection controlServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
-            foregroundServiceMessenger = new Messenger(service);
+            controlServiceMessenger = new Messenger(service);
             if (null!=activePlayerName) {
                 updateService(activePlayerName);
             }
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            foregroundServiceMessenger = null;
+            controlServiceMessenger = null;
         }
     };
 
@@ -879,7 +879,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Intent intent = new Intent(MainActivity.this, ControlService.class);
-        bindService(intent, foregroundServiceConnection, Context.BIND_AUTO_CREATE);
+        bindService(intent, controlServiceConnection, Context.BIND_AUTO_CREATE);
         controlServiceBound = true;
     }
 
@@ -890,16 +890,16 @@ public class MainActivity extends AppCompatActivity {
 
     void unbindService() {
         if (controlServiceBound) {
-            unbindService(foregroundServiceConnection);
+            unbindService(controlServiceConnection);
             controlServiceBound = false;
         }
     }
 
     private void updateService(String playerName) {
-        if (controlServiceBound && foregroundServiceMessenger!=null) {
+        if (controlServiceBound && controlServiceMessenger !=null) {
             Message msg = Message.obtain(null, ControlService.PLAYER_NAME, playerName);
             try {
-                foregroundServiceMessenger.send(msg);
+                controlServiceMessenger.send(msg);
             } catch (RemoteException e) {
                 Log.d(TAG, "Failed to update service");
             }
