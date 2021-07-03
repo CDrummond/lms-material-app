@@ -1,3 +1,10 @@
+/**
+ * LMS-Material-App
+ *
+ * Copyright (c) 2020-2021 Craig Drummond <craig.p.drummond@gmail.com>
+ * MIT license.
+ */
+
 package com.craigd.lmsmaterial.app;
 
 import android.app.Notification;
