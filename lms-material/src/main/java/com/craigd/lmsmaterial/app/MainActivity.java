@@ -861,7 +861,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "Destroy");
         webView.destroy();
         webView = null;
-        unbindService();
+        unbindControlService();
         super.onDestroy();
     }
 
@@ -877,18 +877,20 @@ public class MainActivity extends AppCompatActivity {
         if (controlServiceBound) {
             return;
         }
-
+        Log.d(TAG, "Start control service");
         Intent intent = new Intent(MainActivity.this, ControlService.class);
         bindService(intent, controlServiceConnection, Context.BIND_AUTO_CREATE);
         controlServiceBound = true;
     }
 
     void stopControlService() {
+        Log.d(TAG, "Stop control service");
+        unbindControlService();
         Intent intent = new Intent(MainActivity.this, ControlService.class);
         stopService(intent);
     }
 
-    void unbindService() {
+    void unbindControlService() {
         if (controlServiceBound) {
             unbindService(controlServiceConnection);
             controlServiceBound = false;

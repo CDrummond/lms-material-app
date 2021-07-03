@@ -70,8 +70,15 @@ public class ControlService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d("LMS", "ForegroundService.onCreate()");
+        Log.d("LMS", "ControlService.onCreate()");
         startForegroundService();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("LMS", "ControlService.onDestroy()");
+        stopForegroundService();
     }
 
     private void sendCommand(String[] command) {
@@ -102,7 +109,7 @@ public class ControlService extends Service {
     }
 
     private void startForegroundService() {
-        Log.d(MainActivity.TAG, "Start foreground service.");
+        Log.d(MainActivity.TAG, "Start control service.");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel("lms_service", "LMS Service");
         } else {
@@ -161,7 +168,7 @@ public class ControlService extends Service {
     }
 
     private void stopForegroundService() {
-        Log.d(MainActivity.TAG, "Stop foreground service.");
+        Log.d(MainActivity.TAG, "Stop control service.");
         stopForeground(true);
         stopSelf();
         isRunning = false;
