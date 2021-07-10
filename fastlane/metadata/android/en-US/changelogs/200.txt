@@ -1,6 +1,6 @@
 Improved
 
-• Added Download support (requires Material Skin 2.6.0, or newer).
+• Added download support (requires Material Skin 2.6.0, or newer).
 
 Fixed
 
