@@ -1,0 +1,3 @@
+Improved
+
+• Don't use WebView's app cache - deprecated.
