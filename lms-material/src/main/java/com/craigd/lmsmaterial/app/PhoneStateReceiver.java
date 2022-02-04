@@ -70,6 +70,10 @@ public class PhoneStateReceiver extends BroadcastReceiver {
         if (null==prefs) {
             prefs = PreferenceManager.getDefaultSharedPreferences(context);
         }
+        String action = prefs.getString(SettingsActivity.ON_CALL_PREF_KEY, DO_NOTHING);
+        if (DO_NOTHING.equals(action)) {
+            return;
+        }
         if (null==rpc) {
             rpc = new JsonRpc(context);
         }
@@ -77,7 +81,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
         Log.d(MainActivity.TAG, "Call state:" + state);
         if (TelephonyManager.EXTRA_STATE_IDLE.equals(state)) {
             callEnded();
-        } else if(TelephonyManager.EXTRA_STATE_OFFHOOK.equals(state)) {
+        } else if (TelephonyManager.EXTRA_STATE_OFFHOOK.equals(state)) {
             callStarted();
         }
     }
@@ -94,8 +98,10 @@ public class PhoneStateReceiver extends BroadcastReceiver {
 
     private void callEnded() {
         Log.d(MainActivity.TAG, "Call ended, activePlayers:"+activePlayers);
-        inCall = false;
-        controlPlayers();
+        if (inCall) {
+            inCall = false;
+            controlPlayers();
+        }
         activePlayers.clear();
     }
 
