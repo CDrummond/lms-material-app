@@ -64,8 +64,10 @@ import org.json.JSONArray;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     public final static String TAG = "LMS";
@@ -300,8 +302,8 @@ public class MainActivity extends AppCompatActivity {
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" + (null == playerLaunchIntent ? ",launchPlayer" : "")+
                     "&appSettings="+SETTINGS_URL+
-                    "&appQuit="+QUIT_URL +
-                    "&download=native";
+                    "&appQuit="+QUIT_URL+
+                    "&download=native&dontEmbed=pdf";
         } catch (Exception e) {
             Log.e(TAG, "Failed to build URL", e);
         }
@@ -606,6 +608,10 @@ public class MainActivity extends AppCompatActivity {
 
                 // Nope, so launch an intent to handle the URL...
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                String fileName = Paths.get(uri.getPath()).getFileName().toString();
+                if (null!=fileName && fileName.toLowerCase().endsWith(".pdf")) {
+                    intent.setDataAndType(uri, "application/pdf");
+                }
                 startActivity(intent);
                 return true;
             }
