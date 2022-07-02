@@ -531,6 +531,9 @@ public class MainActivity extends AppCompatActivity {
         initialWebViewScale = getResources().getDisplayMetrics().density;
         currentScale = getScale();
         webView.setInitialScale(currentScale);
+        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        webView.setHorizontalScrollBarEnabled(false);
+        webView.setVerticalScrollBarEnabled(false);
 
         webView.setWebViewClient(new WebViewClient() {
             private boolean firstAuthReq = true;

@@ -1,3 +1,4 @@
 Improved
 
 • Don't use WebView's app cache - deprecated.
+• Disable webview scrollbars
