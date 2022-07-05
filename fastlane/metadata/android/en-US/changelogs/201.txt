@@ -2,4 +2,4 @@ Improved
 
 • Don't use WebView's app cache - deprecated.
 • Disable webview scrollbars.
-• Tell MaterialSkin to not embed PDF files, and use intent to open these with phone's PDF viewer.
+• Tell MaterialSkin to not embed PDF files, and use intent to open these with phone's PDF viewer. Requires skin version 2.10.0, or later.
