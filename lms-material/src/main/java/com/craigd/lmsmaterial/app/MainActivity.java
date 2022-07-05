@@ -608,8 +608,8 @@ public class MainActivity extends AppCompatActivity {
 
                 // Nope, so launch an intent to handle the URL...
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                String fileName = Paths.get(uri.getPath()).getFileName().toString();
-                if (null!=fileName && fileName.toLowerCase().endsWith(".pdf")) {
+                String path = uri.getPath();
+                if (null!=path && path.toLowerCase().endsWith(".pdf")) {
                     intent.setDataAndType(uri, "application/pdf");
                 }
                 startActivity(intent);
