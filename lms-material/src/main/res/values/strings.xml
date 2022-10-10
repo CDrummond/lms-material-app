@@ -48,6 +48,6 @@
     <string name="url_handler_label">Choose player and action</string>
     <string name="player_name">Player</string>
     <string name="play_now">Play now</string>
-    <string name="play_next">Play next</string>
-    <string name="insert">Insert</string>
+    <string name="insert">Play next</string>
+    <string name="play_next">Add to queue</string>
 </resources>

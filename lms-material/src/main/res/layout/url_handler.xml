@@ -12,6 +12,7 @@
         android:layout_gravity="left"
         android:textSize="20dp"
         android:layout_marginBottom="16dp"/>
+
     <TextView
         android:id="@+id/player_label"
         android:layout_marginTop="10dp"
@@ -36,14 +37,15 @@
         android:text="@string/play_now" />
 
     <Button
+        android:id="@+id/insert_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/insert" />
+
+    <Button
         android:id="@+id/play_next_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/play_next" />
 
-    <Button
-        android:id="@+id/insert_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/insert" />
 </LinearLayout>
