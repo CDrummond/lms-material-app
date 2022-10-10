@@ -64,10 +64,8 @@ import org.json.JSONArray;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     public final static String TAG = "LMS";
@@ -96,8 +94,7 @@ public class MainActivity extends AppCompatActivity {
     private int statusbar = BAR_VISIBLE;
     private int navbar = BAR_HIDDEN;
     private boolean showOverLockscreen = false;
-    private String addUrl; // URL to add to play queue...
-    private JsonRpc rpc;
+    private UrlHandler urlHander;
     private JSONArray downloadData = null;
 
     public static String activePlayer = null;
@@ -705,7 +702,6 @@ public class MainActivity extends AppCompatActivity {
         activePlayer = playerId;
         activePlayerName = playerName;
         updateControlService(playerName);
-        addUrlToPlayer();
     }
 
     @JavascriptInterface
@@ -953,23 +949,17 @@ public class MainActivity extends AppCompatActivity {
         if (intent!=null && "android.intent.action.SEND".equals(intent.getAction())) {
             try {
                 new URL(intent.getStringExtra(Intent.EXTRA_TEXT));
-                addUrl = intent.getStringExtra(Intent.EXTRA_TEXT);
-                Log.d(TAG, "Received: "+addUrl);
-                addUrlToPlayer();
+                String url = intent.getStringExtra(Intent.EXTRA_TEXT);
+                Log.d(TAG, "Received: "+url);
+                if (null!=url && !url.isEmpty()) {
+                    if (null==urlHander) {
+                        urlHander = new UrlHandler(this);
+                    }
+                    urlHander.handle(url);
+                }
             } catch (MalformedURLException e) {
                 Log.d(TAG, "Malformed URL", e);
             }
-        }
-    }
-
-    private void addUrlToPlayer() {
-        if (null!=activePlayer && null!=addUrl) {
-            if (null==rpc) {
-                rpc = new JsonRpc(this);
-            }
-            Log.d(TAG, "Add:"+addUrl+" to:"+activePlayer);
-            rpc.sendMessage(activePlayer, new String[]{"playlist", "add", addUrl});
-            addUrl = null;
         }
     }
 

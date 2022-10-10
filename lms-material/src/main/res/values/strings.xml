@@ -45,4 +45,9 @@
     <string name="downloading">Downloading</string>
     <string name="transcode">Transcode to MP3</string>
     <string name="transcode_summary">Convert downloaded files to MP3. Transcoding is performed on the server, which must be properly configured.</string>
+    <string name="url_handler_label">Choose player and action</string>
+    <string name="player_name">Player</string>
+    <string name="play_now">Play now</string>
+    <string name="play_next">Play next</string>
+    <string name="insert">Insert</string>
 </resources>

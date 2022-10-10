@@ -1,0 +1,3 @@
+Improved
+
+• When adding a URL via Android's share system, show a dialog asking which player to share to and add buttons for play, add, or insert.

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" android:layout_height="fill_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical" android:padding="10dp">
+    <TextView
+        android:id="@+id/url_handler_label"
+        android:layout_marginTop="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/url_handler_label"
+        android:layout_gravity="left"
+        android:textSize="20dp"
+        android:layout_marginBottom="16dp"/>
+    <TextView
+        android:id="@+id/player_label"
+        android:layout_marginTop="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/player_name"
+        android:layout_gravity="left"/>
+    <Spinner
+        android:id="@+id/player_name"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"/>
+
+    <View
+        android:id="@+id/spacer"
+        android:layout_width="match_parent"
+        android:layout_height="56dp" />
+
+    <Button
+        android:id="@+id/play_now_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/play_now" />
+
+    <Button
+        android:id="@+id/play_next_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/play_next" />
+
+    <Button
+        android:id="@+id/insert_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/insert" />
+</LinearLayout>
