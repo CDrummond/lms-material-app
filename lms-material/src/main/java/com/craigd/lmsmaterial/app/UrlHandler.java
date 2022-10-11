@@ -94,7 +94,6 @@ public class UrlHandler {
                         .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 dialog.dismiss();
-                                handlingUrl = null;
                             }
                         });
                 dialog = builder.create();
@@ -172,10 +171,6 @@ public class UrlHandler {
 
     public synchronized void handle(String url) {
         Log.d(MainActivity.TAG, "Shared URL:" + url);
-        if (null!=handlingUrl) {
-            Log.d(MainActivity.TAG, "Already trying to share");
-            return;
-        }
         if (null==rpc) {
             rpc = new JsonRpc(activity);
         }
@@ -183,7 +178,7 @@ public class UrlHandler {
         rpc.sendMessage("", new String[]{"serverstatus", "0", "100"}, rpcResponse);
     }
 
-    private void addUrlToPlayer(String action) {
+    private synchronized void addUrlToPlayer(String action) {
         if (chosenPlayer<0 || chosenPlayer>=playerList.size()) {
             return;
         }
