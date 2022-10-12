@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
     private static final String LMS_USERNAME_KEY = "lms-username";
     private static final String LMS_PASSWORD_KEY = "lms-password";
+    private static final String CURRENT_PLAYER_ID_KEY = "current_player_id";
     private static final int PAGE_TIMEOUT = 5000;
     private static final int BAR_VISIBLE = 0;
     private static final int BAR_BLENDED = 1;
@@ -364,6 +365,8 @@ public class MainActivity extends AppCompatActivity {
         if (modified) {
             editor.apply();
         }
+        activePlayer = sharedPreferences.getString(CURRENT_PLAYER_ID_KEY, activePlayer);
+        Log.d(TAG, "Startup player set to:"+activePlayer);
     }
 
     private int getBarSetting(String key, int def) {
@@ -702,6 +705,11 @@ public class MainActivity extends AppCompatActivity {
         activePlayer = playerId;
         activePlayerName = playerName;
         updateControlService(playerName);
+        if (null!=activePlayer && !activePlayer.equals(sharedPreferences.getString(CURRENT_PLAYER_ID_KEY, null))) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(CURRENT_PLAYER_ID_KEY, activePlayer);
+            editor.apply();
+        }
     }
 
     @JavascriptInterface
