@@ -804,6 +804,7 @@ public class MainActivity extends AppCompatActivity {
                 startDownload(downloadData);
                 break;
         }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     private void setFullscreen() {
@@ -972,6 +973,10 @@ public class MainActivity extends AppCompatActivity {
         } else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
         }
+    }
+
+    public void setPlayer(String id) {
+        webView.evaluateJavascript("setCurrentPlayer(\"" + id +"\")", null);
     }
 
     @Override
