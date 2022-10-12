@@ -705,11 +705,6 @@ public class MainActivity extends AppCompatActivity {
         activePlayer = playerId;
         activePlayerName = playerName;
         updateControlService(playerName);
-        if (null!=activePlayer && !activePlayer.equals(sharedPreferences.getString(CURRENT_PLAYER_ID_KEY, null))) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString(CURRENT_PLAYER_ID_KEY, activePlayer);
-            editor.apply();
-        }
     }
 
     @JavascriptInterface
@@ -855,6 +850,11 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         isCurrentActivity = false;
         pausedDate = new Date();
+        if (null!=activePlayer && !activePlayer.equals(sharedPreferences.getString(CURRENT_PLAYER_ID_KEY, null))) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(CURRENT_PLAYER_ID_KEY, activePlayer);
+            editor.apply();
+        }
     }
 
     @Override
