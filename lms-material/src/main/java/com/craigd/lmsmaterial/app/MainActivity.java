@@ -850,11 +850,6 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         isCurrentActivity = false;
         pausedDate = new Date();
-        if (null!=activePlayer && !activePlayer.equals(sharedPreferences.getString(CURRENT_PLAYER_ID_KEY, null))) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString(CURRENT_PLAYER_ID_KEY, activePlayer);
-            editor.apply();
-        }
     }
 
     @Override
@@ -993,6 +988,11 @@ public class MainActivity extends AppCompatActivity {
         webView.destroy();
         webView = null;
         stopControlService();
+        if (null!=activePlayer && !activePlayer.equals(sharedPreferences.getString(CURRENT_PLAYER_ID_KEY, null))) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(CURRENT_PLAYER_ID_KEY, activePlayer);
+            editor.apply();
+        }
         super.onDestroy();
     }
 
