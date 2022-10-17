@@ -952,9 +952,20 @@ public class MainActivity extends AppCompatActivity {
     private void handleIntent(Intent intent) {
         if (intent!=null && "android.intent.action.SEND".equals(intent.getAction())) {
             try {
-                new URL(intent.getStringExtra(Intent.EXTRA_TEXT));
                 String url = intent.getStringExtra(Intent.EXTRA_TEXT);
                 Log.d(TAG, "Received: "+url);
+                if (!url.startsWith("http") && (url.contains("http://") || url.contains("https://"))) {
+                    String parts[] = url.split("\\s");
+                    for (String part: parts) {
+                        part = part.trim();
+                        if (part.startsWith("http://") || part.startsWith("https://")) {
+                            url=part;
+                            Log.d(TAG, "Converted: "+url);
+                            break;
+                        }
+                    }
+                }
+                new URL(url);
                 if (null!=url && !url.isEmpty()) {
                     if (null==urlHander) {
                         urlHander = new UrlHandler(this);
