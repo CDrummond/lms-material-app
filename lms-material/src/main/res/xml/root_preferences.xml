@@ -25,6 +25,10 @@
             app:key="discover"
             app:title="@string/discover"
             app:summary="@string/discover_summary"/>
+	<SwitchPreference
+            app:key="autodiscover"
+            app:title="@string/autodiscover"
+            app:summary="@string/autodiscover_summary"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/ui">

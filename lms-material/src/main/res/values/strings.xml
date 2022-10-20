@@ -50,4 +50,6 @@
     <string name="play_now">Play now</string>
     <string name="insert">Play next</string>
     <string name="play_next">Add to queue</string>
+    <string name="autodiscover">Auto-discover server</string>
+    <string name="autodiscover_summary">If connection to server is lost attempt to auto-discover server again</string>
 </resources>

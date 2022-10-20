@@ -34,6 +34,7 @@ import java.util.List;
 
 public class SettingsActivity extends AppCompatActivity {
     public static final String SERVER_PREF_KEY = "server";
+    public static final String AUTODISCOVER_PREF_KEY = "autodiscover";
     public static final String CLEAR_CACHE_PREF_KEY = "clear_cache";
     public static final String SCALE_PREF_KEY = "zoomscale";
     public static final String STATUSBAR_PREF_KEY = "statusbar";

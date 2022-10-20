@@ -321,6 +321,10 @@ public class MainActivity extends AppCompatActivity {
             }
             modified=true;
         }
+        if (!sharedPreferences.contains(SettingsActivity.AUTODISCOVER_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.AUTODISCOVER_PREF_KEY, true);
+            modified=true;
+        }
         if (!sharedPreferences.contains(SettingsActivity.STATUSBAR_PREF_KEY)) {
             editor.putString(SettingsActivity.STATUSBAR_PREF_KEY, "blend");
             modified=true;
@@ -470,7 +474,7 @@ public class MainActivity extends AppCompatActivity {
     private final Runnable pageLoadTimeout = new Runnable() {
         public void run() {
             Log.d(TAG, "Page failed to load");
-            discoverServer();
+            discoverServer(false);
         }
     };
 
@@ -483,10 +487,12 @@ public class MainActivity extends AppCompatActivity {
         pageLoadHandler.postDelayed(pageLoadTimeout, PAGE_TIMEOUT);
     }
 
-    private void discoverServer() {
-        Toast.makeText(getBaseContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT).show();
-        Discovery discovery = new Discovery(getApplicationContext());
-        discovery.discover();
+    private void discoverServer(boolean force) {
+        if (force || sharedPreferences.getBoolean(SettingsActivity.AUTODISCOVER_PREF_KEY, true)) {
+            Toast.makeText(getBaseContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT).show();
+            Discovery discovery = new Discovery(getApplicationContext());
+            discovery.discover();
+        }
     }
 
     @Override
@@ -559,7 +565,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (request.isForMainFrame()) {
                     pageError = true;
-                    discoverServer();
+                    discoverServer(false);
                 }
             }
 
@@ -666,7 +672,7 @@ public class MainActivity extends AppCompatActivity {
             url = getConfiguredUrl();
             if (url == null) {
                 // No previous server, so try to find
-                discoverServer();
+                discoverServer(true);
             } else {
                 // Try to connect to previous server
                 Log.i(TAG, "URL:" + url);
