@@ -16,89 +16,115 @@
 
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory app:title="@string/server_settings">
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/server_settings">
         <Preference
+            app:iconSpaceReserved="false"
             app:key="server_address"
-            app:title="@string/server_address"
-            app:summary="@string/no_servers"/>
+            app:summary="@string/no_servers"
+            app:title="@string/server_address" />
         <Preference
+            app:iconSpaceReserved="false"
             app:key="discover"
-            app:title="@string/discover"
-            app:summary="@string/discover_summary"/>
-	<SwitchPreference
+            app:summary="@string/discover_summary"
+            app:title="@string/discover" />
+        <SwitchPreference
+            app:iconSpaceReserved="false"
             app:key="autodiscover"
-            app:title="@string/autodiscover"
-            app:summary="@string/autodiscover_summary"/>
+            app:summary="@string/autodiscover_summary"
+            app:title="@string/autodiscover" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/ui">
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/ui">
         <ListPreference
+            android:entries="@array/statusbar"
+            android:entryValues="@array/statusbarAlias"
             android:key="statusbar"
             android:title="@string/statusbar"
-            android:entries="@array/statusbar"
-            android:entryValues="@array/statusbarAlias"/>
+            app:iconSpaceReserved="false" />
         <ListPreference
+            android:entries="@array/statusbar"
+            android:entryValues="@array/statusbarAlias"
             android:key="navbar"
             android:title="@string/navbar"
-            android:entries="@array/statusbar"
-            android:entryValues="@array/statusbarAlias"/>
+            app:iconSpaceReserved="false" />
         <ListPreference
+            android:entries="@array/orientation"
+            android:entryValues="@array/orientationAlias"
             android:key="orientation"
             android:title="@string/orientation"
-            android:entries="@array/orientation"
-            android:entryValues="@array/orientationAlias"/>
+            app:iconSpaceReserved="false" />
         <SeekBarPreference
-            app:title="@string/scale"
-            app:summary="@string/scale_summary"
-            app:key="zoomscale"
-            android:min="0"
             android:max="10"
-            android:progress="5"/>
+            android:min="0"
+            android:progress="5"
+            app:iconSpaceReserved="false"
+            app:key="zoomscale"
+            app:summary="@string/scale_summary"
+            app:title="@string/scale" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/misc">
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/misc">
         <SwitchPreference
-            app:title="@string/keep_screen_on"
+            app:iconSpaceReserved="false"
+            app:key="keep_screen_on"
             app:summary="@string/keep_screen_on_summary"
-            app:key="keep_screen_on"/>
+            app:title="@string/keep_screen_on" />
         <SwitchPreference
-            app:title="@string/enable_wifi"
+            app:iconSpaceReserved="false"
+            app:key="enable_wifi"
             app:summary="@string/enable_wifi_summary"
-            app:key="enable_wifi"/>
+            app:title="@string/enable_wifi" />
         <ListPreference
+            android:entries="@array/oncall"
+            android:entryValues="@array/oncallAlias"
             android:key="on_call"
             android:title="@string/oncall"
-            android:entries="@array/oncall"
-            android:entryValues="@array/oncallAlias"/>
+            app:iconSpaceReserved="false" />
         <SwitchPreference
-            app:title="@string/show_over_lock_screen"
+            app:iconSpaceReserved="false"
+            app:key="show_over_lock_screen"
             app:summary="@string/show_over_lock_screen_summary"
-            app:key="show_over_lock_screen"/>
+            app:title="@string/show_over_lock_screen" />
         <SwitchPreference
-            app:title="@string/enable_notif"
+            app:iconSpaceReserved="false"
+            app:key="enable_notif"
             app:summary="@string/enable_notif_summary"
-            app:key="enable_notif"/>
+            app:title="@string/enable_notif" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/downloading">
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/downloading">
         <SwitchPreference
-            app:title="@string/transcode"
+            app:iconSpaceReserved="false"
+            app:key="transcode"
             app:summary="@string/transcode_summary"
-            app:key="transcode"/>
+            app:title="@string/transcode" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/advanced">
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/advanced">
         <Preference
+            app:iconSpaceReserved="false"
             app:key="default_player"
-            app:title="@string/default_player"
-            app:summary="@string/default_player_summary"/>
+            app:summary="@string/default_player_summary"
+            app:title="@string/default_player" />
         <SwitchPreference
-            app:title="@string/single_player"
+            app:iconSpaceReserved="false"
+            app:key="single_player"
             app:summary="@string/single_player_summary"
-            app:key="single_player"/>
+            app:title="@string/single_player" />
         <Preference
-            app:title="@string/clear_cache"
+            app:iconSpaceReserved="false"
+            app:key="clear_cache"
             app:summary="@string/clear_cache_summary"
-            app:key="clear_cache"/>
+            app:title="@string/clear_cache" />
     </PreferenceCategory>
 </PreferenceScreen>

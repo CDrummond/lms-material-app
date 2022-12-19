@@ -4,3 +4,4 @@ Improved
 • Set navigation and status bar colors for settings activty.
 • Set initial navigation and status bar colors for main actrivity.
 • Use custom toast class so that colors can be configured.
+• Remove margin from application settings.
