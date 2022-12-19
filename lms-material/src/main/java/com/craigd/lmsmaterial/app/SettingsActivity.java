@@ -33,6 +33,8 @@ import androidx.preference.PreferenceManager;
 
 import java.util.List;
 
+import io.github.muddz.styleabletoast.StyleableToast;
+
 public class SettingsActivity extends AppCompatActivity {
     public static final String SERVER_PREF_KEY = "server";
     public static final String AUTODISCOVER_PREF_KEY = "autodiscover";
@@ -131,7 +133,7 @@ public class SettingsActivity extends AppCompatActivity {
             public void discoveryFinished(List<Server> servers) {
                 Log.d(MainActivity.TAG, "Discovery finished");
                 if (servers.size()<1) {
-                    Toast.makeText(getContext(),getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT).show();
+                    StyleableToast.makeText(getContext(),getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT, R.style.toast).show();
                 } else {
                     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
                     Server serverToUse = servers.get(0);
@@ -151,9 +153,9 @@ public class SettingsActivity extends AppCompatActivity {
 
                     if (current.isEmpty() || !current.equals(serverToUse)) {
                         if (current.isEmpty()) {
-                            Toast.makeText(getContext(), getResources().getString(R.string.server_discovered)+"\n\n"+serverToUse.describe(), Toast.LENGTH_SHORT).show();
+                            StyleableToast.makeText(getContext(), getResources().getString(R.string.server_discovered)+"\n\n"+serverToUse.describe(), Toast.LENGTH_SHORT, R.style.toast).show();
                         } else {
-                            Toast.makeText(getContext(), getResources().getString(R.string.server_changed)+"\n\n"+serverToUse.describe(), Toast.LENGTH_SHORT).show();
+                            StyleableToast.makeText(getContext(), getResources().getString(R.string.server_changed)+"\n\n"+serverToUse.describe(), Toast.LENGTH_SHORT, R.style.toast).show();
                         }
 
                         Preference addressButton = getPreferenceManager().findPreference("server_address");
@@ -164,7 +166,7 @@ public class SettingsActivity extends AppCompatActivity {
                         editor.putString(SERVER_PREF_KEY, serverToUse.encode());
                         editor.apply();
                     } else {
-                        Toast.makeText(getContext(), getResources().getString(R.string.no_new_server), Toast.LENGTH_SHORT).show();
+                        StyleableToast.makeText(getContext(), getResources().getString(R.string.no_new_server), Toast.LENGTH_SHORT, R.style.toast).show();
                     }
                 }
             }
@@ -240,7 +242,7 @@ public class SettingsActivity extends AppCompatActivity {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {
                         Log.d(MainActivity.TAG, "Discover clicked");
-                        Toast.makeText(getContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT).show();
+                        StyleableToast.makeText(getContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT, R.style.toast).show();
                         if (discovery == null) {
                             discovery = new Discovery(getContext().getApplicationContext());
                         }
@@ -315,7 +317,7 @@ public class SettingsActivity extends AppCompatActivity {
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putBoolean(CLEAR_CACHE_PREF_KEY, true);
                             editor.apply();
-                            Toast.makeText(getContext(), getResources().getString(R.string.cache_to_be_cleared), Toast.LENGTH_SHORT).show();
+                            StyleableToast.makeText(getContext(), getResources().getString(R.string.cache_to_be_cleared), Toast.LENGTH_SHORT, R.style.toast).show();
                         }
                         return true;
                     }

@@ -13,4 +13,16 @@
         <item name="android:dividerHeight">0dp</item>
     </style>
 
+    <style name="toast">
+        <item name="stTextBold">false</item>
+        <item name="stTextColor">@color/colorText</item>
+        <item name="stTextSize">14sp</item>
+        <item name="stColorBackground">@color/colorToastBackground</item>
+        <item name="stSolidBackground">true</item>
+        <item name="stStrokeWidth">0dp</item>
+        <item name="stStrokeColor">@color/colorToastBackground</item>
+        <item name="stLength">LONG</item>
+        <item name="stGravity">top</item>
+        <item name="stRadius">20dp</item>
+    </style>
 </resources>

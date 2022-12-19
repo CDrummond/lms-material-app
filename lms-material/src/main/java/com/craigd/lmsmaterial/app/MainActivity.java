@@ -67,6 +67,8 @@ import java.net.URL;
 import java.util.Date;
 import java.util.List;
 
+import io.github.muddz.styleabletoast.StyleableToast;
+
 public class MainActivity extends AppCompatActivity {
     public final static String TAG = "LMS";
     private static final String SETTINGS_URL = "mska://settings";
@@ -183,14 +185,14 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Discovery finished");
             if (servers.size()<1) {
                 Log.d(TAG, "No server found, show settings");
-                Toast.makeText(context, getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT).show();
+                StyleableToast.makeText(context, getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT, R.style.toast).show();
                 navigateToSettingsActivity();
             } else {
                 Log.d(TAG, "Discovered server");
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString(SettingsActivity.SERVER_PREF_KEY, servers.get(0).encode());
                 editor.apply();
-                Toast.makeText(context, getResources().getString(R.string.server_discovered)+"\n\n"+servers.get(0).describe(), Toast.LENGTH_SHORT).show();
+                StyleableToast.makeText(context, getResources().getString(R.string.server_discovered)+"\n\n"+servers.get(0).describe(), Toast.LENGTH_SHORT, R.style.toast).show();
 
                 url = getConfiguredUrl();
                 Log.i(TAG, "URL:"+url);
@@ -489,7 +491,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void discoverServer(boolean force) {
         if (force || sharedPreferences.getBoolean(SettingsActivity.AUTODISCOVER_PREF_KEY, true)) {
-            Toast.makeText(getBaseContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(getBaseContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT, R.style.toast).show();
             Discovery discovery = new Discovery(getApplicationContext());
             discovery.discover();
         }
@@ -680,9 +682,9 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // Try to connect to previous server
                 Log.i(TAG, "URL:" + url);
-                Toast.makeText(getApplicationContext(),
+                StyleableToast.makeText(getApplicationContext(),
                         new Discovery.Server(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(SettingsActivity.SERVER_PREF_KEY, null)).describe(),
-                        Toast.LENGTH_SHORT).show();
+                        Toast.LENGTH_SHORT, R.style.toast).show();
 
                 loadUrl(url);
             }
