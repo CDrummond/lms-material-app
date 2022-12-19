@@ -517,6 +517,10 @@ public class MainActivity extends AppCompatActivity {
         }
         setFullscreen();
         setContentView(R.layout.activity_main);
+        if (Build.VERSION.SDK_INT >= 21) {
+            getWindow().setStatusBarColor(ContextCompat.getColor(this,R.color.colorBackground));
+            getWindow().setNavigationBarColor(ContextCompat.getColor(this,R.color.colorBackground));
+        }
         init5497Workaround();
         manageShowOverLockscreen();
         webView = findViewById(R.id.webview);
