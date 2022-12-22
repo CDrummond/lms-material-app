@@ -52,4 +52,6 @@
     <string name="play_next">Add to queue</string>
     <string name="autodiscover">Auto-discover server</string>
     <string name="autodiscover_summary">If connection to server is lost attempt to auto-discover server again</string>
+    <string name="player">Local player</string>
+    <string name="start_player">Auto-start player app</string>
 </resources>

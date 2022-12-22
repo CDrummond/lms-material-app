@@ -1,0 +1,3 @@
+Improved
+
+• Add option to auto-start local player; SB Player, SqueezePlayer, or SqueezeLite (via Termux)

@@ -50,8 +50,10 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String SHOW_OVER_LOCK_SCREEN_PREF_KEY ="show_over_lock_screen";
     public static final String DEFAULT_PLAYER_PREF_KEY ="default_player";
     public static final String SINGLE_PLAYER_PREF_KEY ="single_player";
-
+    public static final String START_PLAYER_PREF_KEY = "start_player";
+    private static final String TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND";
     private static final int PERMISSION_READ_PHONE_STATE = 1;
+    private static final int PERMISSION_RUN_TERMUX_COMMAND = 2;
 
     private static boolean visible = false;
     public static boolean isVisible() {
@@ -328,6 +330,7 @@ public class SettingsActivity extends AppCompatActivity {
             updateListSummary(NAVBAR_PREF_KEY);
             updateListSummary(ORIENTATION_PREF_KEY);
             updateListSummary(ON_CALL_PREF_KEY);
+            updateListSummary(START_PLAYER_PREF_KEY);
             PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
         }
 
@@ -341,6 +344,12 @@ public class SettingsActivity extends AppCompatActivity {
                 updateListSummary(key);
                 if (! PhoneStateReceiver.DO_NOTHING.equals(sharedPreferences.getString(key, PhoneStateReceiver.DO_NOTHING))) {
                     activity.checkOnCallPermission();
+                }
+            }
+            if (START_PLAYER_PREF_KEY.equals(key)) {
+                updateListSummary(key);
+                if (LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(START_PLAYER_PREF_KEY, null))) {
+                    activity.checkTermuxPermission();
                 }
             }
         }
@@ -361,7 +370,7 @@ public class SettingsActivity extends AppCompatActivity {
         public void resetOnCall() {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING);
+            editor.putString(ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING);
             editor.apply();
             ListPreference pref = getPreferenceManager().findPreference("on_call");
             if (pref != null) {
@@ -369,11 +378,29 @@ public class SettingsActivity extends AppCompatActivity {
             }
             updateListSummary(ON_CALL_PREF_KEY);
         }
+
+        public void resetStartPlayer() {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(START_PLAYER_PREF_KEY, LocalPlayer.NO_PLAYER);
+            editor.apply();
+            ListPreference pref = getPreferenceManager().findPreference("start_player");
+            if (pref != null) {
+                pref.setValue(LocalPlayer.NO_PLAYER);
+            }
+            updateListSummary(START_PLAYER_PREF_KEY);
+        }
     }
 
     public void checkOnCallPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, PERMISSION_READ_PHONE_STATE);
+        }
+    }
+
+    public void checkTermuxPermission() {
+        if (ContextCompat.checkSelfPermission(this, TERMUX_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{TERMUX_PERMISSION}, PERMISSION_RUN_TERMUX_COMMAND);
         }
     }
 
@@ -386,6 +413,13 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 return;
             }
+            case PERMISSION_RUN_TERMUX_COMMAND: {
+                if (grantResults.length < 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    fragment.resetStartPlayer();
+                }
+                return;
+            }
         }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 }

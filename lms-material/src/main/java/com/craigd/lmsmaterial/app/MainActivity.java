@@ -73,9 +73,8 @@ public class MainActivity extends AppCompatActivity {
     public final static String TAG = "LMS";
     private static final String SETTINGS_URL = "mska://settings";
     private static final String QUIT_URL = "mska://quit";
-    private static final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
-    private static final String LMS_USERNAME_KEY = "lms-username";
-    private static final String LMS_PASSWORD_KEY = "lms-password";
+    public static final String LMS_USERNAME_KEY = "lms-username";
+    public static final String LMS_PASSWORD_KEY = "lms-password";
     private static final String CURRENT_PLAYER_ID_KEY = "current_player_id";
     private static final int PAGE_TIMEOUT = 5000;
     private static final int BAR_VISIBLE = 0;
@@ -279,7 +278,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String getConfiguredUrl() {
-        Intent playerLaunchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
         String defaultPlayer = sharedPreferences.getString(SettingsActivity.DEFAULT_PLAYER_PREF_KEY, null);
         if (server.ip == null || server.ip.isEmpty()) {
@@ -300,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
             builder.appendQueryParameter("nativePlayer", "1");
             return builder.build().toString()+
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
-                    "&hide=notif,scale" + (null == playerLaunchIntent ? ",launchPlayer" : "")+
+                    "&hide=notif,scale" +
                     "&appSettings="+SETTINGS_URL+
                     "&appQuit="+QUIT_URL+
                     "&download=native&dontEmbed=pdf";
@@ -366,6 +364,10 @@ public class MainActivity extends AppCompatActivity {
         }
         if (!sharedPreferences.contains(SettingsActivity.SINGLE_PLAYER_PREF_KEY)) {
             editor.putBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false);
+            modified=true;
+        }
+        if (!sharedPreferences.contains(SettingsActivity.START_PLAYER_PREF_KEY)) {
+            editor.putString(SettingsActivity.START_PLAYER_PREF_KEY, LocalPlayer.NO_PLAYER);
             modified=true;
         }
         if (modified) {
@@ -487,6 +489,7 @@ public class MainActivity extends AppCompatActivity {
         pageLoadHandler.removeCallbacks(pageLoadTimeout);
         webView.loadUrl(u);
         pageLoadHandler.postDelayed(pageLoadTimeout, PAGE_TIMEOUT);
+        LocalPlayer.start(sharedPreferences, this);
     }
 
     private void discoverServer(boolean force) {
@@ -586,23 +589,6 @@ public class MainActivity extends AppCompatActivity {
                 if (url.equals(QUIT_URL)) {
                     finishAffinity();
                     System.exit(0);
-                    return true;
-                }
-                // Is this an intent:// URL - used by Material to launch SB Player
-                if (url.startsWith("intent://")) {
-                    try {
-                        String[] fragment = Uri.parse(url).getFragment().split(";");
-                        for (String s : fragment) {
-                            if (s.startsWith("package=")) {
-                                String pkg = s.substring(8);
-                                Intent intent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(pkg);
-                                if (intent != null) {
-                                    startActivity(intent);
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                    }
                     return true;
                 }
 

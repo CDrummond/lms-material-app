@@ -110,6 +110,18 @@
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
+        app:title="@string/player">
+
+        <ListPreference
+            android:entries="@array/playerapps"
+            android:entryValues="@array/playerappsAlias"
+            android:key="start_player"
+            android:title="@string/start_player"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
         app:title="@string/advanced">
         <Preference
             app:iconSpaceReserved="false"
