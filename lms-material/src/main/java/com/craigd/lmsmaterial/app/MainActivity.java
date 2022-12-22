@@ -298,14 +298,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             builder.appendQueryParameter("nativePlayer", "1");
-            if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
-                builder.appendQueryParameter("&appLaunchPlayer", STARTPLAYER_URL);
-            }
             return builder.build().toString()+
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" +
                     "&appSettings="+SETTINGS_URL+
                     "&appQuit="+QUIT_URL+
+                    (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)
+                        ? ("&appLaunchPlayer="+STARTPLAYER_URL) : "") +
                     "&download=native&dontEmbed=pdf";
         } catch (Exception e) {
             Log.e(TAG, "Failed to build URL", e);
