@@ -110,14 +110,29 @@
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
-        app:title="@string/player">
+        app:title="@string/local_player">
 
         <ListPreference
             android:entries="@array/playerapps"
             android:entryValues="@array/playerappsAlias"
-            android:key="start_player"
-            android:title="@string/start_player"
+            android:key="player_app"
+            android:title="@string/player_app"
             app:iconSpaceReserved="false" />
+        <SwitchPreference
+            app:iconSpaceReserved="false"
+            app:key="auto_start_player"
+            app:summary="@string/auto_start_player_summary"
+            app:title="@string/auto_start_player" />
+        <SwitchPreference
+            app:iconSpaceReserved="false"
+            app:key="menu_start_player"
+            app:summary="@string/menu_start_player_summary"
+            app:title="@string/menu_start_player" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="stop_app"
+            app:summary="@string/stop_app_summary"
+            app:title="@string/stop_app" />
     </PreferenceCategory>
 
     <PreferenceCategory

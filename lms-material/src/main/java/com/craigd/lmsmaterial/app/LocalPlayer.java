@@ -25,11 +25,19 @@ public class LocalPlayer {
     private static final String SQUEEZE_PLAYER_SRV = "de.bluegaspode.squeezeplayer.playback.service.PlaybackService";
 
     private static boolean started = false;
-    public static void start(SharedPreferences sharedPreferences, Context context) {
-        if (started) {
+    private SharedPreferences sharedPreferences;
+    private Context context;
+
+    public LocalPlayer(SharedPreferences sharedPreferences, Context context) {
+        this.sharedPreferences = sharedPreferences;
+        this.context = context;
+    }
+
+    public void start(boolean force) {
+        if (started && !force) {
             return;
         }
-        String playerApp = sharedPreferences.getString(SettingsActivity.START_PLAYER_PREF_KEY, null);
+        String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
         if (SB_PLAYER.equals(playerApp)) {
             Intent launchIntent = context.getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
             context.startActivity(launchIntent);
@@ -65,8 +73,10 @@ public class LocalPlayer {
                 Intent intent = new Intent();
                 intent.setClassName("com.termux", "com.termux.app.RunCommandService");
                 intent.setAction("com.termux.RUN_COMMAND");
-                intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/squeezelite");
-                intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"-M", "SqueezeLiteAndroid", "-s", current.ip, "-C", "5", "-n", Settings.Global.getString(context.getContentResolver(), "device_name")});
+                //intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/squeezelite");
+                //intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"-M", "SqueezeLiteAndroid", "-s", current.ip, "-C", "5", "-n", Settings.Global.getString(context.getContentResolver(), "device_name")});
+                intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
+                intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"/data/data/com.termux/files/home/tmux-sqzlite.sh", "-s", current.ip, "-n", Settings.Global.getString(context.getContentResolver(), "device_name")});
                 intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
                 intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
                 intent.putExtra("com.termux.execute.command_label", "LMS Player");
@@ -78,5 +88,26 @@ public class LocalPlayer {
                 started = true;
             }
         }
+    }
+
+    public boolean stop() {
+        String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
+        if (TERMUX_PLAYER.equals(playerApp)) {
+            Intent intent = new Intent();
+            intent.setClassName("com.termux", "com.termux.app.RunCommandService");
+            intent.setAction("com.termux.RUN_COMMAND");
+            intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/killall");
+            intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"-9", "squeezelite"});
+            intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+            intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent);
+            } else {
+                context.startService(intent);
+            }
+            started = false;
+            return true;
+        }
+        return false;
     }
 }

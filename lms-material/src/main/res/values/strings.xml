@@ -52,6 +52,14 @@
     <string name="play_next">Add to queue</string>
     <string name="autodiscover">Auto-discover server</string>
     <string name="autodiscover_summary">If connection to server is lost attempt to auto-discover server again</string>
-    <string name="player">Local player</string>
-    <string name="start_player">Auto-start player app</string>
+    <string name="local_player">Local player</string>
+    <string name="player_app">Player app</string>
+    <string name="auto_start_player">Auto-start player</string>
+    <string name="auto_start_player_summary">Automatically start chosen player app when this app starts</string>
+    <string name="stop_app">Stop player</string>
+    <string name="stop_app_summary">Stop chosen player app (currently only applies to Squeezelite (via Termux))</string>
+    <string name="menu_start_player">Add menu entry to start player</string>
+    <string name="menu_start_player_summary">Show an entry in the main menu to start chosen player app</string>
+    <string name="stopping_player">Stopping local player</string>
+    <string name="cant_stop_player">Can\'t stop this player app</string>
 </resources>

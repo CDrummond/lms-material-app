@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     public final static String TAG = "LMS";
     private static final String SETTINGS_URL = "mska://settings";
     private static final String QUIT_URL = "mska://quit";
+    private static final String STARTPLAYER_URL = "mska://startplayer";
     public static final String LMS_USERNAME_KEY = "lms-username";
     public static final String LMS_PASSWORD_KEY = "lms-password";
     private static final String CURRENT_PLAYER_ID_KEY = "current_player_id";
@@ -98,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean showOverLockscreen = false;
     private UrlHandler urlHander;
     private JSONArray downloadData = null;
+    private LocalPlayer localPlayer = null;
 
     public static String activePlayer = null;
     public static String activePlayerName = null;
@@ -296,6 +298,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             builder.appendQueryParameter("nativePlayer", "1");
+            if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
+                builder.appendQueryParameter("&appLaunchPlayer", STARTPLAYER_URL);
+            }
             return builder.build().toString()+
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" +
@@ -366,8 +371,16 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false);
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.START_PLAYER_PREF_KEY)) {
-            editor.putString(SettingsActivity.START_PLAYER_PREF_KEY, LocalPlayer.NO_PLAYER);
+        if (!sharedPreferences.contains(SettingsActivity.PLAYER_APP_PREF_KEY)) {
+            editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
+            modified=true;
+        }
+        if (!sharedPreferences.contains(SettingsActivity.AUTO_START_PLAYER_APP_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.AUTO_START_PLAYER_APP_PREF_KEY, false);
+            modified=true;
+        }
+        if (!sharedPreferences.contains(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false);
             modified=true;
         }
         if (modified) {
@@ -489,7 +502,9 @@ public class MainActivity extends AppCompatActivity {
         pageLoadHandler.removeCallbacks(pageLoadTimeout);
         webView.loadUrl(u);
         pageLoadHandler.postDelayed(pageLoadTimeout, PAGE_TIMEOUT);
-        LocalPlayer.start(sharedPreferences, this);
+        if (sharedPreferences.getBoolean(SettingsActivity.AUTO_START_PLAYER_APP_PREF_KEY, false)) {
+            localPlayer.start(false);
+        }
     }
 
     private void discoverServer(boolean force) {
@@ -505,6 +520,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        localPlayer = new LocalPlayer(sharedPreferences, this);
         setDefaults();
         enableWifi();
         manageControlService();
@@ -589,6 +605,10 @@ public class MainActivity extends AppCompatActivity {
                 if (url.equals(QUIT_URL)) {
                     finishAffinity();
                     System.exit(0);
+                    return true;
+                }
+                if (url.equals(STARTPLAYER_URL)) {
+                    localPlayer.start(true);
                     return true;
                 }
 

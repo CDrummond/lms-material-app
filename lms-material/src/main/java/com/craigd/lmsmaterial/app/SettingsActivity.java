@@ -50,7 +50,11 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String SHOW_OVER_LOCK_SCREEN_PREF_KEY ="show_over_lock_screen";
     public static final String DEFAULT_PLAYER_PREF_KEY ="default_player";
     public static final String SINGLE_PLAYER_PREF_KEY ="single_player";
-    public static final String START_PLAYER_PREF_KEY = "start_player";
+    public static final String PLAYER_APP_PREF_KEY = "player_app";
+    public static final String STOP_APP_PREF_KEY = "stop_app";
+    public static final String AUTO_START_PLAYER_APP_PREF_KEY = "auto_start_player";
+    public static final String PLAYER_START_MENU_ITEM_PREF_KEY = "menu_start_player";
+
     private static final String TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND";
     private static final int PERMISSION_READ_PHONE_STATE = 1;
     private static final int PERMISSION_RUN_TERMUX_COMMAND = 2;
@@ -309,6 +313,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             Preference clearCacheButton = getPreferenceManager().findPreference(CLEAR_CACHE_PREF_KEY);
             if (clearCacheButton != null) {
+                clearCacheButton.setEnabled(LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(PLAYER_APP_PREF_KEY, null)));
                 clearCacheButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {
@@ -326,11 +331,29 @@ public class SettingsActivity extends AppCompatActivity {
                 });
             }
 
+            Preference stopAppButton = getPreferenceManager().findPreference(STOP_APP_PREF_KEY);
+            if (stopAppButton != null) {
+                stopAppButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference arg0) {
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                        LocalPlayer localPlayer = new LocalPlayer(sharedPreferences, getContext());
+
+                        if (localPlayer.stop()) {
+                            StyleableToast.makeText(getContext(), getResources().getString(R.string.stopping_player), Toast.LENGTH_SHORT, R.style.toast).show();
+                        } else {
+                            StyleableToast.makeText(getContext(), getResources().getString(R.string.cant_stop_player), Toast.LENGTH_SHORT, R.style.toast).show();
+                        }
+                        return true;
+                    }
+                });
+            }
+
             updateListSummary(STATUSBAR_PREF_KEY);
             updateListSummary(NAVBAR_PREF_KEY);
             updateListSummary(ORIENTATION_PREF_KEY);
             updateListSummary(ON_CALL_PREF_KEY);
-            updateListSummary(START_PLAYER_PREF_KEY);
+            updateListSummary(PLAYER_APP_PREF_KEY);
             PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
         }
 
@@ -346,9 +369,13 @@ public class SettingsActivity extends AppCompatActivity {
                     activity.checkOnCallPermission();
                 }
             }
-            if (START_PLAYER_PREF_KEY.equals(key)) {
+            if (PLAYER_APP_PREF_KEY.equals(key)) {
                 updateListSummary(key);
-                if (LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(START_PLAYER_PREF_KEY, null))) {
+                Preference clearCacheButton = getPreferenceManager().findPreference(CLEAR_CACHE_PREF_KEY);
+                if (clearCacheButton != null) {
+                    clearCacheButton.setEnabled(LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(PLAYER_APP_PREF_KEY, null)));
+                }
+                if (LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(PLAYER_APP_PREF_KEY, null))) {
                     activity.checkTermuxPermission();
                 }
             }
@@ -382,13 +409,17 @@ public class SettingsActivity extends AppCompatActivity {
         public void resetStartPlayer() {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString(START_PLAYER_PREF_KEY, LocalPlayer.NO_PLAYER);
+            editor.putString(PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
             editor.apply();
             ListPreference pref = getPreferenceManager().findPreference("start_player");
             if (pref != null) {
                 pref.setValue(LocalPlayer.NO_PLAYER);
             }
-            updateListSummary(START_PLAYER_PREF_KEY);
+            Preference clearCacheButton = getPreferenceManager().findPreference(CLEAR_CACHE_PREF_KEY);
+            if (clearCacheButton != null) {
+                clearCacheButton.setEnabled(false);
+            }
+            updateListSummary(PLAYER_APP_PREF_KEY);
         }
     }
 
