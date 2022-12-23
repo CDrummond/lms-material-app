@@ -12,7 +12,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -54,6 +53,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String STOP_APP_PREF_KEY = "stop_app";
     public static final String AUTO_START_PLAYER_APP_PREF_KEY = "auto_start_player";
     public static final String PLAYER_START_MENU_ITEM_PREF_KEY = "menu_start_player";
+    public static final String STOP_APP_ON_QUIT_PREF_KEY = "stop_app_on_quit";
 
     private static final String TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND";
     private static final int PERMISSION_READ_PHONE_STATE = 1;
@@ -65,6 +65,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private SettingsFragment fragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,10 +81,8 @@ public class SettingsActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        if (Build.VERSION.SDK_INT >= 21) {
-            getWindow().setStatusBarColor(ContextCompat.getColor(this,R.color.colorBackground));
-            getWindow().setNavigationBarColor(ContextCompat.getColor(this,R.color.colorBackground));
-        }
+        getWindow().setStatusBarColor(ContextCompat.getColor(this,R.color.colorBackground));
+        getWindow().setNavigationBarColor(ContextCompat.getColor(this,R.color.colorBackground));
     }
 
     @Override
@@ -101,6 +100,11 @@ public class SettingsActivity extends AppCompatActivity {
         } else if (item.getItemId() == R.id.action_quit) {
             finishAffinity();
             System.exit(0);
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            if (sharedPreferences.getBoolean(STOP_APP_ON_QUIT_PREF_KEY, false)) {
+                LocalPlayer localPlayer = new LocalPlayer(sharedPreferences, getApplicationContext());
+                localPlayer.stop();
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -139,7 +143,7 @@ public class SettingsActivity extends AppCompatActivity {
             public void discoveryFinished(List<Server> servers) {
                 Log.d(MainActivity.TAG, "Discovery finished");
                 if (servers.size()<1) {
-                    StyleableToast.makeText(getContext(),getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT, R.style.toast).show();
+                    StyleableToast.makeText(getContext(), getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT, R.style.toast).show();
                 } else {
                     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
                     Server serverToUse = servers.get(0);
@@ -205,28 +209,21 @@ public class SettingsActivity extends AppCompatActivity {
                         int padding = getResources().getDimensionPixelOffset(R.dimen.dlg_padding);
                         final EditText input = new EditText(getContext());
                         input.setInputType(InputType.TYPE_CLASS_TEXT);
-
-                        if (null!=server) {
-                            input.setText(server.address());
-                        }
-
+                        input.setText(server.address());
                         input.setPadding(padding, input.getPaddingTop(), padding, input.getPaddingBottom());
                         builder.setView(input);
 
                         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                String str = input.getText().toString();
-                                if (null!=str) {
-                                    str=str.replaceAll("\\s+","");
-                                    String parts[]=str.split(":");
-                                    Discovery.Server server=new Discovery.Server(parts[0], parts.length>1 ? Integer.parseInt(parts[1]) : Discovery.Server.DEFAULT_PORT, null);
-                                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                    editor.putString(SERVER_PREF_KEY, server.encode());
-                                    editor.apply();
-                                    addressButton.setSummary(server.describe());
-                                }
+                                String str = input.getText().toString().replaceAll("\\s+","");
+                                String[] parts=str.split(":");
+                                Discovery.Server server=new Discovery.Server(parts[0], parts.length>1 ? Integer.parseInt(parts[1]) : Discovery.Server.DEFAULT_PORT, null);
+                                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString(SERVER_PREF_KEY, server.encode());
+                                editor.apply();
+                                addressButton.setSummary(server.describe());
                             }
                         });
                         builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -287,15 +284,12 @@ public class SettingsActivity extends AppCompatActivity {
                         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                String str = input.getText().toString();
-                                if (null!=str) {
-                                    str = str.trim();
-                                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                    editor.putString(DEFAULT_PLAYER_PREF_KEY, str);
-                                    editor.apply();
-                                    defaultPlayerButton.setSummary(str.isEmpty() ? getResources().getString(R.string.default_player_summary) : str);
-                                }
+                                String str = input.getText().toString().trim();
+                                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString(DEFAULT_PLAYER_PREF_KEY, str);
+                                editor.apply();
+                                defaultPlayerButton.setSummary(str.isEmpty() ? getResources().getString(R.string.default_player_summary) : str);
                             }
                         });
                         builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -336,9 +330,7 @@ public class SettingsActivity extends AppCompatActivity {
                 stopAppButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {
-                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                        LocalPlayer localPlayer = new LocalPlayer(sharedPreferences, getContext());
-
+                        LocalPlayer localPlayer = new LocalPlayer(PreferenceManager.getDefaultSharedPreferences(getContext()), getContext());
                         if (localPlayer.stop()) {
                             StyleableToast.makeText(getContext(), getResources().getString(R.string.stopping_player), Toast.LENGTH_SHORT, R.style.toast).show();
                         } else {

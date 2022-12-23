@@ -128,6 +128,11 @@
             app:key="menu_start_player"
             app:summary="@string/menu_start_player_summary"
             app:title="@string/menu_start_player" />
+        <SwitchPreference
+            app:iconSpaceReserved="false"
+            app:key="stop_app_on_quit"
+            app:summary="@string/stop_app_on_quit_summary"
+            app:title="@string/stop_app_on_quit" />
         <Preference
             app:iconSpaceReserved="false"
             app:key="stop_app"

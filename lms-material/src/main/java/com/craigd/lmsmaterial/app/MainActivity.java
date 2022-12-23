@@ -603,6 +603,9 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (url.equals(QUIT_URL)) {
                     finishAffinity();
+                    if (sharedPreferences.getBoolean(SettingsActivity.STOP_APP_ON_QUIT_PREF_KEY, false)) {
+                        localPlayer.stop();
+                    }
                     System.exit(0);
                     return true;
                 }
