@@ -55,9 +55,9 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String PLAYER_START_MENU_ITEM_PREF_KEY = "menu_start_player";
     public static final String STOP_APP_ON_QUIT_PREF_KEY = "stop_app_on_quit";
 
-    private static final String TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND";
-    private static final int PERMISSION_READ_PHONE_STATE = 1;
-    private static final int PERMISSION_RUN_TERMUX_COMMAND = 2;
+    public static final String TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND";
+    public static final int PERMISSION_READ_PHONE_STATE = 1;
+    public static final int PERMISSION_RUN_TERMUX_COMMAND = 2;
 
     private static boolean visible = false;
     public static boolean isVisible() {

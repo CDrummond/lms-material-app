@@ -64,4 +64,5 @@
     <string name="menu_start_player_summary">Show an entry in the main menu to start chosen player app.</string>
     <string name="stopping_player">Stopping local player</string>
     <string name="cant_stop_player">Can\'t stop this player app</string>
+    <string name="no_termux_run_perms">Do not have permission to run Termux commands</string>
 </resources>
