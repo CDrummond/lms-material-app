@@ -56,7 +56,7 @@
     <string name="player_app">Player app</string>
     <string name="auto_start_player">Auto-start player</string>
     <string name="auto_start_player_summary">Automatically start chosen player app when this app starts</string>
-    <string name="stop_app_on_quit">Stop player when 'Quit'</string>
+    <string name="stop_app_on_quit">Stop player when \'Quit\'</string>
     <string name="stop_app_on_quit_summary">Stop chosen player app (currently only applies to Squeezelite (via Termux)) when quitting this application.</string>
     <string name="stop_app">Stop player</string>
     <string name="stop_app_summary">Stop chosen player app (currently only applies to Squeezelite (via Termux))</string>
