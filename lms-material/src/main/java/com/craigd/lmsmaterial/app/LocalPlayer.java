@@ -101,14 +101,12 @@ public class LocalPlayer {
         if (current != null) {
             intent.putExtra("forceSettingsFromIntent", true);
             intent.putExtra("intentHasServerSettings", true);
-            intent.putExtra("serverURL", current.ip);
+            intent.putExtra("serverURL", current.ip + ":" + current.port);
             intent.putExtra("serverName", current.name);
             String user = sharedPreferences.getString(MainActivity.LMS_USERNAME_KEY, null);
             String pass = sharedPreferences.getString(MainActivity.LMS_PASSWORD_KEY, null);
-            if (user != null) {
+            if (user != null && pass!=null) {
                 intent.putExtra("username", user);
-            }
-            if (pass != null) {
                 intent.putExtra("password", pass);
             }
         }
