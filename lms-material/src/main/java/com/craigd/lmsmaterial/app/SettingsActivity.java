@@ -17,6 +17,7 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -54,6 +55,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String AUTO_START_PLAYER_APP_PREF_KEY = "auto_start_player";
     public static final String PLAYER_START_MENU_ITEM_PREF_KEY = "menu_start_player";
     public static final String STOP_APP_ON_QUIT_PREF_KEY = "stop_app_on_quit";
+    public static final String IS_DARK_PREF_KEY = "is_dark";
 
     public static final String TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND";
     public static final int PERMISSION_READ_PHONE_STATE = 1;
@@ -69,6 +71,13 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        boolean isDark = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean(IS_DARK_PREF_KEY, true);
+        setTheme(isDark ? R.style.AppTheme : R.style.AppTheme_Light);
+        getWindow().setStatusBarColor(ContextCompat.getColor(this, isDark ? R.color.colorBackground : R.color.colorBackgroundLight));
+        getWindow().setNavigationBarColor(ContextCompat.getColor(this, isDark ? R.color.colorBackground : R.color.colorBackgroundLight));
+        int flags = getWindow().getDecorView().getSystemUiVisibility();
+        getWindow().getDecorView().setSystemUiVisibility(isDark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
+
         visible = true;
         setContentView(R.layout.settings_activity);
         fragment = new SettingsFragment();
@@ -81,8 +90,6 @@ public class SettingsActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        getWindow().setStatusBarColor(ContextCompat.getColor(this,R.color.colorBackground));
-        getWindow().setNavigationBarColor(ContextCompat.getColor(this,R.color.colorBackground));
     }
 
     @Override

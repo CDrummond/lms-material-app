@@ -66,6 +66,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import io.github.muddz.styleabletoast.StyleableToast;
 
@@ -100,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
     private UrlHandler urlHander;
     private JSONArray downloadData = null;
     private LocalPlayer localPlayer = null;
+    private boolean isDark = true;
 
     public static String activePlayer = null;
     public static String activePlayerName = null;
@@ -298,6 +300,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             builder.appendQueryParameter("nativePlayer", "1");
+            builder.appendQueryParameter("nativeTheme", "1");
             return builder.build().toString()+
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" +
@@ -519,7 +522,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        isDark = sharedPreferences.getBoolean(SettingsActivity.IS_DARK_PREF_KEY, true);
         localPlayer = new LocalPlayer(sharedPreferences, this);
+        setTheme();
         setDefaults();
         enableWifi();
         manageControlService();
@@ -537,10 +542,8 @@ public class MainActivity extends AppCompatActivity {
         }
         setFullscreen();
         setContentView(R.layout.activity_main);
-        if (Build.VERSION.SDK_INT >= 21) {
-            getWindow().setStatusBarColor(ContextCompat.getColor(this,R.color.colorBackground));
-            getWindow().setNavigationBarColor(ContextCompat.getColor(this,R.color.colorBackground));
-        }
+        getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorBackground));
+        getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorBackground));
         init5497Workaround();
         manageShowOverLockscreen();
         webView = findViewById(R.id.webview);
@@ -773,6 +776,24 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
         }
+    }
+
+    @JavascriptInterface
+    public void updateTheme(String theme) {
+        Log.d(TAG, "updateTheme: " + theme);
+        String ltheme = theme.toLowerCase(Locale.ROOT);
+        boolean dark = ltheme.contains("dark") || ltheme.contains("black");
+        if (dark!=isDark) {
+            isDark = dark;
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(SettingsActivity.IS_DARK_PREF_KEY, isDark);
+            editor.apply();
+            setTheme();
+        }
+    }
+
+    private void setTheme() {
+        setTheme(isDark ? R.style.AppTheme : R.style.AppTheme_Light);
     }
 
     @JavascriptInterface

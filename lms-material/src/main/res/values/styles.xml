@@ -13,6 +13,19 @@
         <item name="android:dividerHeight">0dp</item>
     </style>
 
+    <style name="AppTheme.Light" parent="Theme.AppCompat.Light">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimaryLight</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkLight</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/colorBackgroundLight</item>
+        <item name="android:colorBackground">@color/colorBackgroundLight</item>
+        <item name="android:background">@color/colorBackgroundLight</item>
+        <item name="android:textColor">@color/colorTextLight</item>
+        <item name="android:divider">@null</item>
+        <item name="android:dividerHeight">0dp</item>
+    </style>
+
     <style name="toast">
         <item name="stTextBold">false</item>
         <item name="stTextColor">@color/colorText</item>

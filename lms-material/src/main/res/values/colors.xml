@@ -6,4 +6,10 @@
     <color name="colorBackground">#212121</color>
     <color name="colorToastBackground">#ee313131</color>
     <color name="colorText">#edece7</color>
+
+    <color name="colorPrimaryLight">#222</color>
+    <color name="colorPrimaryDarkLight">#fff</color>
+    <color name="colorBackgroundLight">#fff</color>
+    <color name="colorToastBackgroundLight">#e5e5e5</color>
+    <color name="colorTextLight">#333</color>
 </resources>

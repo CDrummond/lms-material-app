@@ -1,3 +1,4 @@
 Improved
 
 • Add options to start local player; SB Player, SqueezePlayer, or SqueezeLite (via Termux)
+• Use light theme for 'Application' settings if skin is set to a light theme
