@@ -307,7 +307,6 @@ public class SettingsActivity extends AppCompatActivity {
 
             Preference clearCacheButton = getPreferenceManager().findPreference(CLEAR_CACHE_PREF_KEY);
             if (clearCacheButton != null) {
-                clearCacheButton.setEnabled(LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(PLAYER_APP_PREF_KEY, null)));
                 clearCacheButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {
@@ -340,6 +339,7 @@ public class SettingsActivity extends AppCompatActivity {
                     }
                 });
             }
+            controlPlayerPrefs(getPreferenceManager());
 
             updateListSummary(STATUSBAR_PREF_KEY);
             updateListSummary(NAVBAR_PREF_KEY);
@@ -363,10 +363,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
             if (PLAYER_APP_PREF_KEY.equals(key)) {
                 updateListSummary(key);
-                Preference clearCacheButton = getPreferenceManager().findPreference(CLEAR_CACHE_PREF_KEY);
-                if (clearCacheButton != null) {
-                    clearCacheButton.setEnabled(LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(PLAYER_APP_PREF_KEY, null)));
-                }
+                controlPlayerPrefs(getPreferenceManager());
                 if (LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(PLAYER_APP_PREF_KEY, null))) {
                     activity.checkTermuxPermission();
                 }
@@ -407,10 +404,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (pref != null) {
                 pref.setValue(LocalPlayer.NO_PLAYER);
             }
-            Preference clearCacheButton = getPreferenceManager().findPreference(CLEAR_CACHE_PREF_KEY);
-            if (clearCacheButton != null) {
-                clearCacheButton.setEnabled(false);
-            }
+            controlPlayerPrefs(getPreferenceManager());
             updateListSummary(PLAYER_APP_PREF_KEY);
         }
     }
@@ -444,5 +438,17 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    private static void controlPlayerPrefs(PreferenceManager mgr) {
+        boolean isTermux = LocalPlayer.TERMUX_PLAYER.equals(mgr.getSharedPreferences().getString(PLAYER_APP_PREF_KEY, null));
+        Preference pref = mgr.findPreference(STOP_APP_PREF_KEY);
+        if (pref != null) {
+            pref.setEnabled(isTermux);
+        }
+        pref = mgr.findPreference(STOP_APP_ON_QUIT_PREF_KEY);
+        if (pref != null) {
+            pref.setEnabled(isTermux);
+        }
     }
 }
