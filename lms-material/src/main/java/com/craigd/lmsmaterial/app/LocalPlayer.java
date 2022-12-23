@@ -17,6 +17,10 @@ import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+
 import io.github.muddz.styleabletoast.StyleableToast;
 
 public class LocalPlayer {
@@ -24,6 +28,7 @@ public class LocalPlayer {
     public static final String SB_PLAYER = "sbplayer";
     public static final String SQUEEZE_PLAYER = "squeezeplayer";
     public static final String TERMUX_PLAYER = "termux";
+    public static final String TERMUX_MAC_PREF = "termux_mac";
 
     private static boolean started = false;
     private SharedPreferences sharedPreferences;
@@ -51,8 +56,12 @@ public class LocalPlayer {
             ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
             if (current!=null) {
                 if (runTermuxCommand("/data/data/com.termux/files/usr/bin/bash",
-                        new String[]{"/data/data/com.termux/files/home/tmux-sqzlite.sh", "-s", current.ip,
-                                "-n", Settings.Global.getString(context.getContentResolver(), "device_name")})) {
+                        new String[]{
+                                "/data/data/com.termux/files/home/tmux-sqzlite.sh",
+                                "-s", current.ip,
+                                "-m", getTermuxMac(),
+                                "-n", Settings.Global.getString(context.getContentResolver(), "device_name")
+                                 })) {
                     started = true;
                 }
             }
@@ -78,6 +87,25 @@ public class LocalPlayer {
             }
         }
         return false;
+    }
+
+    private String getTermuxMac() {
+        String mac = sharedPreferences.getString(TERMUX_MAC_PREF, null);
+        if (null!=mac) {
+            return mac;
+        }
+        List<String> parts = new LinkedList<String>();
+        Random rand = new Random();
+        parts.add("ab");
+        parts.add("cd");
+        while (parts.size()<6) {
+            parts.add(String.format("%02x", rand.nextInt(255)));
+        }
+        String newMac = String.join(":", parts);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(TERMUX_MAC_PREF, newMac);
+        editor.apply();
+        return newMac;
     }
 
     private boolean sendSbPlayerIntent(boolean start) {
