@@ -73,10 +73,10 @@ public class LocalPlayer {
                 Intent intent = new Intent();
                 intent.setClassName("com.termux", "com.termux.app.RunCommandService");
                 intent.setAction("com.termux.RUN_COMMAND");
-                intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/squeezelite");
-                intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"-M", "SqueezeLiteAndroid", "-s", current.ip, "-C", "5", "-n", Settings.Global.getString(context.getContentResolver(), "device_name")});
-                //intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
-                //intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"/data/data/com.termux/files/home/tmux-sqzlite.sh", "-s", current.ip, "-n", Settings.Global.getString(context.getContentResolver(), "device_name")});
+                //intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/squeezelite");
+                //intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"-M", "SqueezeLiteAndroid", "-s", current.ip, "-C", "5", "-n", Settings.Global.getString(context.getContentResolver(), "device_name")});
+                intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
+                intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"/data/data/com.termux/files/home/tmux-sqzlite.sh", "-s", current.ip, "-n", Settings.Global.getString(context.getContentResolver(), "device_name")});
                 intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
                 intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
                 intent.putExtra("com.termux.execute.command_label", "LMS Player");
