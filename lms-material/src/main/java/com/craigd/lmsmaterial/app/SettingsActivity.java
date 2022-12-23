@@ -98,13 +98,13 @@ public class SettingsActivity extends AppCompatActivity {
             visible = false;
             return true;
         } else if (item.getItemId() == R.id.action_quit) {
-            finishAffinity();
-            System.exit(0);
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             if (sharedPreferences.getBoolean(STOP_APP_ON_QUIT_PREF_KEY, false)) {
                 LocalPlayer localPlayer = new LocalPlayer(sharedPreferences, getApplicationContext());
                 localPlayer.stop();
             }
+            finishAffinity();
+            System.exit(0);
             return true;
         }
         return super.onOptionsItemSelected(item);
