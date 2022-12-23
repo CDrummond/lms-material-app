@@ -57,9 +57,9 @@
     <string name="auto_start_player">Auto-start player</string>
     <string name="auto_start_player_summary">Automatically start chosen player app when this app starts.</string>
     <string name="stop_app_on_quit">Stop player when quit</string>
-    <string name="stop_app_on_quit_summary">Stop chosen player app when quitting via the \'Quit\' menu entry. (Currently only applies to Squeezelite (via Termux).)</string>
+    <string name="stop_app_on_quit_summary">Stop chosen player app when quitting via the \'Quit\' menu entry. (Currently does not work for SqueezePlayer.)</string>
     <string name="stop_app">Tap here to stop player</string>
-    <string name="stop_app_summary">Stop chosen player app. (Currently only applies to Squeezelite (via Termux).)</string>
+    <string name="stop_app_summary">Stop chosen player app. (Currently does not work for SqueezePlayer.)</string>
     <string name="menu_start_player">Add menu entry to start player</string>
     <string name="menu_start_player_summary">Show an entry in the main menu to start chosen player app.</string>
     <string name="stopping_player">Stopping local player</string>

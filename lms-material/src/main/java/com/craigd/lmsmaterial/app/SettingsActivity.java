@@ -448,14 +448,14 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private static void controlPlayerPrefs(PreferenceManager mgr) {
-        boolean isTermux = LocalPlayer.TERMUX_PLAYER.equals(mgr.getSharedPreferences().getString(PLAYER_APP_PREF_KEY, null));
+        boolean isSqeezePlayer = LocalPlayer.SQUEEZE_PLAYER.equals(mgr.getSharedPreferences().getString(PLAYER_APP_PREF_KEY, null));
         Preference pref = mgr.findPreference(STOP_APP_PREF_KEY);
         if (pref != null) {
-            pref.setEnabled(isTermux);
+            pref.setEnabled(!isSqeezePlayer);
         }
         pref = mgr.findPreference(STOP_APP_ON_QUIT_PREF_KEY);
         if (pref != null) {
-            pref.setEnabled(isTermux);
+            pref.setEnabled(!isSqeezePlayer);
         }
     }
 }

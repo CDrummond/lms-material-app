@@ -45,9 +45,9 @@ public class LocalPlayer {
         }
         String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
         if (SB_PLAYER.equals(playerApp)) {
-            Intent launchIntent = context.getApplicationContext().getPackageManager().getLaunchIntentForPackage(SB_PLAYER_PKG);
-            context.startActivity(launchIntent);
-            started = true;
+            if (sendSbPlayerIntent(true)) {
+                started = true;
+            }
         } else if (SQUEEZE_PLAYER.equals(playerApp)) {
             ComponentName component = new ComponentName(SQUEEZE_PLAYER_PKG, SQUEEZE_PLAYER_SRV);
             Intent intent = new Intent().setComponent(component);
@@ -67,12 +67,15 @@ public class LocalPlayer {
                     intent.putExtra("password", pass);
                 }
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent);
-            } else {
-                context.startService(intent);
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent);
+                } else {
+                    context.startService(intent);
+                }
+                started = true;
+            } catch (Exception e) {
             }
-            started = true;
         } else if (TERMUX_PLAYER.equals(playerApp)) {
             ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
             if (current!=null) {
@@ -87,13 +90,31 @@ public class LocalPlayer {
 
     public boolean stop() {
         String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
-        if (TERMUX_PLAYER.equals(playerApp)) {
+        if (SB_PLAYER.equals(playerApp)) {
+            if (sendSbPlayerIntent(false)) {
+                started = false;
+                return true;
+            }
+        } else if (TERMUX_PLAYER.equals(playerApp)) {
             if (runTermuxCommand("/data/data/com.termux/files/usr/bin/killall", new String[]{"-9", "squeezelite"})) {
                 started = false;
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean sendSbPlayerIntent(boolean start) {
+        Intent intent = new Intent();
+        intent.setClassName("com.angrygoat.android.sbplayer", "com.angrygoat.android.sbplayer.SBPlayerReceiver");
+        intent.setAction("com.angrygoat.android.sbplayer." + (start ? "LAUNCH" : "EXIT"));
+        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        try {
+            context.sendBroadcast(intent);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private boolean runTermuxCommand(String app, String[] args) {
@@ -108,11 +129,15 @@ public class LocalPlayer {
         intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", args);
         intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
         intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent);
-        } else {
-            context.startService(intent);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent);
+            } else {
+                context.startService(intent);
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
         }
-        return true;
     }
 }
