@@ -38,7 +38,7 @@
         <item>None</item>
         <item>SB Player</item>
 	    <item>SqueezePlayer</item>
-	    <item>SqueezeLite (via Termux)</item>
+	    <item>Squeezelite (via Termux)</item>
     </string-array>
     <string-array name="playerappsAlias">
         <item>none</item>
