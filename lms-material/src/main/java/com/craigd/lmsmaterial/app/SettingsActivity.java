@@ -346,7 +346,6 @@ public class SettingsActivity extends AppCompatActivity {
                     }
                 });
             }
-            controlPlayerPrefs(getPreferenceManager());
 
             updateListSummary(STATUSBAR_PREF_KEY);
             updateListSummary(NAVBAR_PREF_KEY);
@@ -370,7 +369,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
             if (PLAYER_APP_PREF_KEY.equals(key)) {
                 updateListSummary(key);
-                controlPlayerPrefs(getPreferenceManager());
                 if (LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(PLAYER_APP_PREF_KEY, null))) {
                     activity.checkTermuxPermission();
                 }
@@ -411,7 +409,6 @@ public class SettingsActivity extends AppCompatActivity {
             if (pref != null) {
                 pref.setValue(LocalPlayer.NO_PLAYER);
             }
-            controlPlayerPrefs(getPreferenceManager());
             updateListSummary(PLAYER_APP_PREF_KEY);
         }
     }
@@ -445,17 +442,5 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
-    private static void controlPlayerPrefs(PreferenceManager mgr) {
-        boolean isSqeezePlayer = LocalPlayer.SQUEEZE_PLAYER.equals(mgr.getSharedPreferences().getString(PLAYER_APP_PREF_KEY, null));
-        Preference pref = mgr.findPreference(STOP_APP_PREF_KEY);
-        if (pref != null) {
-            pref.setEnabled(!isSqeezePlayer);
-        }
-        pref = mgr.findPreference(STOP_APP_ON_QUIT_PREF_KEY);
-        if (pref != null) {
-            pref.setEnabled(!isSqeezePlayer);
-        }
     }
 }

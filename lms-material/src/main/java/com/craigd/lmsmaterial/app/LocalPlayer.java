@@ -7,7 +7,6 @@
 
 package com.craigd.lmsmaterial.app;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,10 +24,6 @@ public class LocalPlayer {
     public static final String SB_PLAYER = "sbplayer";
     public static final String SQUEEZE_PLAYER = "squeezeplayer";
     public static final String TERMUX_PLAYER = "termux";
-
-    private static final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
-    private static final String SQUEEZE_PLAYER_PKG = "de.bluegaspode.squeezeplayer";
-    private static final String SQUEEZE_PLAYER_SRV = "de.bluegaspode.squeezeplayer.playback.service.PlaybackService";
 
     private static boolean started = false;
     private SharedPreferences sharedPreferences;
@@ -49,32 +44,8 @@ public class LocalPlayer {
                 started = true;
             }
         } else if (SQUEEZE_PLAYER.equals(playerApp)) {
-            ComponentName component = new ComponentName(SQUEEZE_PLAYER_PKG, SQUEEZE_PLAYER_SRV);
-            Intent intent = new Intent().setComponent(component);
-            ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
-
-            if (current != null) {
-                intent.putExtra("forceSettingsFromIntent", true);
-                intent.putExtra("intentHasServerSettings", true);
-                intent.putExtra("serverURL", current.ip);
-                intent.putExtra("serverName", current.name);
-                String user = sharedPreferences.getString(MainActivity.LMS_USERNAME_KEY, null);
-                String pass = sharedPreferences.getString(MainActivity.LMS_PASSWORD_KEY, null);
-                if (user != null) {
-                    intent.putExtra("username", user);
-                }
-                if (pass != null) {
-                    intent.putExtra("password", pass);
-                }
-            }
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(intent);
-                } else {
-                    context.startService(intent);
-                }
+            if (controlSqueezePlayer(true)) {
                 started = true;
-            } catch (Exception e) {
             }
         } else if (TERMUX_PLAYER.equals(playerApp)) {
             ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
@@ -95,6 +66,11 @@ public class LocalPlayer {
                 started = false;
                 return true;
             }
+        } else if (SQUEEZE_PLAYER.equals(playerApp)) {
+            if (controlSqueezePlayer(false)) {
+                started = false;
+                return true;
+            }
         } else if (TERMUX_PLAYER.equals(playerApp)) {
             if (runTermuxCommand("/data/data/com.termux/files/usr/bin/killall", new String[]{"-9", "squeezelite"})) {
                 started = false;
@@ -104,13 +80,49 @@ public class LocalPlayer {
         return false;
     }
 
-    public boolean sendSbPlayerIntent(boolean start) {
+    private boolean sendSbPlayerIntent(boolean start) {
         Intent intent = new Intent();
         intent.setClassName("com.angrygoat.android.sbplayer", "com.angrygoat.android.sbplayer.SBPlayerReceiver");
         intent.setAction("com.angrygoat.android.sbplayer." + (start ? "LAUNCH" : "EXIT"));
         intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
         try {
             context.sendBroadcast(intent);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean controlSqueezePlayer(boolean start) {
+        Intent intent = new Intent();
+        intent.setClassName("de.bluegaspode.squeezeplayer", "de.bluegaspode.squeezeplayer.playback.service.PlaybackService");
+
+        ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
+        if (current != null) {
+            intent.putExtra("forceSettingsFromIntent", true);
+            intent.putExtra("intentHasServerSettings", true);
+            intent.putExtra("serverURL", current.ip);
+            intent.putExtra("serverName", current.name);
+            String user = sharedPreferences.getString(MainActivity.LMS_USERNAME_KEY, null);
+            String pass = sharedPreferences.getString(MainActivity.LMS_PASSWORD_KEY, null);
+            if (user != null) {
+                intent.putExtra("username", user);
+            }
+            if (pass != null) {
+                intent.putExtra("password", pass);
+            }
+        }
+        try {
+            if (start) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent);
+                } else {
+                    context.startService(intent);
+                }
+                started = true;
+            } else {
+                context.stopService(intent);
+            }
             return true;
         } catch (Exception e) {
             return false;
