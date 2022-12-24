@@ -306,7 +306,9 @@ public class MainActivity extends AppCompatActivity {
             }
             builder.appendQueryParameter("nativePlayer", "1");
             builder.appendQueryParameter("nativeTheme", "1");
-            builder.appendQueryParameter("nativePlayerPower", "1");
+            if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
+                builder.appendQueryParameter("nativePlayerPower", "1");
+            }
             return builder.build().toString()+
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" +
