@@ -7,12 +7,14 @@
 
 package com.craigd.lmsmaterial.app;
 
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
@@ -53,17 +55,23 @@ public class LocalPlayer {
                 started = true;
             }
         } else if (TERMUX_PLAYER.equals(playerApp)) {
-            ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
-            if (current!=null) {
-                if (runTermuxCommand("/data/data/com.termux/files/usr/bin/bash",
-                        new String[]{
-                                "/data/data/com.termux/files/home/tmux-sqzlite.sh",
-                                "-s", current.ip,
-                                "-m", getTermuxMac(),
-                                "-n", Settings.Global.getString(context.getContentResolver(), "device_name")
-                                 })) {
-                    started = true;
-                }
+            // First check Squeezelite is not already running...
+            runTermuxCommand("/data/data/com.termux/files/usr/bin/ps", new String[]{"-eaf"}, true);
+        }
+    }
+
+    public void startTermuxSqueezeLite() {
+        ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
+        if (current!=null) {
+            if (runTermuxCommand("/data/data/com.termux/files/usr/bin/squeezelite",
+                    new String[]{
+                            "-M", "SqueezeLiteAndroid",
+                            "-C", "5",
+                            "-s", current.ip,
+                            "-m", getTermuxMac(),
+                            "-n", Settings.Global.getString(context.getContentResolver(), "device_name")
+                             }, false)) {
+                started = true;
             }
         }
     }
@@ -79,7 +87,7 @@ public class LocalPlayer {
                 started = false;
             }
         } else if (TERMUX_PLAYER.equals(playerApp)) {
-            if (runTermuxCommand("/data/data/com.termux/files/usr/bin/killall", new String[]{"-9", "squeezelite"})) {
+            if (runTermuxCommand("/data/data/com.termux/files/usr/bin/killall", new String[]{"-9", "squeezelite"}, false)) {
                 started = false;
             }
         }
@@ -113,6 +121,7 @@ public class LocalPlayer {
             context.sendBroadcast(intent);
             return true;
         } catch (Exception e) {
+            Log.e(MainActivity.TAG, "Failed to control SB Player - " + e.getMessage());
             return false;
         }
     }
@@ -147,11 +156,12 @@ public class LocalPlayer {
             }
             return true;
         } catch (Exception e) {
+            Log.e(MainActivity.TAG, "Failed to control SqueezePlayer - " + e.getMessage());
             return false;
         }
     }
 
-    private boolean runTermuxCommand(String app, String[] args) {
+    private boolean runTermuxCommand(String app, String[] args, boolean handleResp) {
         if (ContextCompat.checkSelfPermission(context, SettingsActivity.TERMUX_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
             StyleableToast.makeText(context, context.getResources().getString(R.string.no_termux_run_perms), Toast.LENGTH_SHORT, R.style.toast).show();
             return false;
@@ -163,6 +173,15 @@ public class LocalPlayer {
         intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", args);
         intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
         intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        if (handleResp) {
+            Log.d(MainActivity.TAG, "HANDLE RESP");
+            int executionId = TermuxResultsService.getNextExecutionId();
+            Intent pluginResultsServiceIntent = new Intent(context, TermuxResultsService.class);
+            pluginResultsServiceIntent.putExtra(TermuxResultsService.EXTRA_EXECUTION_ID, executionId);
+            PendingIntent pendingIntent = PendingIntent.getService(context, executionId, pluginResultsServiceIntent, PendingIntent.FLAG_ONE_SHOT);
+            intent.putExtra("com.termux.RUN_COMMAND_PENDING_INTENT", pendingIntent);
+        }
+        Log.d(MainActivity.TAG, "Send Termux command:"+app+" args:"+String.join(", ", args));
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent);
@@ -171,6 +190,7 @@ public class LocalPlayer {
             }
             return true;
         } catch (Exception e) {
+            Log.e(MainActivity.TAG, "Failed to send Termux command - " + e.getMessage());
             return false;
         }
     }

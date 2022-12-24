@@ -68,6 +68,11 @@
             android:enabled="true"
             android:exported="true" />
 
+        <service
+            android:name=".TermuxResultsService"
+            android:enabled="true"
+            android:exported="true" />
+
         <receiver
             android:name=".MainActivity$ConnectionChangeListener"
             android:label="NetworkConnection">
