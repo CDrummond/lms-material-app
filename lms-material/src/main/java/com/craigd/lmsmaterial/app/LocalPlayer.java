@@ -68,25 +68,21 @@ public class LocalPlayer {
         }
     }
 
-    public boolean stop() {
+    public void stop() {
         String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
         if (SB_PLAYER.equals(playerApp)) {
             if (sendSbPlayerIntent(false)) {
                 started = false;
-                return true;
             }
         } else if (SQUEEZE_PLAYER.equals(playerApp)) {
             if (controlSqueezePlayer(false)) {
                 started = false;
-                return true;
             }
         } else if (TERMUX_PLAYER.equals(playerApp)) {
             if (runTermuxCommand("/data/data/com.termux/files/usr/bin/killall", new String[]{"-9", "squeezelite"})) {
                 started = false;
-                return true;
             }
         }
-        return false;
     }
 
     private String getTermuxMac() {

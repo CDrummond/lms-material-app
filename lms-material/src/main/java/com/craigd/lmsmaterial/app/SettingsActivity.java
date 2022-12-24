@@ -337,11 +337,8 @@ public class SettingsActivity extends AppCompatActivity {
                     @Override
                     public boolean onPreferenceClick(Preference arg0) {
                         LocalPlayer localPlayer = new LocalPlayer(PreferenceManager.getDefaultSharedPreferences(getContext()), getContext());
-                        if (localPlayer.stop()) {
-                            StyleableToast.makeText(getContext(), getResources().getString(R.string.stopping_player), Toast.LENGTH_SHORT, R.style.toast).show();
-                        } else {
-                            StyleableToast.makeText(getContext(), getResources().getString(R.string.cant_stop_player), Toast.LENGTH_SHORT, R.style.toast).show();
-                        }
+                        StyleableToast.makeText(getContext(), getResources().getString(R.string.stopping_player), Toast.LENGTH_SHORT, R.style.toast).show();
+                        localPlayer.stop();
                         return true;
                     }
                 });
