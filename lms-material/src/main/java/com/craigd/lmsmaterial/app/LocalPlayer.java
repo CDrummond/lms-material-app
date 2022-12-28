@@ -32,27 +32,50 @@ public class LocalPlayer {
     public static final String TERMUX_PLAYER = "termux";
     public static final String TERMUX_MAC_PREF = "termux_mac";
 
-    private static boolean started = false;
     private SharedPreferences sharedPreferences;
     private Context context;
+
+    private enum State {
+        INITIAL,
+        STARTED,
+        STOPPED
+    }
+    private static State state = State.INITIAL;
 
     public LocalPlayer(SharedPreferences sharedPreferences, Context context) {
         this.sharedPreferences = sharedPreferences;
         this.context = context;
     }
 
-    public void start(boolean force) {
-        if (started && !force) {
+    public void autoStart(boolean fromResume) {
+        // If resuming and user had stopped this player, then don't auto-restart
+        if (fromResume && State.STOPPED.equals(state)) {
             return;
         }
+        if (sharedPreferences.getBoolean(SettingsActivity.AUTO_START_PLAYER_APP_PREF_KEY, false)) {
+            // Only SqueezePlayer needs re-starting from resume???
+            if (!fromResume || SQUEEZE_PLAYER.equals(sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null))) {
+                start();
+            }
+        }
+    }
+
+    public void autoStop() {
+        if (sharedPreferences.getBoolean(SettingsActivity.STOP_APP_ON_QUIT_PREF_KEY, false)) {
+            stop();
+        }
+    }
+
+    public void start() {
         String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
+        Log.d(MainActivity.TAG, "Start player: " + playerApp);
         if (SB_PLAYER.equals(playerApp)) {
             if (sendSbPlayerIntent(true)) {
-                started = true;
+                state = State.STARTED;
             }
         } else if (SQUEEZE_PLAYER.equals(playerApp)) {
             if (controlSqueezePlayer(true)) {
-                started = true;
+                state = State.STARTED;
             }
         } else if (TERMUX_PLAYER.equals(playerApp)) {
             // First check Squeezelite is not already running...
@@ -62,33 +85,35 @@ public class LocalPlayer {
 
     public void startTermuxSqueezeLite() {
         ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
+        state = State.INITIAL;
         if (current!=null) {
             if (runTermuxCommand("/data/data/com.termux/files/usr/bin/squeezelite",
-                    new String[]{
-                            "-M", "SqueezeLiteAndroid",
-                            "-C", "5",
-                            "-s", current.ip,
-                            "-m", getTermuxMac(),
-                            "-n", Settings.Global.getString(context.getContentResolver(), "device_name")
-                             }, false)) {
-                started = true;
+                new String[]{
+                        "-M", "SqueezeLiteAndroid",
+                        "-C", "5",
+                        "-s", current.ip,
+                        "-m", getTermuxMac(),
+                        "-n", Settings.Global.getString(context.getContentResolver(), "device_name")
+                        }, false)) {
+                state = State.STARTED;
             }
         }
     }
 
     public void stop() {
         String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
+        Log.d(MainActivity.TAG, "Stop player: " + playerApp);
         if (SB_PLAYER.equals(playerApp)) {
             if (sendSbPlayerIntent(false)) {
-                started = false;
+                state = State.STOPPED;
             }
         } else if (SQUEEZE_PLAYER.equals(playerApp)) {
             if (controlSqueezePlayer(false)) {
-                started = false;
+                state = State.STOPPED;
             }
         } else if (TERMUX_PLAYER.equals(playerApp)) {
             if (runTermuxCommand("/data/data/com.termux/files/usr/bin/killall", new String[]{"-9", "squeezelite"}, false)) {
-                started = false;
+                state = State.STOPPED;
             }
         }
     }
@@ -150,7 +175,6 @@ public class LocalPlayer {
                 } else {
                     context.startService(intent);
                 }
-                started = true;
             } else {
                 context.stopService(intent);
             }

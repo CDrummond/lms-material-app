@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
     private JSONArray downloadData = null;
     private LocalPlayer localPlayer = null;
     private boolean isDark = true;
+    private boolean pageLoaded = false;
 
     public static String activePlayer = null;
     public static String activePlayerName = null;
@@ -512,9 +513,6 @@ public class MainActivity extends AppCompatActivity {
         pageLoadHandler.removeCallbacks(pageLoadTimeout);
         webView.loadUrl(u);
         pageLoadHandler.postDelayed(pageLoadTimeout, PAGE_TIMEOUT);
-        if (sharedPreferences.getBoolean(SettingsActivity.AUTO_START_PLAYER_APP_PREF_KEY, false)) {
-            localPlayer.start(false);
-        }
     }
 
     private void discoverServer(boolean force) {
@@ -588,6 +586,8 @@ public class MainActivity extends AppCompatActivity {
                     pageLoadHandler.removeCallbacks(pageLoadTimeout);
                     firstAuthReq=true;
                 }
+                localPlayer.autoStart(false);
+                pageLoaded = true;
                 super.onPageStarted(view, u, favicon);
             }
 
@@ -614,14 +614,12 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (url.equals(QUIT_URL)) {
                     finishAffinity();
-                    if (sharedPreferences.getBoolean(SettingsActivity.STOP_APP_ON_QUIT_PREF_KEY, false)) {
-                        localPlayer.stop();
-                    }
+                    localPlayer.autoStop();
                     System.exit(0);
                     return true;
                 }
                 if (url.equals(STARTPLAYER_URL)) {
-                    localPlayer.start(true);
+                    localPlayer.start();
                     return true;
                 }
 
@@ -938,6 +936,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (!settingsShown) {
             updateDownloadStatus();
+            if (pageLoaded) {
+                localPlayer.autoStart(true);
+            }
             return;
         }
         settingsShown = false;
