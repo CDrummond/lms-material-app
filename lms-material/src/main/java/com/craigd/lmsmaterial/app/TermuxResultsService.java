@@ -1,7 +1,7 @@
 /**
  * LMS-Material-App
  *
- * Copyright (c) 2020-2022 Craig Drummond <craig.p.drummond@gmail.com>
+ * Copyright (c) 2020-2023 Craig Drummond <craig.p.drummond@gmail.com>
  * MIT license.
  */
 
