@@ -19,6 +19,10 @@ import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
+import com.android.volley.Response;
+
+import org.json.JSONObject;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -34,6 +38,7 @@ public class LocalPlayer {
 
     private SharedPreferences sharedPreferences;
     private Context context;
+    private JsonRpc rpc = null;
 
     private enum State {
         INITIAL,
@@ -98,6 +103,20 @@ public class LocalPlayer {
                 state = State.STARTED;
             }
         }
+    }
+
+    public void stopPlayer(String playerId) {
+        // If stopping player via skin's 'power' button, then we need to ask LMS to forget
+        // the client first, and then do the actual stop.
+        if (null==rpc) {
+            rpc = new JsonRpc(context);
+        }
+        rpc.sendMessage(playerId, new String[]{"client", "forget"}, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                stop();
+            }
+        });
     }
 
     public void stop() {

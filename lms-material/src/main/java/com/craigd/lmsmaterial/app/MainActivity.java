@@ -758,7 +758,7 @@ public class MainActivity extends AppCompatActivity {
         String[] parts = ipAddress.split(":");
         Log.d(TAG, "Player Power, ID: "+playerId+", IP:"+parts[0]+", State: "+state);
         if (0==state && parts[0].compareTo(getLocalIpAddress())==0) {
-            localPlayer.stop();
+            localPlayer.stopPlayer(playerId);
             return 1;
         }
         return 0;
