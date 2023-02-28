@@ -642,7 +642,13 @@ public class MainActivity extends AppCompatActivity {
                 if (null!=path && path.toLowerCase().endsWith(".pdf")) {
                     intent.setDataAndType(uri, "application/pdf");
                 }
-                startActivity(intent);
+                try {
+                    startActivity(intent);
+                } catch (Exception e) {
+                    StyleableToast.makeText(getApplicationContext(),
+                            getApplicationContext().getResources().getString(R.string.no_termux_run_perms),
+                            Toast.LENGTH_SHORT, R.style.toast).show();
+                }
                 return true;
             }
 

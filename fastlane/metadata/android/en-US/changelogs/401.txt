@@ -1,0 +1,3 @@
+Fixed
+
+• Catch exceptions when launching PDF viewer.

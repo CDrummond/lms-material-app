@@ -13,8 +13,8 @@ android {
         minSdkVersion 21
         // Need to target 28, or lower, to allow WiFi to be enabled...
         targetSdkVersion 28
-        versionCode  400
-        versionName "0.4.0"
+        versionCode  401
+        versionName "0.4.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
