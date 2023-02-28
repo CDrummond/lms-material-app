@@ -1,3 +1,7 @@
+Improved
+
+• Added ability to specify Squeezelite options.
+
 Fixed
 
 • Catch exceptions when launching PDF viewer.

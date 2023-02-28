@@ -65,4 +65,6 @@
     <string name="stopping_player">Stopping local player</string>
     <string name="no_termux_run_perms">Do not have permission to run Termux commands</string>
     <string name="failed_start_activity">Failed to start activity</string>
+    <string name="squeezelite_options_summary">Extra options to pass to Squeezelite</string>
+    <string name="squeezelite_options">Squeezelite (via Termux) options</string>
 </resources>

@@ -118,6 +118,11 @@
             android:key="player_app"
             android:title="@string/player_app"
             app:iconSpaceReserved="false" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="squeezelite_options"
+            app:summary="@string/squeezelite_options_summary"
+            app:title="@string/squeezelite_options" />
         <SwitchPreference
             app:iconSpaceReserved="false"
             app:key="auto_start_player"

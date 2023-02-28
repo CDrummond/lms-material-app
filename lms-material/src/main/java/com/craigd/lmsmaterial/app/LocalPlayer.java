@@ -23,8 +23,10 @@ import com.android.volley.Response;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import io.github.muddz.styleabletoast.StyleableToast;
@@ -92,14 +94,36 @@ public class LocalPlayer {
         ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
         state = State.INITIAL;
         if (current!=null) {
-            if (runTermuxCommand("/data/data/com.termux/files/usr/bin/squeezelite",
-                new String[]{
-                        "-M", "SqueezeLiteAndroid",
-                        "-C", "5",
-                        "-s", current.ip,
-                        "-m", getTermuxMac(),
-                        "-n", Settings.Global.getString(context.getContentResolver(), "device_name")
-                        }, false)) {
+            String opts = sharedPreferences.getString(SettingsActivity.SQUEEZELITE_OPTIONS_KEY,"");
+            Map<String, String> params = new HashMap<>();
+            params.put("-M", "SqueezeLiteAndroid");
+            params.put("-C", "5");
+            params.put("-s", current.ip);
+            params.put("-m", getTermuxMac());
+            params.put("-n", Settings.Global.getString(context.getContentResolver(), "device_name"));
+            if (null!=opts) {
+                String[] parts = opts.split(" ");
+                if (parts.length>1 && parts.length%2 == 0) {
+                    for (int i=0; i<parts.length; i+=2) {
+                        if (parts[i].startsWith("-")) {
+                            if (parts[i].equals("-n")) {
+                                params.put(parts[i], parts[i + 1].replace("_", " "));
+                            } else {
+                                params.put(parts[i], parts[i + 1]);
+                            }
+                        }
+                    }
+                }
+            }
+            String[] args = new String[params.size()*2];
+            int i=0;
+            for (Map.Entry<String, String> entry: params.entrySet()) {
+                args[i]=entry.getKey();
+                i++;
+                args[i]=entry.getValue();
+                i++;
+            }
+            if (runTermuxCommand("/data/data/com.termux/files/usr/bin/squeezelite", args, false)) {
                 state = State.STARTED;
             }
         }
