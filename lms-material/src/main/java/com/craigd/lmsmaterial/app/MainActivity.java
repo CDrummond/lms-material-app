@@ -46,6 +46,7 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -590,6 +591,18 @@ public class MainActivity extends AppCompatActivity {
                 localPlayer.autoStart(false);
                 pageLoaded = true;
                 super.onPageStarted(view, u, favicon);
+            }
+
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+                Log.d(TAG, "onReceivedHttpError url:" + request.getUrl() + ", mf:" + request.isForMainFrame() + ", sc:" + errorResponse.getStatusCode());
+                if (request.isForMainFrame() && 404== errorResponse.getStatusCode() && request.getUrl().toString().equals(getConfiguredUrl())) {
+                    pageError = true;
+                    //discoverServer(false);
+                    pageLoadHandler.removeCallbacks(pageLoadTimeout);
+                    navigateToSettingsActivity();
+                }
+                super.onReceivedHttpError(view, request, errorResponse);
             }
 
             @Override

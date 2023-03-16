@@ -5,3 +5,4 @@ Improved
 Fixed
 
 • Catch exceptions when launching PDF viewer.
+• If receive 404 error when loading show settings page.
