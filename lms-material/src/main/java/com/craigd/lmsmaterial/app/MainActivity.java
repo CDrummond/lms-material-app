@@ -63,6 +63,7 @@ import androidx.preference.PreferenceManager;
 
 import org.json.JSONArray;
 
+import java.io.File;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -71,8 +72,10 @@ import java.net.SocketException;
 import java.net.URL;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import io.github.muddz.styleabletoast.StyleableToast;
 
@@ -946,6 +949,24 @@ public class MainActivity extends AppCompatActivity {
         pausedDate = new Date();
     }
 
+    private static boolean deleteDir(File path, Set<String> ignore) {
+        if (null!=path) {
+            if (path.isDirectory()) {
+                for (String entry : path.list()) {
+                    if ((null==ignore || !ignore.contains(entry)) && !deleteDir(new File(path, entry), ignore)) {
+                        return false;
+                    }
+                }
+                Log.i(TAG, "Delete dir:" + path.getAbsolutePath());
+                return path.delete();
+            } else if (path.isFile()) {
+                Log.i(TAG, "Delete file:" + path.getAbsolutePath());
+                return path.delete();
+            }
+        }
+        return false;
+    }
+
     @Override
     protected void onResume() {
         Log.i(TAG, "Resume");
@@ -979,6 +1000,12 @@ public class MainActivity extends AppCompatActivity {
         if (clearCache()) {
             Log.i(TAG,"Clear cache");
             webView.clearCache(true);
+            try {
+                Set<String> ignore = new HashSet<String>();
+                ignore.add("lib");
+                ignore.add("shared_prefs");
+                deleteDir(this.getCacheDir(), ignore);
+            } catch (Exception e) { }
             cacheCleared = true;
         }
         if (prevSbar!=statusbar || prevNavbar!=navbar) {

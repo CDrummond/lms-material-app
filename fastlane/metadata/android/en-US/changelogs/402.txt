@@ -1,0 +1,3 @@
+Improved
+
+• When deleting cache clear app's cache too.
