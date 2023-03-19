@@ -524,6 +524,8 @@ public class MainActivity extends AppCompatActivity {
             StyleableToast.makeText(getBaseContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT, R.style.toast).show();
             Discovery discovery = new Discovery(getApplicationContext());
             discovery.discover();
+        } else {
+            navigateToSettingsActivity();
         }
     }
 
