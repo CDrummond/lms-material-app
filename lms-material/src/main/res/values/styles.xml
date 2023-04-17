@@ -11,6 +11,8 @@
         <item name="android:textColor">@color/colorText</item>
         <item name="android:divider">@null</item>
         <item name="android:dividerHeight">0dp</item>
+        <item name="dialogCornerRadius">28dp</item>
+        <item name="android:textAllCaps">false</item>
     </style>
 
     <style name="AppTheme.Light" parent="Theme.AppCompat.Light">
@@ -24,6 +26,8 @@
         <item name="android:textColor">@color/colorTextLight</item>
         <item name="android:divider">@null</item>
         <item name="android:dividerHeight">0dp</item>
+        <item name="dialogCornerRadius">28dp</item>
+        <item name="android:textAllCaps">false</item>
     </style>
 
     <style name="toast">

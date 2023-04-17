@@ -2,3 +2,5 @@ Improved
 
 • When deleting cache clear app's cache too.
 • If fail to connect and auto-discovery is disabled then show settings.
+• Make diaogs rounded.
+• Disable caps case of buttons.
