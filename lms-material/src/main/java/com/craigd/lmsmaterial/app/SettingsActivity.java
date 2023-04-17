@@ -291,8 +291,11 @@ public class SettingsActivity extends AppCompatActivity {
                             input.setText(value);
                         }
 
-                        input.setPadding(padding, input.getPaddingTop(), padding, input.getPaddingBottom());
-                        builder.setView(input);
+                        LinearLayout layout = new LinearLayout(getContext());
+                        layout.setOrientation(LinearLayout.VERTICAL);
+                        layout.setPadding(padding, padding, padding, padding/2);
+                        layout.addView(input);
+                        builder.setView(layout);
 
                         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                             @Override
