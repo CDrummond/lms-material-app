@@ -310,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             builder.appendQueryParameter("nativePlayer", "1");
-            builder.appendQueryParameter("nativeTheme", "1");
+            //builder.appendQueryParameter("nativeTheme", "1");
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
                 builder.appendQueryParameter("nativePlayerPower", "1");
             }
@@ -534,7 +534,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        isDark = sharedPreferences.getBoolean(SettingsActivity.IS_DARK_PREF_KEY, true);
+        //isDark = sharedPreferences.getBoolean(SettingsActivity.IS_DARK_PREF_KEY, true);
         localPlayer = new LocalPlayer(sharedPreferences, this);
         setTheme();
         setDefaults();
@@ -836,6 +836,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /*
     @JavascriptInterface
     public void updateTheme(String theme) {
         Log.d(TAG, "updateTheme: " + theme);
@@ -849,6 +850,7 @@ public class MainActivity extends AppCompatActivity {
             setTheme();
         }
     }
+    */
 
     private void setTheme() {
         setTheme(isDark ? R.style.AppTheme : R.style.AppTheme_Light);

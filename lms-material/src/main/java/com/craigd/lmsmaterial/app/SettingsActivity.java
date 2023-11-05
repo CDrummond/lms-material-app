@@ -57,7 +57,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String AUTO_START_PLAYER_APP_PREF_KEY = "auto_start_player";
     public static final String PLAYER_START_MENU_ITEM_PREF_KEY = "menu_start_player";
     public static final String STOP_APP_ON_QUIT_PREF_KEY = "stop_app_on_quit";
-    public static final String IS_DARK_PREF_KEY = "is_dark";
+    //public static final String IS_DARK_PREF_KEY = "is_dark";
     public static final String SQUEEZELITE_OPTIONS_KEY = "squeezelite_options";
 
     public static final String TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND";
