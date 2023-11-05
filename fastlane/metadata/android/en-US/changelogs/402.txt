@@ -4,4 +4,8 @@ Improved
 • If fail to connect and auto-discovery is disabled then show settings.
 • Make dialogs rounded.
 • Disable caps case of buttons.
+
+Fixed
+
 • Revert usage of light theme for settings, always use dark.
+• Replace formward-slashes with underscores for download filenames.

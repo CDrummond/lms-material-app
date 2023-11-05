@@ -81,7 +81,7 @@ public class DownloadService extends Service {
     }
 
     static String fatSafe(String str) {
-        return str.replaceAll("[?<>\\\\:*|\"]", "_");
+        return str.replaceAll("[?<>\\\\:*|\"/]", "_");
     }
 
     static String fixEmpty(String str) {
