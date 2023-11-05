@@ -74,7 +74,7 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        boolean isDark = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean(IS_DARK_PREF_KEY, true);
+        boolean isDark = true; // PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean(IS_DARK_PREF_KEY, true);
         setTheme(isDark ? R.style.AppTheme : R.style.AppTheme_Light);
         getWindow().setStatusBarColor(ContextCompat.getColor(this, isDark ? R.color.colorBackground : R.color.colorBackgroundLight));
         getWindow().setNavigationBarColor(ContextCompat.getColor(this, isDark ? R.color.colorBackground : R.color.colorBackgroundLight));
