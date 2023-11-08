@@ -576,6 +576,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(false);
         webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        webSettings.setTextZoom(100);
         initialWebViewScale = getResources().getDisplayMetrics().density;
         currentScale = getScale();
         webView.setInitialScale(currentScale);

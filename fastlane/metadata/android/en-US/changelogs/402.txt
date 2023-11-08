@@ -9,3 +9,4 @@ Fixed
 
 • Revert usage of light theme for settings, always use dark.
 • Replace formward-slashes with underscores for download filenames.
+• Set font scale to 100%.
