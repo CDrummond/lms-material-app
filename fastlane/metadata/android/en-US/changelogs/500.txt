@@ -1,0 +1,4 @@
+Improved
+
+• Modified icon to match new Lyrion icon.
+• Changed name to 'Lyrion'.
