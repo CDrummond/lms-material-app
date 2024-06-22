@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="statusbar">
+        <item>Видима (стандартна)</item>
+        <item>Видима (змішана)</item>
+        <item>Прихована</item>
+    </string-array>
+    <string-array name="statusbarAlias">
+        <item>visible</item>
+        <item>blend</item>
+        <item>hidden</item>
+    </string-array>
+    <string-array name="orientation">
+        <item>Автоматична</item>
+        <item>Портретна</item>
+        <item>Альбомна</item>
+    </string-array>
+    <string-array name="orientationAlias">
+        <item>auto</item>
+        <item>portrait</item>
+        <item>landscape</item>
+    </string-array>
+    <string-array name="oncall">
+        <item>Нічого не робити</item>
+        <item>Приглушити всі активні плеєри</item>
+        <item>Приглушити поточний плеєр</item>
+        <item>Призупинити всі активні плеєри</item>
+        <item>Призупинити поточний плеєр</item>
+    </string-array>
+    <string-array name="oncallAlias">
+        <item>nothing</item>
+        <item>muteall</item>
+        <item>muteecurrent</item>
+        <item>pauseall</item>
+        <item>pausecurrent</item>
+    </string-array>
+    <string-array name="playerapps">
+        <item>Немає</item>
+        <item>SB Player</item>
+	    <item>SqueezePlayer</item>
+	    <item>Squeezelite (через Termux)</item>
+    </string-array>
+    <string-array name="playerappsAlias">
+        <item>none</item>
+        <item>sbplayer</item>
+	    <item>squeezeplayer</item>
+	    <item>termux</item>
+    </string-array>
+</resources>
