@@ -59,7 +59,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.PermissionChecker;
 import androidx.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -120,8 +123,7 @@ public class MainActivity extends AppCompatActivity {
     private static Date pausedDate = null;
 
     /**
-     * Check whether activty is active, or was in the last 5 seconds...
-     * @return
+     * @return true if activity is active
      */
     public static boolean isActive() {
         if (isCurrentActivity) {
@@ -134,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Messenger controlServiceMessenger;
-    private ServiceConnection controlServiceConnection = new ServiceConnection() {
+    private final ServiceConnection controlServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             Log.d(TAG, "onServiceConnected: "+className.getClassName());
             Log.d(TAG, "Setup control messenger");
@@ -152,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Messenger downloadServiceMessenger = null;
     private BroadcastReceiver downloadStatusReceiver = null;
-    private ServiceConnection downloadServiceConnection = new ServiceConnection() {
+    private final ServiceConnection downloadServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             Log.d(TAG, "Setup download messenger");
             downloadServiceMessenger = new Messenger(service);
@@ -309,6 +311,9 @@ public class MainActivity extends AppCompatActivity {
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
                 builder.appendQueryParameter("nativePlayerPower", "1");
             }
+            if (Utils.notificationAllowed(this, DownloadService.NOTIFICATION_CHANNEL_ID)) {
+                builder.appendQueryParameter("download", "native");
+            }
             return builder.build().toString()+
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" +
@@ -316,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
                     "&appQuit="+QUIT_URL+
                     (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)
                         ? ("&appLaunchPlayer="+STARTPLAYER_URL) : "") +
-                    "&download=native&dontEmbed=pdf";
+                    "&dontEmbed=pdf";
         } catch (Exception e) {
             Log.e(TAG, "Failed to build URL", e);
         }
@@ -369,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
             editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING);
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.ENABLE_NOTIF_PREF_KEY)) {
+        if (!sharedPreferences.contains(SettingsActivity.ENABLE_NOTIF_PREF_KEY) || !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
             editor.putBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
             modified=true;
         }
@@ -1132,7 +1137,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void manageControlService() {
-        if (sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false)) {
+        boolean showNotif = sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
+        if (showNotif && !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
+            showNotif = false;
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
+            editor.apply();
+        }
+        if (showNotif) {
             startControlService();
         } else {
             stopControlService();

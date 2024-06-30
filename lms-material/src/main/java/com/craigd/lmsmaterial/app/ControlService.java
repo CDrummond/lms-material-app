@@ -13,7 +13,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -42,6 +41,7 @@ public class ControlService extends Service {
     private static final String[] PLAY_COMMAND = {"play"};
     private static final String[] PAUSE_COMMAND = {"pause", "1"};
     private static final String[] NEXT_COMMAND = {"playlist", "index", "+1"};
+    public static final String NOTIFICATION_CHANNEL_ID = "lms_control_service";
 
     private static boolean isRunning = false;
 
@@ -59,9 +59,9 @@ public class ControlService extends Service {
     class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            if (msg.what == PLAYER_NAME) {
+            if (msg.what == PLAYER_NAME && null!=notificationBuilder && null!=notificationManager) {
                 notificationBuilder.setContentTitle((String) (msg.obj));
-                if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                if (Build.VERSION.SDK_INT >= 33 && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
                 notificationManager.notify(MSG_ID, notificationBuilder.build());
@@ -133,49 +133,27 @@ public class ControlService extends Service {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private void createNotificationChannel() {
-        NotificationChannel chan = new NotificationChannel("lms_service", "LMS Service", NotificationManager.IMPORTANCE_DEFAULT);
+        notificationManager = NotificationManagerCompat.from(this);
+        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "LMS Service", NotificationManager.IMPORTANCE_LOW);
         chan.setLightColor(Color.BLUE);
         chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
         chan.setShowBadge(false);
         chan.enableLights(false);
         chan.enableVibration(false);
         chan.setSound(null, null);
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        assert manager != null;
-        manager.createNotificationChannel(chan);
-        notificationBuilder = new NotificationCompat.Builder(this, "lms_service");
+        notificationManager.createNotificationChannel(chan);
+        notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
     }
 
     @NonNull
     private PendingIntent getPendingIntent(@NonNull String action) {
         Intent intent = new Intent(this, ControlService.class);
         intent.setAction(action);
-        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getService(this, 0, intent, Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private void createNotification() {
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification = notificationBuilder.setOngoing(true)
-                .setOnlyAlertOnce(true)
-                .setSmallIcon(R.drawable.ic_mono_icon)
-                .setContentTitle(getResources().getString(R.string.no_player))
-                .setPriority(NotificationManager.IMPORTANCE_MIN)
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .setContentIntent(pendingIntent)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setVibrate(null)
-                .setSound(null)
-                .setShowWhen(false)
-                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                        .setShowActionsInCompactView(1, 2, 3))
-                .addAction(new NotificationCompat.Action(R.drawable.ic_prev, "Previous", getPendingIntent(PREV_TRACK)))
-                .addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play", getPendingIntent(PLAY_TRACK)))
-                .addAction(new NotificationCompat.Action(R.drawable.ic_pause, "Pause", getPendingIntent(PAUSE_TRACK)))
-                .addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)))
-                .build();
-        notificationManager = NotificationManagerCompat.from(this);
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        if (!Utils.notificationAllowed(this, NOTIFICATION_CHANNEL_ID)) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -185,8 +163,35 @@ public class ControlService extends Service {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        notificationManager.notify(MSG_ID, notificationBuilder.build());
-        startForeground(MSG_ID, notification);
+        try {
+            Intent intent = new Intent(this, MainActivity.class);
+
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
+            Notification notification = notificationBuilder.setOngoing(true)
+                    .setOnlyAlertOnce(true)
+                    .setSmallIcon(R.drawable.ic_mono_icon)
+                    .setContentTitle(getResources().getString(R.string.no_player))
+                    .setCategory(Notification.CATEGORY_SERVICE)
+                    .setContentIntent(pendingIntent)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setVibrate(null)
+                    .setSound(null)
+                    .setShowWhen(false)
+                    .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                            .setShowActionsInCompactView(1, 2, 3))
+                    .addAction(new NotificationCompat.Action(R.drawable.ic_prev, "Previous", getPendingIntent(PREV_TRACK)))
+                    .addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play", getPendingIntent(PLAY_TRACK)))
+                    .addAction(new NotificationCompat.Action(R.drawable.ic_pause, "Pause", getPendingIntent(PAUSE_TRACK)))
+                    .addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)))
+                    .setChannelId(NOTIFICATION_CHANNEL_ID)
+                    .build();
+
+            notificationManager.notify(MSG_ID, notificationBuilder.build());
+            startForeground(MSG_ID, notification);
+        } catch (Exception e) {
+            Log.e("LMS", "Failed to create control notification", e);
+        }
     }
 
     private void stopForegroundService() {

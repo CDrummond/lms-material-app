@@ -16,7 +16,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -26,9 +25,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.PreferenceManager;
@@ -40,7 +37,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashSet;
@@ -57,6 +53,7 @@ public class DownloadService extends Service {
     public static final int STATUS_REQ = 3;
     private static final int MSG_ID = 2;
     private static final int MAX_QUEUED_ITEMS = 4;
+    public static final String NOTIFICATION_CHANNEL_ID = "lms_download_service";
 
     private DownloadManager downloadManager;
     private SharedPreferences sharedPreferences;
@@ -222,45 +219,19 @@ public class DownloadService extends Service {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private void createNotificationChannel() {
-        NotificationChannel chan = new NotificationChannel("lms_download_service", "LMS Download Service", NotificationManager.IMPORTANCE_DEFAULT);
+        notificationManager = NotificationManagerCompat.from(this);
+        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "LMS Download Service", NotificationManager.IMPORTANCE_LOW);
         chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
         chan.setShowBadge(false);
         chan.enableLights(false);
         chan.enableVibration(false);
         chan.setSound(null, null);
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        assert manager != null;
-        manager.createNotificationChannel(chan);
-        notificationBuilder = new NotificationCompat.Builder(this, "lms_download_service");
-    }
-
-    @NonNull
-    private PendingIntent getPendingIntent(@NonNull String action) {
-        Intent intent = new Intent(this, DownloadService.class);
-        intent.setAction(action);
-        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        notificationManager.createNotificationChannel(chan);
+        notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
     }
 
     private void createNotification() {
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        NotificationCompat.Builder builder = notificationBuilder.setOngoing(true)
-                .setOnlyAlertOnce(true)
-                .setSmallIcon(R.drawable.ic_download)
-                .setContentTitle(getResources().getString(R.string.downloading))
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .setContentIntent(pendingIntent)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setVibrate(null)
-                .setSound(null)
-                .setShowWhen(false);
-        if (Build.VERSION.SDK_INT >= 24) {
-            builder.setPriority(NotificationManager.IMPORTANCE_MIN);
-        }
-
-        Notification notification = builder.build();
-        notificationManager = NotificationManagerCompat.from(this);
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        if (!Utils.notificationAllowed(this, NOTIFICATION_CHANNEL_ID)) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -270,6 +241,22 @@ public class DownloadService extends Service {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        Intent intent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setSmallIcon(R.drawable.ic_download)
+                .setContentTitle(getResources().getString(R.string.downloading))
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setContentIntent(pendingIntent)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setVibrate(null)
+                .setSound(null)
+                .setShowWhen(false)
+                .setChannelId(NOTIFICATION_CHANNEL_ID)
+                .build();
+
+        notificationManager = NotificationManagerCompat.from(this);
         notificationManager.notify(MSG_ID, notificationBuilder.build());
         startForeground(MSG_ID, notification);
     }

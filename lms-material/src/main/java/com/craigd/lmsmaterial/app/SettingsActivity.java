@@ -65,6 +65,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND";
     public static final int PERMISSION_READ_PHONE_STATE = 1;
     public static final int PERMISSION_RUN_TERMUX_COMMAND = 2;
+    public static final int PERMISSION_POST_NOTIFICATIONS = 3;
 
     private static boolean visible = false;
     public static boolean isVisible() {
@@ -444,8 +445,13 @@ public class SettingsActivity extends AppCompatActivity {
             }
             if (PLAYER_APP_PREF_KEY.equals(key)) {
                 updateListSummary(key);
-                if (LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(PLAYER_APP_PREF_KEY, null))) {
+                if (LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(key, null))) {
                     activity.checkTermuxPermission();
+                }
+            }
+            if (ENABLE_NOTIF_PREF_KEY.equals(key)) {
+                if (sharedPreferences.getBoolean(key, false)) {
+                    activity.checkNotificationPermission();
                 }
             }
         }
@@ -494,6 +500,22 @@ public class SettingsActivity extends AppCompatActivity {
             }
             updateListSummary(PLAYER_APP_PREF_KEY);
         }
+
+        public void resetNotifications() {
+            if (getContext()==null) {
+                return;
+            }
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(ENABLE_NOTIF_PREF_KEY, false);
+            editor.apply();
+        }
+    }
+
+    public void checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= 33 && !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_POST_NOTIFICATIONS);
+        }
     }
 
     public void checkOnCallPermission() {
@@ -520,6 +542,12 @@ public class SettingsActivity extends AppCompatActivity {
             case PERMISSION_RUN_TERMUX_COMMAND: {
                 if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     fragment.resetStartPlayer();
+                }
+                return;
+            }
+            case PERMISSION_POST_NOTIFICATIONS: {
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    fragment.resetNotifications();
                 }
                 return;
             }
