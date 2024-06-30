@@ -7,6 +7,7 @@
 
 package com.craigd.lmsmaterial.app;
 
+import android.annotation.SuppressLint;
 import android.app.DownloadManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -220,7 +221,7 @@ public class DownloadService extends Service {
     @RequiresApi(Build.VERSION_CODES.O)
     private void createNotificationChannel() {
         notificationManager = NotificationManagerCompat.from(this);
-        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "LMS Download Service", NotificationManager.IMPORTANCE_LOW);
+        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, getApplicationContext().getResources().getString(R.string.download_notification), NotificationManager.IMPORTANCE_LOW);
         chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
         chan.setShowBadge(false);
         chan.enableLights(false);
@@ -230,15 +231,9 @@ public class DownloadService extends Service {
         notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
     }
 
+    @SuppressLint("MissingPermission")
     private void createNotification() {
         if (!Utils.notificationAllowed(this, NOTIFICATION_CHANNEL_ID)) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
         Intent intent = new Intent(this, MainActivity.class);
