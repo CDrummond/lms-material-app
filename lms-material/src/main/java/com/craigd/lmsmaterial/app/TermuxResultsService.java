@@ -7,6 +7,7 @@
 
 package com.craigd.lmsmaterial.app;
 
+import android.annotation.SuppressLint;
 import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ public class TermuxResultsService extends IntentService {
         super("TermuxResultsService");
     }
 
+    @SuppressLint("SdCardPath")
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent == null) {
