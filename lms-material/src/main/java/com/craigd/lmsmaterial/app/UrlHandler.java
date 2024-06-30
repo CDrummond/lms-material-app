@@ -8,7 +8,6 @@
 package com.craigd.lmsmaterial.app;
 
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -85,11 +84,7 @@ public class UrlHandler {
                 View view = inflater.inflate(R.layout.url_handler, null);
 
                 builder.setView(view)
-                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.dismiss();
-                            }
-                        });
+                        .setNegativeButton(R.string.cancel, (dialog, id) -> dialog.dismiss());
                 dialog = builder.create();
                 playerName = view.findViewById(R.id.player_name);
 
@@ -97,26 +92,17 @@ public class UrlHandler {
                 Button play_next = view.findViewById(R.id.play_next_button);
                 Button insert = view.findViewById(R.id.insert_button);
 
-                play_now.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        dialog.dismiss();
-                        addUrlToPlayer("play");
-                    }
+                play_now.setOnClickListener(view1 -> {
+                    dialog.dismiss();
+                    addUrlToPlayer("play");
                 });
-                play_next.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        dialog.dismiss();
-                        addUrlToPlayer("add");
-                    }
+                play_next.setOnClickListener(view12 -> {
+                    dialog.dismiss();
+                    addUrlToPlayer("add");
                 });
-                insert.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        dialog.dismiss();
-                        addUrlToPlayer("insert");
-                    }
+                insert.setOnClickListener(view13 -> {
+                    dialog.dismiss();
+                    addUrlToPlayer("insert");
                 });
                 playerName.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
@@ -135,7 +121,7 @@ public class UrlHandler {
             for (Player player: playerList) {
                 player_names.add(player.name);
             }
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(mainActivity, android.R.layout.simple_spinner_item, player_names);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(mainActivity, android.R.layout.simple_spinner_item, player_names);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             playerName.setAdapter(adapter);
 

@@ -131,12 +131,7 @@ public class LocalPlayer {
         if (null==rpc) {
             rpc = new JsonRpc(context);
         }
-        rpc.sendMessage(playerId, new String[]{"client", "forget"}, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                stop();
-            }
-        });
+        rpc.sendMessage(playerId, new String[]{"client", "forget"}, response -> stop());
     }
 
     public void stop() {

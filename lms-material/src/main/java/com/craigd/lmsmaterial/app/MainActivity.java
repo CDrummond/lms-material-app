@@ -218,10 +218,6 @@ public class MainActivity extends AppCompatActivity {
     public static class ConnectionChangeListener extends BroadcastReceiver {
         private MainActivity activity;
 
-        public ConnectionChangeListener() {
-            // Empty constructor to keep lint happy...
-        }
-
         ConnectionChangeListener(MainActivity activity) {
             this.activity = activity;
         }
@@ -229,12 +225,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if ("android.net.conn.CONNECTIVITY_CHANGE".equals(intent.getAction()) && null!=activity) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        activity.checkNetworkConnection();
-                    }
-                });
+                activity.runOnUiThread(() -> activity.checkNetworkConnection());
             }
         }
     }
@@ -246,30 +237,24 @@ public class MainActivity extends AppCompatActivity {
         username.setText(sharedPreferences.getString(LMS_USERNAME_KEY, ""));
         password.setText(sharedPreferences.getString(LMS_PASSWORD_KEY, ""));
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String user = username.getText().toString().trim();
-                String pass = password.getText().toString().trim();
-                if (!user.isEmpty() && !pass.isEmpty()) {
-                    dialog.dismiss();
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString(LMS_USERNAME_KEY, user);
-                    editor.putString(LMS_PASSWORD_KEY, pass);
-                    editor.apply();
+        builder.setPositiveButton(R.string.ok, (dialog, which) -> {
+            String user = username.getText().toString().trim();
+            String pass = password.getText().toString().trim();
+            if (!user.isEmpty() && !pass.isEmpty()) {
+                dialog.dismiss();
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString(LMS_USERNAME_KEY, user);
+                editor.putString(LMS_PASSWORD_KEY, pass);
+                editor.apply();
 
-                    httpAuthHandler.proceed(user, pass);
-                }
+                httpAuthHandler.proceed(user, pass);
             }
         });
-        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-                dialog.dismiss();
-                reloadUrlAfterSettings=true;
-                navigateToSettingsActivity();
-            }
+        builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
+            dialog.cancel();
+            dialog.dismiss();
+            reloadUrlAfterSettings=true;
+            navigateToSettingsActivity();
         });
         AlertDialog dialog = builder.create();
         dialog.setView(layout);
@@ -497,11 +482,9 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private final Runnable pageLoadTimeout = new Runnable() {
-        public void run() {
-            Log.d(TAG, "Page failed to load");
-            discoverServer(false);
-        }
+    private final Runnable pageLoadTimeout = () -> {
+        Log.d(TAG, "Page failed to load");
+        discoverServer(false);
     };
 
     private final Handler pageLoadHandler = new Handler(Looper.myLooper());
@@ -796,17 +779,15 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         try {
-            runOnUiThread(new Runnable() {
-                public void run() {
-                    try {
-                        int flags = getWindow().getDecorView().getSystemUiVisibility();
-                        // TODO: Need better way of detecting light toolbar!
-                        boolean dark = !topColor.equalsIgnoreCase("#f5f5f5");
-                        if (Build.VERSION.SDK_INT >= 23) {
-                            getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
-                        }
-                    } catch (Exception e) {
+            runOnUiThread(() -> {
+                try {
+                    int flags = getWindow().getDecorView().getSystemUiVisibility();
+                    // TODO: Need better way of detecting light toolbar!
+                    boolean dark = !topColor.equalsIgnoreCase("#f5f5f5");
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
                     }
+                } catch (Exception e) {
                 }
             });
 
@@ -892,15 +873,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case 1:
-                for (int result: grantResults) {
-                    if (PackageManager.PERMISSION_GRANTED != result) {
-                        return;
-                    }
+        if (requestCode == 1) {
+            for (int result : grantResults) {
+                if (PackageManager.PERMISSION_GRANTED != result) {
+                    return;
                 }
-                startDownload(downloadData);
-                break;
+            }
+            startDownload(downloadData);
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
@@ -1002,7 +981,7 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG,"Clear cache");
             webView.clearCache(true);
             try {
-                Set<String> ignore = new HashSet<String>();
+                Set<String> ignore = new HashSet<>();
                 ignore.add("lib");
                 ignore.add("shared_prefs");
                 deleteDir(this.getCacheDir(), ignore);
@@ -1236,11 +1215,7 @@ public class MainActivity extends AppCompatActivity {
     private void init5497Workaround() {
         FrameLayout content = findViewById(android.R.id.content);
         childOfContent = content.getChildAt(0);
-        childOfContent.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            public void onGlobalLayout() {
-                possiblyResizeChildOfContent();
-            }
-        });
+        childOfContent.getViewTreeObserver().addOnGlobalLayoutListener(this::possiblyResizeChildOfContent);
         frameLayoutParams = (FrameLayout.LayoutParams) childOfContent.getLayoutParams();
     }
 

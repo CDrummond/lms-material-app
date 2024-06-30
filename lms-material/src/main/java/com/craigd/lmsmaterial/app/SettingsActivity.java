@@ -25,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -220,67 +221,53 @@ public class SettingsActivity extends AppCompatActivity {
             final Preference addressButton = getPreferenceManager().findPreference("server_address");
             if (addressButton != null) {
                 addressButton.setSummary(new Discovery.Server(sharedPreferences.getString(SERVER_PREF_KEY,"")).describe());
-                addressButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(Preference arg0) {
-                        if (getContext()!=null) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                            builder.setTitle(R.string.server_address);
-                            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                            Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SERVER_PREF_KEY, null));
+                addressButton.setOnPreferenceClickListener(arg0 -> {
+                    if (getContext()!=null) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        builder.setTitle(R.string.server_address);
+                        SharedPreferences sharedPreferences1 = PreferenceManager.getDefaultSharedPreferences(getContext());
+                        Discovery.Server server = new Discovery.Server(sharedPreferences1.getString(SERVER_PREF_KEY, null));
 
-                            int padding = getResources().getDimensionPixelOffset(R.dimen.dlg_padding);
-                            final EditText input = new EditText(getContext());
-                            input.setInputType(InputType.TYPE_CLASS_TEXT);
-                            input.setText(server.address());
-                            LinearLayout layout = new LinearLayout(getContext());
-                            layout.setOrientation(LinearLayout.VERTICAL);
-                            layout.setPadding(padding, padding, padding, padding / 2);
-                            layout.addView(input);
-                            builder.setView(layout);
+                        int padding = getResources().getDimensionPixelOffset(R.dimen.dlg_padding);
+                        final EditText input = new EditText(getContext());
+                        input.setInputType(InputType.TYPE_CLASS_TEXT);
+                        input.setText(server.address());
+                        LinearLayout layout = new LinearLayout(getContext());
+                        layout.setOrientation(LinearLayout.VERTICAL);
+                        layout.setPadding(padding, padding, padding, padding / 2);
+                        layout.addView(input);
+                        builder.setView(layout);
 
-                            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    String str = input.getText().toString().replaceAll("\\s+", "");
-                                    String[] parts = str.split(":");
-                                    Discovery.Server server = new Discovery.Server(parts[0], parts.length > 1 ? Integer.parseInt(parts[1]) : Discovery.Server.DEFAULT_PORT, null);
-                                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                    editor.putString(SERVER_PREF_KEY, server.encode());
-                                    editor.apply();
-                                    addressButton.setSummary(server.describe());
-                                }
-                            });
-                            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.cancel();
-                                }
-                            });
+                        builder.setPositiveButton(R.string.ok, (dialog, which) -> {
+                            String str = input.getText().toString().replaceAll("\\s+", "");
+                            String[] parts = str.split(":");
+                            Discovery.Server server1 = new Discovery.Server(parts[0], parts.length > 1 ? Integer.parseInt(parts[1]) : Discovery.Server.DEFAULT_PORT, null);
+                            SharedPreferences sharedPreferences11 = PreferenceManager.getDefaultSharedPreferences(getContext());
+                            SharedPreferences.Editor editor = sharedPreferences11.edit();
+                            editor.putString(SERVER_PREF_KEY, server1.encode());
+                            editor.apply();
+                            addressButton.setSummary(server1.describe());
+                        });
+                        builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.cancel());
 
-                            builder.show();
-                        }
-                        return true;
+                        builder.show();
                     }
+                    return true;
                 });
             }
 
             Preference discoverButton = getPreferenceManager().findPreference("discover");
             if (discoverButton != null) {
-                discoverButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(@NonNull Preference arg0) {
-                        Log.d(MainActivity.TAG, "Discover clicked");
-                        if (getContext()!=null) {
-                            StyleableToast.makeText(getContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT, R.style.toast).show();
-                            if (discovery == null) {
-                                discovery = new Discovery(getContext().getApplicationContext());
-                            }
-                            discovery.discover();
+                discoverButton.setOnPreferenceClickListener(arg0 -> {
+                    Log.d(MainActivity.TAG, "Discover clicked");
+                    if (getContext()!=null) {
+                        StyleableToast.makeText(getContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT, R.style.toast).show();
+                        if (discovery == null) {
+                            discovery = new Discovery(getContext().getApplicationContext());
                         }
-                        return true;
+                        discovery.discover();
                     }
+                    return true;
                 });
             }
 
@@ -291,136 +278,108 @@ public class SettingsActivity extends AppCompatActivity {
                     defaultPlayerButton.setSummary(defaultPlayer);
                 }
 
-                defaultPlayerButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(@NonNull Preference arg0) {
-                        if (getContext()!=null) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                            builder.setTitle(R.string.default_player);
-                            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                            String value = sharedPreferences.getString(DEFAULT_PLAYER_PREF_KEY, null);
+                defaultPlayerButton.setOnPreferenceClickListener(arg0 -> {
+                    if (getContext()!=null) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        builder.setTitle(R.string.default_player);
+                        SharedPreferences sharedPreferences12 = PreferenceManager.getDefaultSharedPreferences(getContext());
+                        String value = sharedPreferences12.getString(DEFAULT_PLAYER_PREF_KEY, null);
 
-                            int padding = getResources().getDimensionPixelOffset(R.dimen.dlg_padding);
-                            final EditText input = new EditText(getContext());
-                            input.setInputType(InputType.TYPE_CLASS_TEXT);
+                        int padding = getResources().getDimensionPixelOffset(R.dimen.dlg_padding);
+                        final EditText input = new EditText(getContext());
+                        input.setInputType(InputType.TYPE_CLASS_TEXT);
 
-                            if (null != value) {
-                                input.setText(value);
-                            }
-
-                            LinearLayout layout = new LinearLayout(getContext());
-                            layout.setOrientation(LinearLayout.VERTICAL);
-                            layout.setPadding(padding, padding, padding, padding / 2);
-                            layout.addView(input);
-                            builder.setView(layout);
-
-                            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    String str = input.getText().toString().trim();
-                                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                    editor.putString(DEFAULT_PLAYER_PREF_KEY, str);
-                                    editor.apply();
-                                    defaultPlayerButton.setSummary(str.isEmpty() ? getResources().getString(R.string.default_player_summary) : str);
-                                }
-                            });
-                            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.cancel();
-                                }
-                            });
-
-                            builder.show();
+                        if (null != value) {
+                            input.setText(value);
                         }
-                        return true;
+
+                        LinearLayout layout = new LinearLayout(getContext());
+                        layout.setOrientation(LinearLayout.VERTICAL);
+                        layout.setPadding(padding, padding, padding, padding / 2);
+                        layout.addView(input);
+                        builder.setView(layout);
+
+                        builder.setPositiveButton(R.string.ok, (dialog, which) -> {
+                            String str = input.getText().toString().trim();
+                            SharedPreferences sharedPreferences121 = PreferenceManager.getDefaultSharedPreferences(getContext());
+                            SharedPreferences.Editor editor = sharedPreferences121.edit();
+                            editor.putString(DEFAULT_PLAYER_PREF_KEY, str);
+                            editor.apply();
+                            defaultPlayerButton.setSummary(str.isEmpty() ? getResources().getString(R.string.default_player_summary) : str);
+                        });
+                        builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.cancel());
+
+                        builder.show();
                     }
+                    return true;
                 });
             }
 
             Preference clearCacheButton = getPreferenceManager().findPreference(CLEAR_CACHE_PREF_KEY);
             if (clearCacheButton != null) {
-                clearCacheButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(@NonNull Preference arg0) {
-                        if (getContext()!=null) {
-                            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                            boolean clear = sharedPreferences.getBoolean(CLEAR_CACHE_PREF_KEY, false);
-                            Log.d(MainActivity.TAG, "Clear clicked, config:" + clear);
-                            if (!clear) {
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putBoolean(CLEAR_CACHE_PREF_KEY, true);
-                                editor.apply();
-                                StyleableToast.makeText(getContext(), getResources().getString(R.string.cache_to_be_cleared), Toast.LENGTH_SHORT, R.style.toast).show();
-                            }
+                clearCacheButton.setOnPreferenceClickListener(arg0 -> {
+                    if (getContext()!=null) {
+                        SharedPreferences sharedPreferences13 = PreferenceManager.getDefaultSharedPreferences(getContext());
+                        boolean clear = sharedPreferences13.getBoolean(CLEAR_CACHE_PREF_KEY, false);
+                        Log.d(MainActivity.TAG, "Clear clicked, config:" + clear);
+                        if (!clear) {
+                            SharedPreferences.Editor editor = sharedPreferences13.edit();
+                            editor.putBoolean(CLEAR_CACHE_PREF_KEY, true);
+                            editor.apply();
+                            StyleableToast.makeText(getContext(), getResources().getString(R.string.cache_to_be_cleared), Toast.LENGTH_SHORT, R.style.toast).show();
                         }
-                        return true;
                     }
+                    return true;
                 });
             }
 
             Preference stopAppButton = getPreferenceManager().findPreference(STOP_APP_PREF_KEY);
             if (stopAppButton != null) {
-                stopAppButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(@NonNull Preference arg0) {
-                        if (getContext()!=null) {
-                            LocalPlayer localPlayer = new LocalPlayer(PreferenceManager.getDefaultSharedPreferences(getContext()), getContext());
-                            StyleableToast.makeText(getContext(), getResources().getString(R.string.stopping_player), Toast.LENGTH_SHORT, R.style.toast).show();
-                            localPlayer.stop();
-                        }
-                        return true;
+                stopAppButton.setOnPreferenceClickListener(arg0 -> {
+                    if (getContext()!=null) {
+                        LocalPlayer localPlayer = new LocalPlayer(PreferenceManager.getDefaultSharedPreferences(getContext()), getContext());
+                        StyleableToast.makeText(getContext(), getResources().getString(R.string.stopping_player), Toast.LENGTH_SHORT, R.style.toast).show();
+                        localPlayer.stop();
                     }
+                    return true;
                 });
             }
 
             final Preference squeezeliteOptionsButton = getPreferenceManager().findPreference(SQUEEZELITE_OPTIONS_KEY);
             if (squeezeliteOptionsButton != null) {
                 squeezeliteOptionsButton.setSummary(sharedPreferences.getString(SQUEEZELITE_OPTIONS_KEY,""));
-                squeezeliteOptionsButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(@NonNull Preference arg0) {
-                        if (getContext()!=null) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                            builder.setTitle(R.string.squeezelite_options);
-                            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                squeezeliteOptionsButton.setOnPreferenceClickListener(arg0 -> {
+                    if (getContext()!=null) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        builder.setTitle(R.string.squeezelite_options);
+                        SharedPreferences sharedPreferences14 = PreferenceManager.getDefaultSharedPreferences(getContext());
 
-                            int padding = getResources().getDimensionPixelOffset(R.dimen.dlg_padding);
-                            TextView text = new TextView(getContext());
-                            final EditText input = new EditText(getContext());
-                            input.setInputType(InputType.TYPE_CLASS_TEXT);
-                            input.setText(sharedPreferences.getString(SQUEEZELITE_OPTIONS_KEY, null));
-                            text.setText(R.string.squeezelite_options_summary);
-                            LinearLayout layout = new LinearLayout(getContext());
-                            layout.setOrientation(LinearLayout.VERTICAL);
-                            layout.setPadding(padding, padding, padding, padding / 2);
-                            layout.addView(text);
-                            layout.addView(input);
-                            builder.setView(layout);
+                        int padding = getResources().getDimensionPixelOffset(R.dimen.dlg_padding);
+                        TextView text = new TextView(getContext());
+                        final EditText input = new EditText(getContext());
+                        input.setInputType(InputType.TYPE_CLASS_TEXT);
+                        input.setText(sharedPreferences14.getString(SQUEEZELITE_OPTIONS_KEY, null));
+                        text.setText(R.string.squeezelite_options_summary);
+                        LinearLayout layout = new LinearLayout(getContext());
+                        layout.setOrientation(LinearLayout.VERTICAL);
+                        layout.setPadding(padding, padding, padding, padding / 2);
+                        layout.addView(text);
+                        layout.addView(input);
+                        builder.setView(layout);
 
-                            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    String str = input.getText().toString();
-                                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                    editor.putString(SQUEEZELITE_OPTIONS_KEY, str);
-                                    editor.apply();
-                                    squeezeliteOptionsButton.setSummary(str);
-                                }
-                            });
-                            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.cancel();
-                                }
-                            });
+                        builder.setPositiveButton(R.string.ok, (dialog, which) -> {
+                            String str = input.getText().toString();
+                            SharedPreferences sharedPreferences141 = PreferenceManager.getDefaultSharedPreferences(getContext());
+                            SharedPreferences.Editor editor = sharedPreferences141.edit();
+                            editor.putString(SQUEEZELITE_OPTIONS_KEY, str);
+                            editor.apply();
+                            squeezeliteOptionsButton.setSummary(str);
+                        });
+                        builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.cancel());
 
-                            builder.show();
-                        }
-                        return true;
+                        builder.show();
                     }
+                    return true;
                 });
             }
 
@@ -441,7 +400,9 @@ public class SettingsActivity extends AppCompatActivity {
             if (ON_CALL_PREF_KEY.equals(key)) {
                 updateListSummary(key);
                 if (! PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(key, PhoneStateHandler.DO_NOTHING))) {
-                    activity.checkOnCallPermission();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        activity.checkOnCallPermission();
+                    }
                 }
             }
             if (PLAYER_APP_PREF_KEY.equals(key)) {
@@ -522,6 +483,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     public void checkOnCallPermission() {
         boolean reqPhoneState = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED,
                 reqNotify = !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID);

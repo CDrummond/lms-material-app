@@ -35,27 +35,24 @@ public class PhoneStateHandler {
     private final List<String> activePlayers = new LinkedList<>();
     private boolean inCall = false;
 
-    private final Response.Listener<JSONObject> rpcResponse = new Response.Listener<JSONObject> () {
-        @Override
-        public void onResponse(JSONObject response) {
-            activePlayers.clear();
-            if (inCall) {
-                try {
-                    Log.d(MainActivity.TAG, "RESP" + response.toString(4));
-                    JSONObject result = response.getJSONObject("result");
-                    if (result.has("players")) {
-                        JSONArray players = result.getJSONArray("players");
-                        if (players.length() > 0) {
-                            for (int i = 0; i < players.length(); ++i) {
-                                activePlayers.add(players.getJSONObject(i).getString("id"));
-                            }
-                            Log.d(MainActivity.TAG, "RPC response, activePlayers:" + activePlayers);
-                            controlPlayers();
+    private final Response.Listener<JSONObject> rpcResponse = response -> {
+        activePlayers.clear();
+        if (inCall) {
+            try {
+                Log.d(MainActivity.TAG, "RESP" + response.toString(4));
+                JSONObject result = response.getJSONObject("result");
+                if (result.has("players")) {
+                    JSONArray players = result.getJSONArray("players");
+                    if (players.length() > 0) {
+                        for (int i = 0; i < players.length(); ++i) {
+                            activePlayers.add(players.getJSONObject(i).getString("id"));
                         }
+                        Log.d(MainActivity.TAG, "RPC response, activePlayers:" + activePlayers);
+                        controlPlayers();
                     }
-                } catch (JSONException e) {
-                    Log.e(MainActivity.TAG, "Failed to parse response", e);
                 }
+            } catch (JSONException e) {
+                Log.e(MainActivity.TAG, "Failed to parse response", e);
             }
         }
     };
