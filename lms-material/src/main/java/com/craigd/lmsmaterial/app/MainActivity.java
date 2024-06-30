@@ -59,10 +59,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.PermissionChecker;
 import androidx.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -78,7 +75,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import io.github.muddz.styleabletoast.StyleableToast;
@@ -366,12 +362,12 @@ public class MainActivity extends AppCompatActivity {
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.ON_CALL_PREF_KEY)) {
-            editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING);
+            editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
             modified=true;
         }
-        if (! PhoneStateReceiver.DO_NOTHING.equals(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING)) &&
+        if (! PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING)) &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING);
+            editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.ENABLE_NOTIF_PREF_KEY) || !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {

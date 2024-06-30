@@ -7,9 +7,7 @@
 
 package com.craigd.lmsmaterial.app;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -25,7 +23,7 @@ import org.json.JSONObject;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PhoneStateReceiver extends BroadcastReceiver {
+public class PhoneStateHandler {
     public static final String DO_NOTHING = "nothing";
     public static final String MUTE_ALL = "muteall";
     public static final String MUTE_CURRENT = "mutecurrent";
@@ -62,11 +60,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
         }
     };
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if (!"android.intent.action.PHONE_STATE".equals(intent.getAction())) {
-            return;
-        }
+    public void handle(Context context, int state) {
         if (null==prefs) {
             prefs = PreferenceManager.getDefaultSharedPreferences(context);
         }
@@ -77,12 +71,11 @@ public class PhoneStateReceiver extends BroadcastReceiver {
         if (null==rpc) {
             rpc = new JsonRpc(context);
         }
-        String state = intent.getExtras().getString(TelephonyManager.EXTRA_STATE);
         Log.d(MainActivity.TAG, "Call state:" + state);
-        if (TelephonyManager.EXTRA_STATE_IDLE.equals(state)) {
-            callEnded();
-        } else if (TelephonyManager.EXTRA_STATE_OFFHOOK.equals(state)) {
+        if (state == TelephonyManager.CALL_STATE_RINGING || state == TelephonyManager.CALL_STATE_OFFHOOK) {
             callStarted();
+        } else {
+            callEnded();
         }
     }
 

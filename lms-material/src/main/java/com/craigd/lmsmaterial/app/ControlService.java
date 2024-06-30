@@ -23,6 +23,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyCallback;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -31,6 +34,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.ServiceCompat;
+import androidx.core.content.ContextCompat;
 
 public class ControlService extends Service {
     private static final String NEXT_TRACK = ControlService.class.getCanonicalName() + ".NEXT_TRACK";
@@ -131,6 +135,7 @@ public class ControlService extends Service {
             notificationBuilder = new NotificationCompat.Builder(this);
         }
         createNotification();
+        registerCallStateListener();
         isRunning = true;
     }
 
@@ -203,7 +208,65 @@ public class ControlService extends Service {
     private void stopForegroundService() {
         Log.d(MainActivity.TAG, "Stop control service.");
         stopForeground(true);
+        unregisterCallStateListener();
         stopSelf();
         isRunning = false;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.S)
+    private static abstract class CallStateListener extends TelephonyCallback implements TelephonyCallback.CallStateListener {
+        @Override
+        abstract public void onCallStateChanged(int state);
+    }
+    private boolean callStateListenerRegistered = false;
+    private PhoneStateHandler phoneStateHandler = null;
+    private final CallStateListener callStateListener = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ?
+            new CallStateListener() {
+                @Override
+                public void onCallStateChanged(int state) {
+                    if (null==phoneStateHandler) {
+                        phoneStateHandler = new PhoneStateHandler();
+                    }
+                    phoneStateHandler.handle(getApplicationContext(), state);
+                }
+            }
+            : null;
+    private final PhoneStateListener phoneStateListener = (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) ?
+            new PhoneStateListener() {
+                @Override
+                public void onCallStateChanged(int state, String phoneNumber) {
+                    if (null==phoneStateHandler) {
+                        phoneStateHandler = new PhoneStateHandler();
+                    }
+                    phoneStateHandler.handle(getApplicationContext(), state);
+                }
+            }
+            : null;
+
+    private void registerCallStateListener() {
+        if (!callStateListenerRegistered) {
+            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(MainActivity.TAG, "calling registerTelephonyCallback");
+                    telephonyManager.registerTelephonyCallback(getMainExecutor(), callStateListener);
+                }
+            } else {
+                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+            }
+            callStateListenerRegistered = true;
+        }
+    }
+
+    private void unregisterCallStateListener() {
+        if (callStateListenerRegistered) {
+            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                telephonyManager.unregisterTelephonyCallback(callStateListener);
+            } else {
+                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+            }
+            callStateListenerRegistered = false;
+        }
     }
 }

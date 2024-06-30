@@ -66,6 +66,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final int PERMISSION_READ_PHONE_STATE = 1;
     public static final int PERMISSION_RUN_TERMUX_COMMAND = 2;
     public static final int PERMISSION_POST_NOTIFICATIONS = 3;
+    public static final int PERMISSION_NOTIFS_AND_READ_PHONE_STATE = 4;
 
     private static boolean visible = false;
     public static boolean isVisible() {
@@ -439,7 +440,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             if (ON_CALL_PREF_KEY.equals(key)) {
                 updateListSummary(key);
-                if (! PhoneStateReceiver.DO_NOTHING.equals(sharedPreferences.getString(key, PhoneStateReceiver.DO_NOTHING))) {
+                if (! PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(key, PhoneStateHandler.DO_NOTHING))) {
                     activity.checkOnCallPermission();
                 }
             }
@@ -452,6 +453,8 @@ public class SettingsActivity extends AppCompatActivity {
             if (ENABLE_NOTIF_PREF_KEY.equals(key)) {
                 if (sharedPreferences.getBoolean(key, false)) {
                     activity.checkNotificationPermission();
+                } else {
+                    resetOnCall();
                 }
             }
         }
@@ -477,11 +480,11 @@ public class SettingsActivity extends AppCompatActivity {
             }
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString(ON_CALL_PREF_KEY, PhoneStateReceiver.DO_NOTHING);
+            editor.putString(ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
             editor.apply();
             ListPreference pref = getPreferenceManager().findPreference("on_call");
             if (pref != null) {
-                pref.setValue(PhoneStateReceiver.DO_NOTHING);
+                pref.setValue(PhoneStateHandler.DO_NOTHING);
             }
             updateListSummary(ON_CALL_PREF_KEY);
         }
@@ -508,6 +511,7 @@ public class SettingsActivity extends AppCompatActivity {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean(ENABLE_NOTIF_PREF_KEY, false);
+            resetOnCall();
             editor.apply();
         }
     }
@@ -519,8 +523,20 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     public void checkOnCallPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+        boolean reqPhoneState = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED,
+                reqNotify = !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID);
+
+        if (reqPhoneState && reqNotify) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.READ_PHONE_STATE}, PERMISSION_NOTIFS_AND_READ_PHONE_STATE);
+        } else if (reqNotify) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_POST_NOTIFICATIONS);
+        } else if (reqPhoneState) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, PERMISSION_READ_PHONE_STATE);
+        } else  {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(ENABLE_NOTIF_PREF_KEY, true);
+            editor.apply();
         }
     }
 
@@ -551,6 +567,13 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 return;
             }
+            case PERMISSION_NOTIFS_AND_READ_PHONE_STATE:
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    fragment.resetNotifications();
+                    fragment.resetOnCall();
+                } else if (grantResults[1] != PackageManager.PERMISSION_GRANTED) {
+                    fragment.resetOnCall();
+                }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }

@@ -1,3 +1,4 @@
 Improved
 
 • Set target SDK to 34.
+• Use CallStateListener / PhoneStateListener to handle calls.
