@@ -31,11 +31,11 @@ public class JsonRpc {
         requestQueue = Volley.newRequestQueue(context);
     }
 
-    public boolean sendMessage(String id, String[] command) {
-        return sendMessage(id, command, null);
+    public void sendMessage(String id, String[] command) {
+        sendMessage(id, command, null);
     }
 
-    public boolean sendMessage(String id, String[] command, Response.Listener<JSONObject> responseListener) {
+    public void sendMessage(String id, String[] command, Response.Listener<JSONObject> responseListener) {
         ServerDiscovery.Server server = new ServerDiscovery.Server(prefs.getString(SettingsActivity.SERVER_PREF_KEY,null));
         if (null!=server.ip) {
             try {
@@ -51,13 +51,11 @@ public class JsonRpc {
                 request.put("method", "slim.request");
                 request.put("params", params);
 
-                Log.i(MainActivity.TAG, "MSG:" + request.toString());
+                Log.i(MainActivity.TAG, "MSG:" + request);
                 requestQueue.add(new JsonObjectRequest(Request.Method.POST, "http://" + server.ip + ":" + server.port + "/jsonrpc.js", request, responseListener, null));
             } catch (Exception e) {
                 Log.e(MainActivity.TAG, "Failed to send control message", e);
             }
-            return true;
         }
-        return false;
     }
 }

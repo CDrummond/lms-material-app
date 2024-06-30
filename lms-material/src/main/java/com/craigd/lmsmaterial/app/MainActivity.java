@@ -8,6 +8,7 @@
 package com.craigd.lmsmaterial.app;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -196,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
 
         public void discoveryFinished(List<Server> servers) {
             Log.d(TAG, "Discovery finished");
-            if (servers.size()<1) {
+            if (servers.isEmpty()) {
                 Log.d(TAG, "No server found, show settings");
                 StyleableToast.makeText(context, getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT, R.style.toast).show();
                 navigateToSettingsActivity();
@@ -229,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals("android.net.conn.CONNECTIVITY_CHANGE") && null!=activity) {
+            if ("android.net.conn.CONNECTIVITY_CHANGE".equals(intent.getAction()) && null!=activity) {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -250,20 +251,14 @@ public class MainActivity extends AppCompatActivity {
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String user = username.getText().toString();
-                String pass = password.getText().toString();
-                if (null!=user) {
-                    user=user.trim();
-                }
-                if (null!=pass) {
-                    pass=pass.trim();
-                }
-                if (null!=user && user.length()>0 && null!=pass && pass.length()>0) {
+                String user = username.getText().toString().trim();
+                String pass = password.getText().toString().trim();
+                if (!user.isEmpty() && !pass.isEmpty()) {
                     dialog.dismiss();
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString(LMS_USERNAME_KEY, user);
                     editor.putString(LMS_PASSWORD_KEY, pass);
-                    editor.commit();
+                    editor.apply();
 
                     httpAuthHandler.proceed(user, pass);
                 }
@@ -486,19 +481,17 @@ public class MainActivity extends AppCompatActivity {
     public boolean dispatchKeyEvent(KeyEvent event) {
         int action = event.getAction();
         int keyCode = event.getKeyCode();
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_BACK:
-                if (action == KeyEvent.ACTION_UP) {
-                    if (webView.getVisibility()==View.VISIBLE) {
-                        webView.evaluateJavascript("navigateBack()", null);
-                    } else {
-                        finishAffinity();
-                        System.exit(0);
-                    }
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (action == KeyEvent.ACTION_UP) {
+                if (webView.getVisibility() == View.VISIBLE) {
+                    webView.evaluateJavascript("navigateBack()", null);
+                } else {
+                    finishAffinity();
+                    System.exit(0);
                 }
-                break;
-            default:
-                return super.dispatchKeyEvent(event);
+            }
+        } else {
+            return super.dispatchKeyEvent(event);
         }
         return true;
     }
@@ -529,6 +522,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -561,11 +555,7 @@ public class MainActivity extends AppCompatActivity {
         webView = findViewById(R.id.webview);
         webView.setBackgroundColor(Color.TRANSPARENT);
         webView.addJavascriptInterface(this, "NativeReceiver");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        } else {
-            webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        }
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         webView.setVerticalScrollBarEnabled(false);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -810,8 +800,10 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         int flags = getWindow().getDecorView().getSystemUiVisibility();
                         // TODO: Need better way of detecting light toolbar!
-                        boolean dark = !topColor.toLowerCase().equals("#f5f5f5");
-                        getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
+                        boolean dark = !topColor.equalsIgnoreCase("#f5f5f5");
+                        if (Build.VERSION.SDK_INT >= 23) {
+                            getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
+                        }
                     } catch (Exception e) {
                     }
                 }
@@ -957,9 +949,12 @@ public class MainActivity extends AppCompatActivity {
     private static boolean deleteDir(File path, Set<String> ignore) {
         if (null!=path) {
             if (path.isDirectory()) {
-                for (String entry : path.list()) {
-                    if ((null==ignore || !ignore.contains(entry)) && !deleteDir(new File(path, entry), ignore)) {
-                        return false;
+                String[] plist = path.list();
+                if (plist!=null) {
+                    for (String entry : plist) {
+                        if ((null == ignore || !ignore.contains(entry)) && !deleteDir(new File(path, entry), ignore)) {
+                            return false;
+                        }
                     }
                 }
                 Log.i(TAG, "Delete dir:" + path.getAbsolutePath());
@@ -1029,7 +1024,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (BAR_BLENDED==prevNavbar) {
                 getWindow().setNavigationBarColor(defaultNavbar);
             }
-            if (BAR_BLENDED==prevSbar || BAR_BLENDED==prevNavbar) {
+            if ((BAR_BLENDED==prevSbar || BAR_BLENDED==prevNavbar) && Build.VERSION.SDK_INT >= 23) {
                 getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
             }
         }
@@ -1083,8 +1078,8 @@ public class MainActivity extends AppCompatActivity {
             try {
                 String url = intent.getStringExtra(Intent.EXTRA_TEXT);
                 Log.d(TAG, "Received: "+url);
-                if (!url.startsWith("http") && (url.contains("http://") || url.contains("https://"))) {
-                    String parts[] = url.split("\\s");
+                if (url!=null && !url.startsWith("http") && (url.contains("http://") || url.contains("https://"))) {
+                    String[] parts = url.split("\\s");
                     for (String part: parts) {
                         part = part.trim();
                         if (part.startsWith("http://") || part.startsWith("https://")) {
@@ -1196,7 +1191,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Boolean lockScreenInit = false;
     private void manageShowOverLockscreen() {
-        Boolean showOver = sharedPreferences.getBoolean(SettingsActivity.SHOW_OVER_LOCK_SCREEN_PREF_KEY, true);
+        boolean showOver = sharedPreferences.getBoolean(SettingsActivity.SHOW_OVER_LOCK_SCREEN_PREF_KEY, true);
         if (showOver==showOverLockscreen) {
             return;
         }

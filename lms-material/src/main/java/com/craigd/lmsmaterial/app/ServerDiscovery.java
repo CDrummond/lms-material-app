@@ -178,7 +178,7 @@ abstract class ServerDiscovery {
                         socket.receive(respPkt);
                         if (resp[0]==(byte)'E') {
                             Server server = new Server(respPkt);
-                            if (servers.indexOf(server) < 0) {
+                            if (!servers.contains(server)) {
                                 servers.add(server);
                                 if (!discoverAll) {
                                     break; // Stop at first for now...

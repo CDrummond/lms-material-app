@@ -7,6 +7,7 @@
 
 package com.craigd.lmsmaterial.app;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -14,6 +15,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
@@ -24,14 +26,15 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 public class ControlService extends Service {
-    private static final String NEXT_TRACK = ControlService.class.getCanonicalName()+".NEXT_TRACK";
-    private static final String PREV_TRACK = ControlService.class.getCanonicalName()+".PREV_TRACK";
-    private static final String PLAY_TRACK = ControlService.class.getCanonicalName()+".PLAY_TRACK";
-    private static final String PAUSE_TRACK = ControlService.class.getCanonicalName()+".PAUSE_TRACK";
+    private static final String NEXT_TRACK = ControlService.class.getCanonicalName() + ".NEXT_TRACK";
+    private static final String PREV_TRACK = ControlService.class.getCanonicalName() + ".PREV_TRACK";
+    private static final String PLAY_TRACK = ControlService.class.getCanonicalName() + ".PLAY_TRACK";
+    private static final String PAUSE_TRACK = ControlService.class.getCanonicalName() + ".PAUSE_TRACK";
     public static final int PLAYER_NAME = 1;
 
     private static final int MSG_ID = 1;
@@ -41,6 +44,7 @@ public class ControlService extends Service {
     private static final String[] NEXT_COMMAND = {"playlist", "index", "+1"};
 
     private static boolean isRunning = false;
+
     public static boolean isActive() {
         return isRunning;
     }
@@ -55,13 +59,14 @@ public class ControlService extends Service {
     class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case PLAYER_NAME:
-                    notificationBuilder.setContentTitle((String)(msg.obj));
-                    notificationManager.notify(MSG_ID, notificationBuilder.build());
-                    break;
-                default:
-                    super.handleMessage(msg);
+            if (msg.what == PLAYER_NAME) {
+                notificationBuilder.setContentTitle((String) (msg.obj));
+                if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+                notificationManager.notify(MSG_ID, notificationBuilder.build());
+            } else {
+                super.handleMessage(msg);
             }
         }
     }
@@ -89,11 +94,11 @@ public class ControlService extends Service {
     }
 
     private void sendCommand(String[] command) {
-        if (null==MainActivity.activePlayer) {
+        if (null == MainActivity.activePlayer) {
             return;
         }
-        if (null==rpc) {
-            rpc=new JsonRpc(getApplicationContext());
+        if (null == rpc) {
+            rpc = new JsonRpc(getApplicationContext());
         }
         rpc.sendMessage(MainActivity.activePlayer, command);
     }
@@ -118,7 +123,7 @@ public class ControlService extends Service {
     private void startForegroundService() {
         Log.d(MainActivity.TAG, "Start control service.");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createNotificationChannel("lms_service", "LMS Service");
+            createNotificationChannel();
         } else {
             notificationBuilder = new NotificationCompat.Builder(this);
         }
@@ -127,8 +132,8 @@ public class ControlService extends Service {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private void createNotificationChannel(String channelId, String channelName) {
-        NotificationChannel chan = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+    private void createNotificationChannel() {
+        NotificationChannel chan = new NotificationChannel("lms_service", "LMS Service", NotificationManager.IMPORTANCE_DEFAULT);
         chan.setLightColor(Color.BLUE);
         chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
         chan.setShowBadge(false);
@@ -138,11 +143,11 @@ public class ControlService extends Service {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         assert manager != null;
         manager.createNotificationChannel(chan);
-        notificationBuilder = new NotificationCompat.Builder(this, channelId);
+        notificationBuilder = new NotificationCompat.Builder(this, "lms_service");
     }
 
     @NonNull
-    private PendingIntent getPendingIntent(@NonNull String action){
+    private PendingIntent getPendingIntent(@NonNull String action) {
         Intent intent = new Intent(this, ControlService.class);
         intent.setAction(action);
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -170,6 +175,16 @@ public class ControlService extends Service {
                 .addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)))
                 .build();
         notificationManager = NotificationManagerCompat.from(this);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         notificationManager.notify(MSG_ID, notificationBuilder.build());
         startForeground(MSG_ID, notification);
     }

@@ -7,13 +7,11 @@
 
 package com.craigd.lmsmaterial.app;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -34,7 +32,6 @@ import java.util.List;
 
 public class UrlHandler {
     private MainActivity mainActivity;
-    private WebView webView;
     private JsonRpc rpc;
     private String handlingUrl;
     private Dialog dialog;
@@ -63,9 +60,9 @@ public class UrlHandler {
             try {
                 Log.d(MainActivity.TAG, "RESP" + response.toString(4));
                 JSONObject result = response.getJSONObject("result");
-                if (null!=result && result.has("players_loop")) {
+                if (result.has("players_loop")) {
                     JSONArray players = result.getJSONArray("players_loop");
-                    if (null != players && players.length() > 0) {
+                    if (players.length() > 0) {
                         for (int i = 0; i < players.length(); ++i) {
                             JSONObject obj = players.getJSONObject(i);
                             playerList.add(new Player(obj.getString("name"), obj.getString("playerid")));
@@ -94,11 +91,11 @@ public class UrlHandler {
                             }
                         });
                 dialog = builder.create();
-                playerName = (Spinner) view.findViewById(R.id.player_name);
+                playerName = view.findViewById(R.id.player_name);
 
-                Button play_now = (Button) view.findViewById(R.id.play_now_button);
-                Button play_next = (Button) view.findViewById(R.id.play_next_button);
-                Button insert = (Button) view.findViewById(R.id.insert_button);
+                Button play_now = view.findViewById(R.id.play_now_button);
+                Button play_next = view.findViewById(R.id.play_next_button);
+                Button insert = view.findViewById(R.id.insert_button);
 
                 play_now.setOnClickListener(new View.OnClickListener() {
                     @Override

@@ -34,10 +34,10 @@ public class PhoneStateReceiver extends BroadcastReceiver {
 
     private SharedPreferences prefs = null;
     private JsonRpc rpc = null;
-    private List<String> activePlayers = new LinkedList<String>();
+    private final List<String> activePlayers = new LinkedList<>();
     private boolean inCall = false;
 
-    private Response.Listener<JSONObject> rpcResponse = new Response.Listener<JSONObject> () {
+    private final Response.Listener<JSONObject> rpcResponse = new Response.Listener<JSONObject> () {
         @Override
         public void onResponse(JSONObject response) {
             activePlayers.clear();
@@ -45,9 +45,9 @@ public class PhoneStateReceiver extends BroadcastReceiver {
                 try {
                     Log.d(MainActivity.TAG, "RESP" + response.toString(4));
                     JSONObject result = response.getJSONObject("result");
-                    if (null!=result && result.has("players")) {
+                    if (result.has("players")) {
                         JSONArray players = result.getJSONArray("players");
-                        if (null != players && players.length() > 0) {
+                        if (players.length() > 0) {
                             for (int i = 0; i < players.length(); ++i) {
                                 activePlayers.add(players.getJSONObject(i).getString("id"));
                             }

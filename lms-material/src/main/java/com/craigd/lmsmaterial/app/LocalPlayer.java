@@ -93,39 +93,35 @@ public class LocalPlayer {
     public void startTermuxSqueezeLite() {
         ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
         state = State.INITIAL;
-        if (current!=null) {
-            String opts = sharedPreferences.getString(SettingsActivity.SQUEEZELITE_OPTIONS_KEY,"");
-            Map<String, String> params = new HashMap<>();
-            params.put("-M", "SqueezeLiteAndroid");
-            params.put("-C", "5");
-            params.put("-s", current.ip);
-            params.put("-m", getTermuxMac());
-            params.put("-n", Settings.Global.getString(context.getContentResolver(), "device_name"));
-            if (null!=opts) {
-                String[] parts = opts.split(" ");
-                if (parts.length>1 && parts.length%2 == 0) {
-                    for (int i=0; i<parts.length; i+=2) {
-                        if (parts[i].startsWith("-")) {
-                            if (parts[i].equals("-n")) {
-                                params.put(parts[i], parts[i + 1].replace("_", " "));
-                            } else {
-                                params.put(parts[i], parts[i + 1]);
-                            }
-                        }
+        String opts = sharedPreferences.getString(SettingsActivity.SQUEEZELITE_OPTIONS_KEY, "");
+        Map<String, String> params = new HashMap<>();
+        params.put("-M", "SqueezeLiteAndroid");
+        params.put("-C", "5");
+        params.put("-s", current.ip);
+        params.put("-m", getTermuxMac());
+        params.put("-n", Settings.Global.getString(context.getContentResolver(), "device_name"));
+        String[] parts = opts.split(" ");
+        if (parts.length>1 && parts.length%2 == 0) {
+            for (int i=0; i<parts.length; i+=2) {
+                if (parts[i].startsWith("-")) {
+                    if (parts[i].equals("-n")) {
+                        params.put(parts[i], parts[i + 1].replace("_", " "));
+                    } else {
+                        params.put(parts[i], parts[i + 1]);
                     }
                 }
             }
-            String[] args = new String[params.size()*2];
-            int i=0;
-            for (Map.Entry<String, String> entry: params.entrySet()) {
-                args[i]=entry.getKey();
-                i++;
-                args[i]=entry.getValue();
-                i++;
-            }
-            if (runTermuxCommand("/data/data/com.termux/files/usr/bin/squeezelite", args, false)) {
-                state = State.STARTED;
-            }
+        }
+        String[] args = new String[params.size()*2];
+        int i=0;
+        for (Map.Entry<String, String> entry: params.entrySet()) {
+            args[i]=entry.getKey();
+            i++;
+            args[i]=entry.getValue();
+            i++;
+        }
+        if (runTermuxCommand("/data/data/com.termux/files/usr/bin/squeezelite", args, false)) {
+            state = State.STARTED;
         }
     }
 
@@ -166,7 +162,7 @@ public class LocalPlayer {
         if (null!=mac) {
             return mac;
         }
-        List<String> parts = new LinkedList<String>();
+        List<String> parts = new LinkedList<>();
         Random rand = new Random();
         parts.add("ab");
         parts.add("cd");
@@ -199,17 +195,15 @@ public class LocalPlayer {
         intent.setClassName("de.bluegaspode.squeezeplayer", "de.bluegaspode.squeezeplayer.playback.service.PlaybackService");
 
         ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
-        if (current != null) {
-            intent.putExtra("forceSettingsFromIntent", true);
-            intent.putExtra("intentHasServerSettings", true);
-            intent.putExtra("serverURL", current.ip + ":" + current.port);
-            intent.putExtra("serverName", current.name);
-            String user = sharedPreferences.getString(MainActivity.LMS_USERNAME_KEY, null);
-            String pass = sharedPreferences.getString(MainActivity.LMS_PASSWORD_KEY, null);
-            if (user != null && pass!=null) {
-                intent.putExtra("username", user);
-                intent.putExtra("password", pass);
-            }
+        intent.putExtra("forceSettingsFromIntent", true);
+        intent.putExtra("intentHasServerSettings", true);
+        intent.putExtra("serverURL", current.ip + ":" + current.port);
+        intent.putExtra("serverName", current.name);
+        String user = sharedPreferences.getString(MainActivity.LMS_USERNAME_KEY, null);
+        String pass = sharedPreferences.getString(MainActivity.LMS_PASSWORD_KEY, null);
+        if (user != null && pass!=null) {
+            intent.putExtra("username", user);
+            intent.putExtra("password", pass);
         }
         try {
             if (start) {
@@ -245,7 +239,7 @@ public class LocalPlayer {
             int executionId = TermuxResultsService.getNextExecutionId();
             Intent pluginResultsServiceIntent = new Intent(context, TermuxResultsService.class);
             pluginResultsServiceIntent.putExtra(TermuxResultsService.EXTRA_EXECUTION_ID, executionId);
-            PendingIntent pendingIntent = PendingIntent.getService(context, executionId, pluginResultsServiceIntent, PendingIntent.FLAG_ONE_SHOT);
+            PendingIntent pendingIntent = PendingIntent.getService(context, executionId, pluginResultsServiceIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
             intent.putExtra("com.termux.RUN_COMMAND_PENDING_INTENT", pendingIntent);
         }
         Log.d(MainActivity.TAG, "Send Termux command:"+app+" args:"+String.join(", ", args));

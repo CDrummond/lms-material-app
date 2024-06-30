@@ -16,6 +16,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -27,6 +28,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.PreferenceManager;
@@ -47,7 +49,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DownloadService extends Service {
-    public static final String STATUS = DownloadService.class.getCanonicalName()+".STATUS";
+    public static final String STATUS = DownloadService.class.getCanonicalName() + ".STATUS";
     public static final String STATUS_BODY = "body";
     public static final String STATUS_LEN = "len";
     public static final int DOWNLOAD_LIST = 1;
@@ -85,47 +87,49 @@ public class DownloadService extends Service {
     }
 
     static String fixEmpty(String str) {
-        return 0==str.length() ? "Unknown" : str;
+        return str.isEmpty() ? "Unknown" : str;
     }
 
-    class DownloadItem {
+    static class DownloadItem {
         public DownloadItem(JSONObject obj, boolean transcode) {
-            id=getInt(obj, "id");
-            filename=getString(obj, "filename");
-            title=getString(obj, "title");
-            ext=getString(obj, "ext");
-            artist=getString(obj, "artist");
-            album=getString(obj, "album");
-            tracknum=getInt(obj, "tracknum");
-            disc=getInt(obj, "disc");
-            albumId=getInt(obj, "album_id");
-            isTrack=true;
+            id = getInt(obj, "id");
+            filename = getString(obj, "filename");
+            title = getString(obj, "title");
+            ext = getString(obj, "ext");
+            artist = getString(obj, "artist");
+            album = getString(obj, "album");
+            tracknum = getInt(obj, "tracknum");
+            disc = getInt(obj, "disc");
+            albumId = getInt(obj, "album_id");
+            isTrack = true;
 
-            if (filename.length()<1) {
-                if (disc>0) {
-                    filename+=disc;
-                }
-                if (tracknum>0) {
-                    filename+=(filename.length()>0 ? "." : "") + (tracknum<10 ? "0" : "") + tracknum + " ";
-                } else if (filename.length()>0) {
-                    filename+=" ";
-                }
-                filename+=title+"."+(transcode ? "mp3" : ext);
-            } else if (transcode) {
-                int pos = filename.lastIndexOf('.');
-                if (pos>0) {
-                    filename=filename.substring(0, pos)+".mp3";
+            if (filename!=null) {
+                if (filename.isEmpty()) {
+                    if (disc > 0) {
+                        filename += disc;
+                    }
+                    if (tracknum > 0) {
+                        filename += (!filename.isEmpty() ? "." : "") + (tracknum < 10 ? "0" : "") + tracknum + " ";
+                    } else if (!filename.isEmpty()) {
+                        filename += " ";
+                    }
+                    filename += title + "." + (transcode ? "mp3" : ext);
+                } else if (transcode) {
+                    int pos = filename.lastIndexOf('.');
+                    if (pos > 0) {
+                        filename = filename.substring(0, pos) + ".mp3";
+                    }
                 }
             }
         }
 
         public DownloadItem(int id, int albumId, String artist, String album) {
-            isTrack=false;
-            this.id=id*-1; // Ensure we do not overlap with track id
-            this.albumId=albumId;
-            this.artist=artist;
-            this.album=album;
-            this.filename="albumart.jpg";
+            isTrack = false;
+            this.id = id * -1; // Ensure we do not overlap with track id
+            this.albumId = albumId;
+            this.artist = artist;
+            this.album = album;
+            this.filename = "albumart.jpg";
         }
 
         JSONObject toObject(boolean downloading) throws JSONException {
@@ -138,13 +142,13 @@ public class DownloadService extends Service {
         }
 
         public String getFolder() {
-            return fatSafe(artist.length()>0 && album.length()>0
+            return fatSafe(!artist.isEmpty() && !album.isEmpty()
                     ? artist + " - " + album
-                    : artist.length()>0
-                        ? artist
-                        : album.length()>0
-                            ? album
-                            : "Unknown");
+                    : !artist.isEmpty()
+                    ? artist
+                    : !album.isEmpty()
+                    ? album
+                    : "Unknown");
         }
 
         public String getDownloadFileName() {
@@ -164,20 +168,20 @@ public class DownloadService extends Service {
         public long downloadId = 0;
     }
 
-    List<DownloadItem> items = new LinkedList<DownloadItem>();
-    List<DownloadItem> queuedItems = new LinkedList<DownloadItem>();
-    Set<Integer> trackIds = new HashSet<Integer>();
-    Set<Integer> albumIds = new HashSet<Integer>();
+    final List<DownloadItem> items = new LinkedList<>();
+    List<DownloadItem> queuedItems = new LinkedList<>();
+    Set<Integer> trackIds = new HashSet<>();
+    Set<Integer> albumIds = new HashSet<>();
 
     class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case DOWNLOAD_LIST:
-                    addTracks((JSONArray)msg.obj);
+                    addTracks((JSONArray) msg.obj);
                     break;
                 case CANCEL_LIST:
-                    cancel((JSONArray)msg.obj);
+                    cancel((JSONArray) msg.obj);
                     break;
                 case STATUS_REQ:
                     sendStatusUpdate();
@@ -209,7 +213,7 @@ public class DownloadService extends Service {
     private void startForegroundService() {
         Log.d(MainActivity.TAG, "Start download service.");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createNotificationChannel("lms_download_service", "LMS Download Service");
+            createNotificationChannel();
         } else {
             notificationBuilder = new NotificationCompat.Builder(this);
         }
@@ -217,8 +221,8 @@ public class DownloadService extends Service {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private void createNotificationChannel(String channelId, String channelName) {
-        NotificationChannel chan = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+    private void createNotificationChannel() {
+        NotificationChannel chan = new NotificationChannel("lms_download_service", "LMS Download Service", NotificationManager.IMPORTANCE_DEFAULT);
         chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
         chan.setShowBadge(false);
         chan.enableLights(false);
@@ -227,11 +231,11 @@ public class DownloadService extends Service {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         assert manager != null;
         manager.createNotificationChannel(chan);
-        notificationBuilder = new NotificationCompat.Builder(this, channelId);
+        notificationBuilder = new NotificationCompat.Builder(this, "lms_download_service");
     }
 
     @NonNull
-    private PendingIntent getPendingIntent(@NonNull String action){
+    private PendingIntent getPendingIntent(@NonNull String action) {
         Intent intent = new Intent(this, DownloadService.class);
         intent.setAction(action);
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -240,19 +244,32 @@ public class DownloadService extends Service {
     private void createNotification() {
         Intent intent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification = notificationBuilder.setOngoing(true)
+        NotificationCompat.Builder builder = notificationBuilder.setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setSmallIcon(R.drawable.ic_download)
                 .setContentTitle(getResources().getString(R.string.downloading))
-                .setPriority(NotificationManager.IMPORTANCE_MIN)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .setContentIntent(pendingIntent)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setVibrate(null)
                 .setSound(null)
-                .setShowWhen(false)
-                .build();
+                .setShowWhen(false);
+        if (Build.VERSION.SDK_INT >= 24) {
+            builder.setPriority(NotificationManager.IMPORTANCE_MIN);
+        }
+
+        Notification notification = builder.build();
         notificationManager = NotificationManagerCompat.from(this);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         notificationManager.notify(MSG_ID, notificationBuilder.build());
         startForeground(MSG_ID, notification);
     }
@@ -264,7 +281,7 @@ public class DownloadService extends Service {
         synchronized (items) {
             try {
                 int before = items.size();
-                List<DownloadItem> newAlbumCovers = new LinkedList<DownloadItem>();
+                List<DownloadItem> newAlbumCovers = new LinkedList<>();
                 for (int i = 0; i < tracks.length(); ++i) {
                     DownloadItem track = new DownloadItem((JSONObject) tracks.get(i), transcode);
                     if (!trackIds.contains(track.id)) {
@@ -276,9 +293,7 @@ public class DownloadService extends Service {
                         }
                     }
                 }
-                for (DownloadItem albumCover : newAlbumCovers) {
-                    items.add(albumCover);
-                }
+                items.addAll(newAlbumCovers);
                 Log.d(MainActivity.TAG, "Before: " + before + " now:"+ items.size());
                 if (before!=items.size()) {
                     if (0==before) {
@@ -295,9 +310,9 @@ public class DownloadService extends Service {
 
     void cancel(JSONArray ids) {
         Log.d(MainActivity.TAG, "Cancel downloads");
-        List<DownloadItem> toRemove = new LinkedList<DownloadItem>();
-        List<DownloadItem> toRemoveQueued = new LinkedList<DownloadItem>();
-        Set<Integer> idSet = new HashSet<Integer>();
+        List<DownloadItem> toRemove = new LinkedList<>();
+        List<DownloadItem> toRemoveQueued = new LinkedList<>();
+        Set<Integer> idSet = new HashSet<>();
         for (int i = 0; i < ids.length(); ++i) {
             try {
                 idSet.add(ids.getInt(i));
@@ -449,32 +464,15 @@ public class DownloadService extends Service {
             destDir.mkdir();
         }
 
-        InputStream inputStream = null;
-        OutputStream outputStream = null;
         Log.d(MainActivity.TAG, "Copy from: " + sourceFile.getPath() + " to " + destFile.getAbsolutePath());
-        try {
-            inputStream = new FileInputStream(sourceFile);
-            outputStream = new FileOutputStream(destFile);
+        try (InputStream inputStream = new FileInputStream(sourceFile); OutputStream outputStream = new FileOutputStream(destFile)) {
 
-            byte[] b = new byte[16*1024];
+            byte[] b = new byte[16 * 1024];
             int bytesRead;
             while ((bytesRead = inputStream.read(b)) > 0) {
                 outputStream.write(b, 0, bytesRead);
             }
         } catch (Exception e) {
-        } finally {
-            if (null!=inputStream) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                }
-            }
-            if (null!=outputStream) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                }
-            }
         }
         sourceFile.delete();
     }
