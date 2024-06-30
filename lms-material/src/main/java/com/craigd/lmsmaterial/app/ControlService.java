@@ -16,6 +16,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
@@ -29,6 +30,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.ServiceCompat;
 
 public class ControlService extends Service {
     private static final String NEXT_TRACK = ControlService.class.getCanonicalName() + ".NEXT_TRACK";
@@ -182,7 +184,17 @@ public class ControlService extends Service {
                     .build();
 
             notificationManager.notify(MSG_ID, notificationBuilder.build());
-            startForeground(MSG_ID, notification);
+            //startForeground(MSG_ID, notification);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(new Intent(this, ControlService.class));
+            } else {
+                startService(new Intent(this, ControlService.class));
+            }
+
+            if (Build.VERSION.SDK_INT >= 29) {
+                ServiceCompat.startForeground(this, MSG_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+            }
         } catch (Exception e) {
             Log.e("LMS", "Failed to create control notification", e);
         }

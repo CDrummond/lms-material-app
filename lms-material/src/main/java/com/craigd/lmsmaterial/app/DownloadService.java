@@ -17,6 +17,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -29,6 +30,7 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.ServiceCompat;
 import androidx.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -253,7 +255,17 @@ public class DownloadService extends Service {
 
         notificationManager = NotificationManagerCompat.from(this);
         notificationManager.notify(MSG_ID, notificationBuilder.build());
-        startForeground(MSG_ID, notification);
+        // startForeground(MSG_ID, notification);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(new Intent(this, DownloadService.class));
+        } else {
+            startService(new Intent(this, DownloadService.class));
+        }
+
+        if (Build.VERSION.SDK_INT >= 29) {
+            ServiceCompat.startForeground(this, MSG_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE);
+        }
     }
 
     void addTracks(JSONArray tracks) {
