@@ -349,12 +349,16 @@ public class MainActivity extends AppCompatActivity {
             editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
             modified=true;
         }
-        if (! PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING)) &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+        boolean haveNotifPerm = Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID);
+        if (!sharedPreferences.contains(SettingsActivity.ON_CALL_PREF_KEY) ||
+              (! PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING)) &&
+                (!haveNotifPerm ||
+                  ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED)) ) {
             editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.ENABLE_NOTIF_PREF_KEY) || !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
+        if (!sharedPreferences.contains(SettingsActivity.ENABLE_NOTIF_PREF_KEY) ||
+              (sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false) && !haveNotifPerm)) {
             editor.putBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
             modified=true;
         }
@@ -366,7 +370,9 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false);
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.PLAYER_APP_PREF_KEY)) {
+        if (!sharedPreferences.contains(SettingsActivity.PLAYER_APP_PREF_KEY) ||
+             ( LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER)) &&
+               ContextCompat.checkSelfPermission(this, SettingsActivity.TERMUX_PERMISSION) != PackageManager.PERMISSION_GRANTED) ) {
             editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
             modified=true;
         }
