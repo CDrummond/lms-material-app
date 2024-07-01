@@ -1,21 +1,40 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat">
+    <style name="AppTheme" parent="Theme.Material3.Dark">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowBackground">@color/colorBackground</item>
         <item name="android:colorBackground">@color/colorBackground</item>
         <item name="android:textColor">@color/colorText</item>
         <item name="android:divider">@null</item>
         <item name="android:dividerHeight">0dp</item>
-        <item name="dialogCornerRadius">28dp</item>
-        <item name="android:textAllCaps">false</item>
+        <item name="alertDialogTheme">@style/AppDialog</item>
+        <item name="preferenceTheme">@style/AppPreferenceOverlay</item>
     </style>
 
-    <style name="AppTheme.Light" parent="Theme.AppCompat.Light">
+    <style name="AppPreferenceOverlay" parent="PreferenceThemeOverlay">
+        <item name="switchPreferenceCompatStyle">@style/AppSwitchPreferenceCompat</item>
+    </style>
+
+    <style name="AppSwitchPreferenceCompat" parent="@style/Preference.SwitchPreferenceCompat.Material" tools:ignore="ResourceCycle">
+        <item name="widgetLayout">@layout/preference_switch</item>
+    </style>
+
+    <style name="AppDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="buttonBarPositiveButtonStyle">@style/AppDialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/AppDialogButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/AppDialogButton</item>
+        <item name="dialogCornerRadius">24dp</item>
+    </style>
+
+    <style name="AppDialogButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/colorText</item>
+    </style>
+
+    <style name="AppTheme.Light" parent="Theme.Material3.Light">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimaryLight</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDarkLight</item>
@@ -26,8 +45,7 @@
         <item name="android:textColor">@color/colorTextLight</item>
         <item name="android:divider">@null</item>
         <item name="android:dividerHeight">0dp</item>
-        <item name="dialogCornerRadius">28dp</item>
-        <item name="android:textAllCaps">false</item>
+        <item name="dialogCornerRadius">24dp</item>
     </style>
 
     <style name="toast">

@@ -29,7 +29,7 @@
             app:key="discover"
             app:summary="@string/discover_summary"
             app:title="@string/discover" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="autodiscover"
             app:summary="@string/autodiscover_summary"
@@ -70,12 +70,12 @@
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:title="@string/misc">
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="keep_screen_on"
             app:summary="@string/keep_screen_on_summary"
             app:title="@string/keep_screen_on" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="enable_wifi"
             app:summary="@string/enable_wifi_summary"
@@ -86,12 +86,12 @@
             android:key="on_call"
             android:title="@string/oncall"
             app:iconSpaceReserved="false" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="show_over_lock_screen"
             app:summary="@string/show_over_lock_screen_summary"
             app:title="@string/show_over_lock_screen" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="enable_notif"
             app:summary="@string/enable_notif_summary"
@@ -101,7 +101,7 @@
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:title="@string/downloading">
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="transcode"
             app:summary="@string/transcode_summary"
@@ -123,17 +123,17 @@
             app:key="squeezelite_options"
             app:summary="@string/squeezelite_options_summary"
             app:title="@string/squeezelite_options" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="auto_start_player"
             app:summary="@string/auto_start_player_summary"
             app:title="@string/auto_start_player" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="menu_start_player"
             app:summary="@string/menu_start_player_summary"
             app:title="@string/menu_start_player" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="stop_app_on_quit"
             app:summary="@string/stop_app_on_quit_summary"
@@ -153,7 +153,7 @@
             app:key="default_player"
             app:summary="@string/default_player_summary"
             app:title="@string/default_player" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="single_player"
             app:summary="@string/single_player_summary"
