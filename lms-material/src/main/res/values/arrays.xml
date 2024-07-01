@@ -22,7 +22,7 @@
     </string-array>
     <string-array name="oncall">
         <item>Do nothing</item>
-        <item>Mute all activeplayers</item>
+        <item>Mute all active players</item>
         <item>Mute current player</item>
         <item>Pause all active players</item>
         <item>Pause current player</item>
