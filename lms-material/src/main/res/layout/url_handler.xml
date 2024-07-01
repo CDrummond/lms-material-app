@@ -34,18 +34,21 @@
         android:id="@+id/play_now_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/play_now" />
+        android:text="@string/play_now"
+        android:textColor="@color/colorText"/>
 
     <Button
         android:id="@+id/insert_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/insert" />
+        android:text="@string/insert"
+        android:textColor="@color/colorText"/>
 
     <Button
         android:id="@+id/play_next_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/play_next" />
+        android:text="@string/play_next"
+        android:textColor="@color/colorText"/>
 
 </LinearLayout>
