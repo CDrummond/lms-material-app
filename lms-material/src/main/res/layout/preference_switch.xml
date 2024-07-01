@@ -10,5 +10,6 @@
     android:focusable="false"
     android:clickable="false"
     android:background="@null"
-    app:thumbTint="@color/switch_thumb_selector_color"
-    app:trackDecorationTint="@color/colorTextDim"/>
+    app:thumbTint="@color/switch_thumb_color"
+    app:trackDecorationTint="@color/switch_track_decoration_color"
+    app:trackTint="@color/switch_track_color"/>
