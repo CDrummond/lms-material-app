@@ -16,13 +16,15 @@
     <uses-permission android:name="com.termux.permission.RUN_COMMAND"/>
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         tools:targetApi="m">
         <activity
             android:name=".SettingsActivity"

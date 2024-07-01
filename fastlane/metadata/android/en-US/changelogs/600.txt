@@ -2,3 +2,7 @@ Improved
 
 • Set target SDK to 34.
 • Use CallStateListener / PhoneStateListener to handle calls.
+
+Fixed
+
+• Prevent backups to work-around issues with duplicated MACs, etc.
