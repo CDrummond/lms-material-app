@@ -2,7 +2,8 @@ Improved
 
 • Set target SDK to 34.
 • Use CallStateListener / PhoneStateListener to handle calls.
-• Material 3
+• Material 3.
+• Ukrainian and Russian translations added.
 
 Fixed
 
