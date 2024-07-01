@@ -104,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
     private int defaultNavbar;
     private int statusbar = BAR_VISIBLE;
     private int navbar = BAR_HIDDEN;
+    private String onCall = null;
     private boolean showOverLockscreen = false;
     private UrlHandler urlHander;
     private JSONArray downloadData = null;
@@ -515,9 +516,10 @@ public class MainActivity extends AppCompatActivity {
         setTheme();
         setDefaults();
         enableWifi();
-        manageControlService();
+        manageControlService(false);
         statusbar = getBarSetting(SettingsActivity.STATUSBAR_PREF_KEY, statusbar);
         navbar = getBarSetting(SettingsActivity.NAVBAR_PREF_KEY, navbar);
+        onCall = sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
         setOrientation();
         Log.d(TAG, "sb:"+statusbar+", nb:"+navbar);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -1027,7 +1029,7 @@ public class MainActivity extends AppCompatActivity {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         setOrientation();
-        manageControlService();
+        manageControlService(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING).equals(this.onCall));
         manageShowOverLockscreen();
         reloadUrlAfterSettings=false;
         updateDownloadStatus();
@@ -1109,15 +1111,19 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    void manageControlService() {
+    void manageControlService(boolean onCallChanged) {
         boolean showNotif = sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
         if (showNotif && !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
             showNotif = false;
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
+            editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
             editor.apply();
         }
         if (showNotif) {
+            if (onCallChanged) {
+                stopControlService();
+            }
             startControlService();
         } else {
             stopControlService();
