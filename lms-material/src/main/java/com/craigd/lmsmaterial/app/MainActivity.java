@@ -1174,6 +1174,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshControlService() {
+        if (Build.VERSION.SDK_INT < 33) {
+            return;
+        }
         if (controlServiceMessenger!=null) {
             Message msg = Message.obtain(null, ControlService.PLAYER_REFRESH);
             try {
