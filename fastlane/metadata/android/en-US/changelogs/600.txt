@@ -8,3 +8,4 @@ Improved
 Fixed
 
 • Prevent backups to work-around issues with duplicated MACs, etc.
+• Less detailed notification icon.
