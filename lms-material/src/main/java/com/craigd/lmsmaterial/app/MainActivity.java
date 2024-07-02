@@ -968,7 +968,13 @@ public class MainActivity extends AppCompatActivity {
             if (pageLoaded) {
                 localPlayer.autoStart(true);
             }
-            refreshControlService();
+            if (sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false) && Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
+                if (!ControlService.isActive()) {
+                    startControlService();
+                } else {
+                    refreshControlService();
+                }
+            }
             return;
         }
         settingsShown = false;
