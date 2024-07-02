@@ -23,6 +23,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
@@ -35,6 +37,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
+import androidx.media.VolumeProviderCompat;
+import androidx.media.app.NotificationCompat.MediaStyle;
 
 public class ControlService extends Service {
     private static final String NEXT_TRACK = ControlService.class.getCanonicalName() + ".NEXT_TRACK";
@@ -42,12 +46,16 @@ public class ControlService extends Service {
     private static final String PLAY_TRACK = ControlService.class.getCanonicalName() + ".PLAY_TRACK";
     private static final String PAUSE_TRACK = ControlService.class.getCanonicalName() + ".PAUSE_TRACK";
     public static final int PLAYER_NAME = 1;
+    public static final int PLAYER_REFRESH = 2;
 
     private static final int MSG_ID = 1;
     private static final String[] PREV_COMMAND = {"button", "jump_rew"};
     private static final String[] PLAY_COMMAND = {"play"};
     private static final String[] PAUSE_COMMAND = {"pause", "1"};
     private static final String[] NEXT_COMMAND = {"playlist", "index", "+1"};
+    private static final String[] TOGGLE_PLAY_PAUSE_COMMAND = {"pause"};
+    private static final String[] DEC_VOLUME_COMMAND = {"mixer", "volume", "-5"};
+    private static final String[] INC_VOLUME_COMMAND = {"mixer", "volume", "+5"};
     public static final String NOTIFICATION_CHANNEL_ID = "lms_control_service";
 
     private static boolean isRunning = false;
@@ -59,6 +67,9 @@ public class ControlService extends Service {
     private JsonRpc rpc;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManagerCompat notificationManager;
+    private MediaSessionCompat mediaSession;
+    private PlaybackStateCompat playbackState;
+
     private final Messenger messenger = new Messenger(
             new IncomingHandler()
     );
@@ -72,6 +83,8 @@ public class ControlService extends Service {
                     return;
                 }
                 notificationManager.notify(MSG_ID, notificationBuilder.build());
+            } else if (msg.what == PLAYER_REFRESH && null!=notificationBuilder && null!=notificationManager) {
+                createNotification();
             } else {
                 super.handleMessage(msg);
             }
@@ -83,20 +96,38 @@ public class ControlService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        Log.d(MainActivity.TAG, "ControlService.onBind");
         return messenger.getBinder();
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.d(MainActivity.TAG, "ControlService.onUnbind");
+        if (mediaSession != null) {
+            mediaSession.setActive(false);
+            mediaSession.release();
+            mediaSession = null;
+        }
+        stopForegroundService();
+        return super.onUnbind(intent);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d("LMS", "ControlService.onCreate()");
+        Log.d("LMS", "ControlService.onCreate");
+        mediaSession = new MediaSessionCompat(getApplicationContext(), "Lyrion");
         startForegroundService();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d("LMS", "ControlService.onDestroy()");
+        Log.d("LMS", "ControlService.onDestroy");
+        if (mediaSession != null) {
+            mediaSession.release();
+            mediaSession = null;
+        }
         stopForegroundService();
     }
 
@@ -160,6 +191,15 @@ public class ControlService extends Service {
         return PendingIntent.getService(this, 0, intent, Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
+    private MediaStyle getMediaStyle() {
+        MediaStyle mediaStyle = new MediaStyle();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            mediaStyle.setShowActionsInCompactView(1, 2, 3);
+        }
+        mediaStyle.setMediaSession(mediaSession.getSessionToken());
+        return mediaStyle;
+    }
+
     @SuppressLint("MissingPermission")
     private void createNotification() {
         if (!Utils.notificationAllowed(this, NOTIFICATION_CHANNEL_ID)) {
@@ -169,7 +209,8 @@ public class ControlService extends Service {
             Intent intent = new Intent(this, MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
-            Notification notification = notificationBuilder.setOngoing(true)
+            notificationBuilder
+                    .setOngoing(true)
                     .setOnlyAlertOnce(true)
                     .setSmallIcon(R.drawable.ic_mono_icon)
                     .setContentTitle(getResources().getString(R.string.no_player))
@@ -179,14 +220,55 @@ public class ControlService extends Service {
                     .setVibrate(null)
                     .setSound(null)
                     .setShowWhen(false)
-                    .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                            .setShowActionsInCompactView(1, 2, 3))
-                    .addAction(new NotificationCompat.Action(R.drawable.ic_prev, "Previous", getPendingIntent(PREV_TRACK)))
-                    .addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play", getPendingIntent(PLAY_TRACK)))
-                    .addAction(new NotificationCompat.Action(R.drawable.ic_pause, "Pause", getPendingIntent(PAUSE_TRACK)))
-                    .addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)))
-                    .setChannelId(NOTIFICATION_CHANNEL_ID)
-                    .build();
+                    .setStyle(getMediaStyle())
+                    .setChannelId(NOTIFICATION_CHANNEL_ID);
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                notificationBuilder
+                        .addAction(new NotificationCompat.Action(R.drawable.ic_prev, "Previous", getPendingIntent(PREV_TRACK)))
+                        .addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play", getPendingIntent(PLAY_TRACK)))
+                        .addAction(new NotificationCompat.Action(R.drawable.ic_pause, "Pause", getPendingIntent(PAUSE_TRACK)))
+                        .addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)));
+            } else {
+                playbackState = new PlaybackStateCompat.Builder()
+                        .setState(PlaybackStateCompat.STATE_STOPPED, 0, 0)
+                        .setActions(PlaybackStateCompat.ACTION_PLAY|PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS|PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
+                        .build();
+                mediaSession.setPlaybackState(playbackState);
+                mediaSession.setCallback(new MediaSessionCompat.Callback() {
+                    @Override
+                    public void onPlay() {
+                        Log.d(MainActivity.TAG, "onPlay");
+                        mediaSession.setPlaybackState(null);
+                        mediaSession.setPlaybackState(playbackState);
+                        sendCommand(TOGGLE_PLAY_PAUSE_COMMAND);
+                    }
+
+                    @Override
+                    public void onSkipToNext() {
+                        sendCommand(NEXT_COMMAND);
+                    }
+
+                    @Override
+                    public void onSkipToPrevious() {
+                        sendCommand(PREV_COMMAND);
+                    }
+                });
+                mediaSession.setPlaybackToRemote(new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 50, 1) {
+                    @Override
+                    public void onAdjustVolume(int direction) {
+                        Log.d(MainActivity.TAG, "onAdjustVolume:"+direction);
+                        if (direction>0) {
+                            sendCommand(INC_VOLUME_COMMAND);
+                        } else if (direction<0) {
+                            sendCommand(DEC_VOLUME_COMMAND);
+                        }
+                    }
+                });
+                mediaSession.setActive(true);
+            }
+
+            Notification notification = notificationBuilder.build();
 
             notificationManager.notify(MSG_ID, notificationBuilder.build());
             //startForeground(MSG_ID, notification);
@@ -207,6 +289,9 @@ public class ControlService extends Service {
 
     private void stopForegroundService() {
         Log.d(MainActivity.TAG, "Stop control service.");
+        if (mediaSession!=null) {
+            mediaSession.setActive(false);
+        }
         stopForeground(true);
         unregisterCallStateListener();
         stopSelf();

@@ -515,6 +515,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "MainActivity.onCreate");
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         //isDark = sharedPreferences.getBoolean(SettingsActivity.IS_DARK_PREF_KEY, true);
@@ -613,6 +614,7 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
                 if (url.equals(QUIT_URL)) {
+                    stopControlService();
                     finishAffinity();
                     localPlayer.autoStop();
                     System.exit(0);
@@ -966,6 +968,7 @@ public class MainActivity extends AppCompatActivity {
             if (pageLoaded) {
                 localPlayer.autoStart(true);
             }
+            refreshControlService();
             return;
         }
         settingsShown = false;
@@ -1118,6 +1121,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void manageControlService(boolean onCallChanged) {
+        Log.d(TAG, "MainActivity.manageControlService onCallChanged:"+onCallChanged);
         boolean showNotif = sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
         if (showNotif && !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
             showNotif = false;
@@ -1164,6 +1168,17 @@ public class MainActivity extends AppCompatActivity {
                 controlServiceMessenger.send(msg);
             } catch (RemoteException e) {
                 Log.d(TAG, "Failed to update service");
+            }
+        }
+    }
+
+    private void refreshControlService() {
+        if (controlServiceMessenger!=null) {
+            Message msg = Message.obtain(null, ControlService.PLAYER_REFRESH);
+            try {
+                controlServiceMessenger.send(msg);
+            } catch (RemoteException e) {
+                Log.d(TAG, "Failed to refresh service");
             }
         }
     }

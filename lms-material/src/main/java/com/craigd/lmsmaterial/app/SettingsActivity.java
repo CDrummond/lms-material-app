@@ -9,6 +9,7 @@ package com.craigd.lmsmaterial.app;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -120,6 +121,7 @@ public class SettingsActivity extends AppCompatActivity {
                 LocalPlayer localPlayer = new LocalPlayer(sharedPreferences, getApplicationContext());
                 localPlayer.stop();
             }
+            stopService(new Intent(this, ControlService.class));
             finishAffinity();
             System.exit(0);
             return true;
@@ -381,6 +383,13 @@ public class SettingsActivity extends AppCompatActivity {
                     }
                     return true;
                 });
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                SwitchPreferenceCompat notifPref = getPreferenceManager().findPreference(ENABLE_NOTIF_PREF_KEY);
+                if (null != notifPref) {
+                    notifPref.setSummary(getResources().getString(R.string.enable_notif_summary_media_session));
+                }
             }
 
             updateListSummary(STATUSBAR_PREF_KEY);
