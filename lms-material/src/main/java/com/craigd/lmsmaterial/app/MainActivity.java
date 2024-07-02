@@ -1157,6 +1157,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 Log.e(TAG, "Failed to unbind control service");
             }
+            stopService(new Intent(MainActivity.this, ControlService.class));
             controlServiceMessenger = null;
         }
     }

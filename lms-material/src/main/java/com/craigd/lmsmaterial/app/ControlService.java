@@ -103,12 +103,6 @@ public class ControlService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
         Log.d(MainActivity.TAG, "ControlService.onUnbind");
-        if (mediaSession != null) {
-            mediaSession.setActive(false);
-            mediaSession.release();
-            mediaSession = null;
-        }
-        stopForegroundService();
         return super.onUnbind(intent);
     }
 
@@ -125,6 +119,7 @@ public class ControlService extends Service {
         super.onDestroy();
         Log.d("LMS", "ControlService.onDestroy");
         if (mediaSession != null) {
+            mediaSession.setActive(false);
             mediaSession.release();
             mediaSession = null;
         }
