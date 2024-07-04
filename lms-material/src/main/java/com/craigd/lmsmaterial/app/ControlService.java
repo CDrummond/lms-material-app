@@ -17,12 +17,15 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.MediaMetadata;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.telephony.PhoneStateListener;
@@ -235,8 +238,8 @@ public class ControlService extends Service {
                     public void onPlay() {
                         Log.d(MainActivity.TAG, "onPlay");
                         mediaSession.setPlaybackState(null);
-                        mediaSession.setPlaybackState(playbackState);
                         sendCommand(TOGGLE_PLAY_PAUSE_COMMAND);
+                        mediaSession.setPlaybackState(playbackState);
                     }
 
                     @Override
@@ -260,6 +263,9 @@ public class ControlService extends Service {
                         }
                     }
                 });
+                MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder();
+                metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, BitmapFactory.decodeResource(getResources(), R.drawable.notification_image));
+                mediaSession.setMetadata(metaBuilder.build());
                 mediaSession.setActive(true);
             }
 
