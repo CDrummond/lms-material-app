@@ -86,8 +86,7 @@ public class ControlService extends Service {
                 if (Build.VERSION.SDK_INT >= 33 && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
-                notificationManager.notify(MSG_ID, notificationBuilder.build());
-                updateMetaData();
+                updateNotification();
             } else if (msg.what == PLAYER_REFRESH && null!=notificationBuilder && null!=notificationManager) {
                 createNotification();
             } else {
@@ -200,25 +199,10 @@ public class ControlService extends Service {
         return mediaStyle;
     }
 
-    private void updateMetaData() {
-        if (mediaSession==null) {
-            return;
-        }
-        String title = MainActivity.activePlayerName==null || MainActivity.activePlayerName.isEmpty() ? getResources().getString(R.string.no_player) : MainActivity.activePlayerName;
-        MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder();
-        metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, BitmapFactory.decodeResource(getResources(), R.drawable.notification_image))
-                   .putString(MediaMetadata.METADATA_KEY_TITLE, title)
-                   .putString(MediaMetadata.METADATA_KEY_ARTIST, getResources().getString(R.string.notification_meta_text))
-                   .putLong(MediaMetadata.METADATA_KEY_DURATION, 0);
-        Log.d(MainActivity.TAG, "Set media session title to " + title);
-        mediaSession.setMetadata(metaBuilder.build());
-        mediaSession.setActive(true);
-    }
-
     @SuppressLint("MissingPermission")
-    private void createNotification() {
+    private Notification updateNotification() {
         if (!Utils.notificationAllowed(this, NOTIFICATION_CHANNEL_ID)) {
-            return;
+            return null;
         }
         try {
             Intent intent = new Intent(this, MainActivity.class);
@@ -228,7 +212,7 @@ public class ControlService extends Service {
                     .setOngoing(true)
                     .setOnlyAlertOnce(true)
                     .setSmallIcon(R.drawable.ic_mono_icon)
-                    .setContentTitle(MainActivity.activePlayerName==null || MainActivity.activePlayerName.isEmpty() ? getResources().getString(R.string.no_player) : MainActivity.activePlayerName)
+                    .setContentTitle(MainActivity.activePlayerName == null || MainActivity.activePlayerName.isEmpty() ? getResources().getString(R.string.no_player) : MainActivity.activePlayerName)
                     .setCategory(Notification.CATEGORY_SERVICE)
                     .setContentIntent(pendingIntent)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -247,7 +231,7 @@ public class ControlService extends Service {
             } else {
                 playbackState = new PlaybackStateCompat.Builder()
                         .setState(PlaybackStateCompat.STATE_STOPPED, 0, 0)
-                        .setActions(PlaybackStateCompat.ACTION_PLAY|PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS|PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
+                        .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
                         .build();
                 mediaSession.setPlaybackState(playbackState);
                 mediaSession.setCallback(new MediaSessionCompat.Callback() {
@@ -272,34 +256,48 @@ public class ControlService extends Service {
                 mediaSession.setPlaybackToRemote(new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 50, 1) {
                     @Override
                     public void onAdjustVolume(int direction) {
-                        Log.d(MainActivity.TAG, "onAdjustVolume:"+direction);
-                        if (direction>0) {
+                        Log.d(MainActivity.TAG, "onAdjustVolume:" + direction);
+                        if (direction > 0) {
                             sendCommand(INC_VOLUME_COMMAND);
-                        } else if (direction<0) {
+                        } else if (direction < 0) {
                             sendCommand(DEC_VOLUME_COMMAND);
                         }
                     }
                 });
-                updateMetaData();
+                String title = MainActivity.activePlayerName == null || MainActivity.activePlayerName.isEmpty() ? getResources().getString(R.string.no_player) : MainActivity.activePlayerName;
+                MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder();
+                metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, BitmapFactory.decodeResource(getResources(), R.drawable.notification_image))
+                        .putString(MediaMetadata.METADATA_KEY_TITLE, title)
+                        .putString(MediaMetadata.METADATA_KEY_ARTIST, getResources().getString(R.string.notification_meta_text))
+                        .putLong(MediaMetadata.METADATA_KEY_DURATION, 0);
+                Log.d(MainActivity.TAG, "Set media session title to " + title);
+                mediaSession.setMetadata(metaBuilder.build());
                 mediaSession.setActive(true);
             }
 
             Notification notification = notificationBuilder.build();
 
             notificationManager.notify(MSG_ID, notificationBuilder.build());
-            //startForeground(MSG_ID, notification);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(new Intent(this, ControlService.class));
-            } else {
-                startService(new Intent(this, ControlService.class));
-            }
-
-            if (Build.VERSION.SDK_INT >= 29) {
-                ServiceCompat.startForeground(this, MSG_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
-            }
+            return notification;
         } catch (Exception e) {
             Log.e("LMS", "Failed to create control notification", e);
+        }
+        return null;
+    }
+
+    private void createNotification() {
+        Notification notification = updateNotification();
+        if (null==notification) {
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(new Intent(this, ControlService.class));
+        } else {
+            startService(new Intent(this, ControlService.class));
+        }
+
+        if (Build.VERSION.SDK_INT >= 29) {
+            ServiceCompat.startForeground(this, MSG_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
         }
     }
 
