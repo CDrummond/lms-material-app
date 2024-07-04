@@ -69,5 +69,6 @@
     <string name="squeezelite_options_summary">Extra options to pass to Squeezelite</string>
     <string name="squeezelite_options">Squeezelite (via Termux) options</string>
     <string name="main_notification">Main</string>
-    <string name="download_notification">Dowlnloads</string>
+    <string name="download_notification">Downloads</string>
+    <string name="notification_meta_text">Playback controls</string>
 </resources>

@@ -87,6 +87,7 @@ public class ControlService extends Service {
                     return;
                 }
                 notificationManager.notify(MSG_ID, notificationBuilder.build());
+                updateMetaData();
             } else if (msg.what == PLAYER_REFRESH && null!=notificationBuilder && null!=notificationManager) {
                 createNotification();
             } else {
@@ -199,6 +200,21 @@ public class ControlService extends Service {
         return mediaStyle;
     }
 
+    private void updateMetaData() {
+        if (mediaSession==null) {
+            return;
+        }
+        String title = MainActivity.activePlayerName==null || MainActivity.activePlayerName.isEmpty() ? getResources().getString(R.string.no_player) : MainActivity.activePlayerName;
+        MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder();
+        metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, BitmapFactory.decodeResource(getResources(), R.drawable.notification_image))
+                   .putString(MediaMetadata.METADATA_KEY_TITLE, title)
+                   .putString(MediaMetadata.METADATA_KEY_ARTIST, getResources().getString(R.string.notification_meta_text))
+                   .putLong(MediaMetadata.METADATA_KEY_DURATION, 0);
+        Log.d(MainActivity.TAG, "Set media session title to " + title);
+        mediaSession.setMetadata(metaBuilder.build());
+        mediaSession.setActive(true);
+    }
+
     @SuppressLint("MissingPermission")
     private void createNotification() {
         if (!Utils.notificationAllowed(this, NOTIFICATION_CHANNEL_ID)) {
@@ -264,9 +280,7 @@ public class ControlService extends Service {
                         }
                     }
                 });
-                MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder();
-                metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, BitmapFactory.decodeResource(getResources(), R.drawable.notification_image));
-                mediaSession.setMetadata(metaBuilder.build());
+                updateMetaData();
                 mediaSession.setActive(true);
             }
 
