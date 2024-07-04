@@ -81,6 +81,7 @@ public class ControlService extends Service {
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == PLAYER_NAME && null!=notificationBuilder && null!=notificationManager) {
+                Log.d(MainActivity.TAG, "Set notification player name " + (String) (msg.obj));
                 notificationBuilder.setContentTitle((String) (msg.obj));
                 if (Build.VERSION.SDK_INT >= 33 && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     return;
@@ -211,7 +212,7 @@ public class ControlService extends Service {
                     .setOngoing(true)
                     .setOnlyAlertOnce(true)
                     .setSmallIcon(R.drawable.ic_mono_icon)
-                    .setContentTitle(getResources().getString(R.string.no_player))
+                    .setContentTitle(MainActivity.activePlayerName==null || MainActivity.activePlayerName.isEmpty() ? getResources().getString(R.string.no_player) : MainActivity.activePlayerName)
                     .setCategory(Notification.CATEGORY_SERVICE)
                     .setContentIntent(pendingIntent)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
