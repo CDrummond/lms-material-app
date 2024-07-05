@@ -25,8 +25,6 @@
     <string name="quit">Выйти</string>
     <string name="keep_screen_on">Не отключать экран</string>
     <string name="keep_screen_on_summary">Не отключать экран во время использования.</string>
-    <string name="enable_wifi">Включить Wi-Fi</string>
-    <string name="enable_wifi_summary">Включать Wi-Fi при запуске приложения.</string>
     <string name="oncall">Во время разговора</string>
     <string name="orientation">Ориентация</string>
     <string name="no_player">Нет плеера</string>

@@ -5,6 +5,7 @@ Improved
 • MediaSession for Android 13+
 • Material 3.
 • Ukrainian and Russian translations added.
+• Remove option to enable WiFi as this is no longer possible.
 
 Fixed
 

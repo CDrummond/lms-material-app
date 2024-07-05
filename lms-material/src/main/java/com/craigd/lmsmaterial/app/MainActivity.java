@@ -341,10 +341,6 @@ public class MainActivity extends AppCompatActivity {
             editor.putString(SettingsActivity.ORIENTATION_PREF_KEY, "auto");
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.ENABLE_WIFI_PREF_KEY)) {
-            editor.putBoolean(SettingsActivity.ENABLE_WIFI_PREF_KEY, true);
-            modified=true;
-        }
         if (!sharedPreferences.contains(SettingsActivity.ON_CALL_PREF_KEY)) {
             editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
             modified=true;
@@ -522,7 +518,6 @@ public class MainActivity extends AppCompatActivity {
         localPlayer = new LocalPlayer(sharedPreferences, this);
         setTheme();
         setDefaults();
-        enableWifi();
         manageControlService(false);
         statusbar = getBarSetting(SettingsActivity.STATUSBAR_PREF_KEY, statusbar);
         navbar = getBarSetting(SettingsActivity.NAVBAR_PREF_KEY, navbar);
@@ -678,14 +673,6 @@ public class MainActivity extends AppCompatActivity {
         handleIntent(getIntent());
     }
 
-    private void enableWifi() {
-        if (sharedPreferences.getBoolean(SettingsActivity.ENABLE_WIFI_PREF_KEY, true)) {
-            Log.d(TAG, "Enable WiFi");
-            WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-            wifi.setWifiEnabled(true);
-        }
-    }
-
     private void checkNetworkConnection() {
         Log.d(TAG, "Check network connection");
         View progress = findViewById(R.id.progress);
@@ -720,7 +707,6 @@ public class MainActivity extends AppCompatActivity {
             progress.setVisibility(View.VISIBLE);
             connectionChangeListener = new ConnectionChangeListener(this);
             registerReceiver(connectionChangeListener, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
-            enableWifi();
         }
     }
 

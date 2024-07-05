@@ -75,11 +75,6 @@
             app:key="keep_screen_on"
             app:summary="@string/keep_screen_on_summary"
             app:title="@string/keep_screen_on" />
-        <SwitchPreferenceCompat
-            app:iconSpaceReserved="false"
-            app:key="enable_wifi"
-            app:summary="@string/enable_wifi_summary"
-            app:title="@string/enable_wifi" />
         <ListPreference
             android:entries="@array/oncall"
             android:entryValues="@array/oncallAlias"

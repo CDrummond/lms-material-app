@@ -49,7 +49,6 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String STATUSBAR_PREF_KEY = "statusbar";
     public static final String NAVBAR_PREF_KEY = "navbar";
     public static final String KEEP_SCREEN_ON_PREF_KEY = "keep_screen_on";
-    public static final String ENABLE_WIFI_PREF_KEY = "enable_wifi";
     public static final String ORIENTATION_PREF_KEY = "orientation";
     public static final String ON_CALL_PREF_KEY = "on_call";
     public static final String ENABLE_NOTIF_PREF_KEY = "enable_notif";
