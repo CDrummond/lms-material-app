@@ -539,6 +539,7 @@ public class MainActivity extends AppCompatActivity {
         init5497Workaround();
         manageShowOverLockscreen();
         webView = findViewById(R.id.webview);
+        webView.setVisibility(View.GONE);
         webView.setBackgroundColor(Color.TRANSPARENT);
         webView.addJavascriptInterface(this, "NativeReceiver");
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
@@ -572,6 +573,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 localPlayer.autoStart(false);
                 pageLoaded = true;
+                webView.setVisibility(View.VISIBLE);
                 super.onPageStarted(view, u, favicon);
             }
 
@@ -595,6 +597,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "onReceivedError, mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
                 }
                 if (request.isForMainFrame()) {
+                    webView.setVisibility(View.GONE);
                     pageError = true;
                     discoverServer(false);
                 }

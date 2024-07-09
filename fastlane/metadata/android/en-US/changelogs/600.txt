@@ -6,6 +6,7 @@ Improved
 • Material 3.
 • Ukrainian and Russian translations added.
 • Remove option to enable WiFi as this is no longer possible.
+• Hide 'Web page not available' and just show blank view.
 
 Fixed
 
