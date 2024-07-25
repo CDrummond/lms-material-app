@@ -46,8 +46,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String AUTODISCOVER_PREF_KEY = "autodiscover";
     public static final String CLEAR_CACHE_PREF_KEY = "clear_cache";
     public static final String SCALE_PREF_KEY = "zoomscale";
-    public static final String STATUSBAR_PREF_KEY = "statusbar";
-    public static final String NAVBAR_PREF_KEY = "navbar";
+    public static final String FULLSCREEN_PREF_KEY = "fullscreen";
     public static final String KEEP_SCREEN_ON_PREF_KEY = "keep_screen_on";
     public static final String ORIENTATION_PREF_KEY = "orientation";
     public static final String ON_CALL_PREF_KEY = "on_call";
@@ -391,8 +390,6 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
 
-            updateListSummary(STATUSBAR_PREF_KEY);
-            updateListSummary(NAVBAR_PREF_KEY);
             updateListSummary(ORIENTATION_PREF_KEY);
             updateListSummary(ON_CALL_PREF_KEY);
             updateListSummary(PLAYER_APP_PREF_KEY);
@@ -401,7 +398,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            if (STATUSBAR_PREF_KEY.equals(key) || NAVBAR_PREF_KEY.equals(key) || ORIENTATION_PREF_KEY.equals(key)) {
+            if (ORIENTATION_PREF_KEY.equals(key)) {
                 updateListSummary(key);
             }
 

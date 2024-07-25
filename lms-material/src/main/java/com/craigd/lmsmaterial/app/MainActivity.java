@@ -26,7 +26,6 @@ import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -86,9 +85,6 @@ public class MainActivity extends AppCompatActivity {
     public static final String LMS_PASSWORD_KEY = "lms-password";
     private static final String CURRENT_PLAYER_ID_KEY = "current_player_id";
     private static final int PAGE_TIMEOUT = 5000;
-    private static final int BAR_VISIBLE = 0;
-    private static final int BAR_BLENDED = 1;
-    private static final int BAR_HIDDEN = 2;
 
     private SharedPreferences sharedPreferences;
     private WebView webView;
@@ -96,14 +92,10 @@ public class MainActivity extends AppCompatActivity {
     private boolean reloadUrlAfterSettings = false; // Should URL be reloaded after settings closed, regardless if changed?
     private boolean pageError = false;
     private boolean settingsShown = false;
+    private boolean isFullScreen = false;
     private int currentScale = 0;
     private ConnectionChangeListener connectionChangeListener;
     private double initialWebViewScale;
-    private boolean haveDefaultColors = false;
-    private int defaultStatusbar;
-    private int defaultNavbar;
-    private int statusbar = BAR_VISIBLE;
-    private int navbar = BAR_HIDDEN;
     private String onCall = null;
     private boolean showOverLockscreen = false;
     private UrlHandler urlHander;
@@ -277,9 +269,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             Uri.Builder builder = Uri.parse("http://" + server.ip + ":" + server.port + "/material/").buildUpon();
-            if (statusbar==BAR_BLENDED || navbar==BAR_BLENDED) {
-                builder.appendQueryParameter("nativeColors", "1");
-            }
+            builder.appendQueryParameter("nativeColors", "1");
             if (defaultPlayer!=null && !defaultPlayer.isEmpty()) {
                 builder.appendQueryParameter("player", defaultPlayer);
                 if (sharedPreferences.getBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false)) {
@@ -294,6 +284,15 @@ public class MainActivity extends AppCompatActivity {
             if (Utils.notificationAllowed(this, DownloadService.NOTIFICATION_CHANNEL_ID)) {
                 builder.appendQueryParameter("download", "native");
             }
+            if (!sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false)) {
+                boolean gestureNav = usingGestureNavigation();
+                builder.appendQueryParameter("topPad", "24");
+                builder.appendQueryParameter("botPad", gestureNav ? "12" : "40");
+                if (!gestureNav) {
+                    builder.appendQueryParameter("dlgPad", "48");
+                }
+            }
+
             return builder.build().toString()+
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" +
@@ -325,16 +324,12 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean(SettingsActivity.AUTODISCOVER_PREF_KEY, true);
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.STATUSBAR_PREF_KEY)) {
-            editor.putString(SettingsActivity.STATUSBAR_PREF_KEY, "blend");
-            modified=true;
-        }
-        if (!sharedPreferences.contains(SettingsActivity.NAVBAR_PREF_KEY)) {
-            editor.putString(SettingsActivity.NAVBAR_PREF_KEY, gestureNavigationEnabled() ? "blend" : "hidden");
-            modified=true;
-        }
         if (!sharedPreferences.contains(SettingsActivity.KEEP_SCREEN_ON_PREF_KEY)) {
             editor.putBoolean(SettingsActivity.KEEP_SCREEN_ON_PREF_KEY, false);
+            modified=true;
+        }
+        if (!sharedPreferences.contains(SettingsActivity.FULLSCREEN_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false);
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.ORIENTATION_PREF_KEY)) {
@@ -385,23 +380,6 @@ public class MainActivity extends AppCompatActivity {
         }
         activePlayer = sharedPreferences.getString(CURRENT_PLAYER_ID_KEY, activePlayer);
         Log.d(TAG, "Startup player set to:"+activePlayer);
-    }
-
-    private int getBarSetting(String key, int def) {
-        try {
-            String val = sharedPreferences.getString(key, null);
-            if ("hidden".equals(val)) {
-                return BAR_HIDDEN;
-            }
-            if ("blend".equals(val)) {
-                return BAR_BLENDED;
-            }
-            if ("visible".equals(val)) {
-                return BAR_VISIBLE;
-            }
-        } catch (Exception e) {
-        }
-        return def;
     }
 
     private Boolean clearCache() {
@@ -518,12 +496,12 @@ public class MainActivity extends AppCompatActivity {
         localPlayer = new LocalPlayer(sharedPreferences, this);
         setTheme();
         setDefaults();
+        if (sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false)) {
+            setFullScreen(true);
+        }
         manageControlService(false);
-        statusbar = getBarSetting(SettingsActivity.STATUSBAR_PREF_KEY, statusbar);
-        navbar = getBarSetting(SettingsActivity.NAVBAR_PREF_KEY, navbar);
         onCall = sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
         setOrientation();
-        Log.d(TAG, "sb:"+statusbar+", nb:"+navbar);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
@@ -532,10 +510,10 @@ public class MainActivity extends AppCompatActivity {
         if (sharedPreferences.getBoolean(SettingsActivity.KEEP_SCREEN_ON_PREF_KEY, false)) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
-        setFullscreen();
         setContentView(R.layout.activity_main);
         getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorBackground));
         getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorBackground));
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         init5497Workaround();
         manageShowOverLockscreen();
         webView = findViewById(R.id.webview);
@@ -761,18 +739,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @JavascriptInterface
-    public void updateToolbarColors(final String topColor, String botColor) {
-        if (statusbar != BAR_BLENDED && navbar != BAR_BLENDED) {
-            Log.d(TAG, "Ignore color update, as not blending");
-            return;
-        }
-        if (!haveDefaultColors) {
-            defaultStatusbar = getWindow().getStatusBarColor();
-            defaultNavbar = getWindow().getNavigationBarColor();
-            haveDefaultColors = true;
-        }
+    public void updateTheme(final String topColor, String botColor) {
         Log.d(TAG, topColor+" "+botColor);
-        if (null==topColor || topColor.length()<4 || null==botColor || botColor.length()<4) {
+        if (null==topColor || topColor.length()<4) {
             return;
         }
         try {
@@ -782,28 +751,11 @@ public class MainActivity extends AppCompatActivity {
                     // TODO: Need better way of detecting light toolbar!
                     boolean dark = !topColor.equalsIgnoreCase("#f5f5f5");
                     if (Build.VERSION.SDK_INT >= 23) {
-                        getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
+                        getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR)) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR));
                     }
                 } catch (Exception e) {
                 }
             });
-
-            if (statusbar == BAR_BLENDED) {
-                Log.d(TAG, "Blend statusbar");
-                if (topColor.length() < 7) {
-                    getWindow().setStatusBarColor(Color.parseColor("#" + topColor.charAt(1) + topColor.charAt(1) + topColor.charAt(2) + topColor.charAt(2) + topColor.charAt(3) + topColor.charAt(3)));
-                } else {
-                    getWindow().setStatusBarColor(Color.parseColor(topColor));
-                }
-            }
-            if (navbar == BAR_BLENDED) {
-                Log.d(TAG, "Blend navbar");
-                if (botColor.length() < 7) {
-                    getWindow().setNavigationBarColor(Color.parseColor("#" + botColor.charAt(1) + botColor.charAt(1) + botColor.charAt(2) + botColor.charAt(2) + botColor.charAt(3) + botColor.charAt(3)));
-                } else {
-                    getWindow().setNavigationBarColor(Color.parseColor(botColor));
-                }
-            }
         } catch (Exception e) {
         }
     }
@@ -881,38 +833,6 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-    private void setFullscreen() {
-        if (statusbar==BAR_HIDDEN) {
-            if (navbar==BAR_HIDDEN) {
-                getWindow().getDecorView().setSystemUiVisibility(
-                        View.SYSTEM_UI_FLAG_IMMERSIVE
-                                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-            } else {
-                getWindow().getDecorView().setSystemUiVisibility(
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_FULLSCREEN);
-            }
-        } else if (navbar==BAR_HIDDEN) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            setFullscreen();
-        }
-    }
-
     @Override
     protected void onPause() {
         Log.i(TAG, "Pause");
@@ -967,11 +887,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         settingsShown = false;
-        int prevSbar = statusbar;
-        int prevNavbar = navbar;
-        statusbar = getBarSetting(SettingsActivity.STATUSBAR_PREF_KEY, statusbar);
-        navbar = getBarSetting(SettingsActivity.NAVBAR_PREF_KEY, navbar);
-
         String u = getConfiguredUrl();
         boolean cacheCleared = false;
         boolean needReload = false;
@@ -992,26 +907,6 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) { }
             cacheCleared = true;
         }
-        if (prevSbar!=statusbar || prevNavbar!=navbar) {
-            setFullscreen();
-            if (BAR_HIDDEN==prevSbar || BAR_HIDDEN==prevNavbar) {
-                recreate();
-                return;
-            }
-            if (BAR_BLENDED==statusbar) {
-                needReload=true;
-            } else if (BAR_BLENDED==prevSbar) {
-                getWindow().setStatusBarColor(defaultStatusbar);
-            }
-            if (BAR_BLENDED==navbar) {
-                needReload=true;
-            } else if (BAR_BLENDED==prevNavbar) {
-                getWindow().setNavigationBarColor(defaultNavbar);
-            }
-            if ((BAR_BLENDED==prevSbar || BAR_BLENDED==prevNavbar) && Build.VERSION.SDK_INT >= 23) {
-                getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            }
-        }
         Log.i(TAG, "onResume, URL:"+u);
         if (u==null) {
             Log.i(TAG,"Start settings");
@@ -1031,6 +926,9 @@ public class MainActivity extends AppCompatActivity {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        if (isFullScreen != sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, isFullScreen)) {
+            setFullScreen(!isFullScreen);
         }
         setOrientation();
         manageControlService(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING).equals(this.onCall));
@@ -1244,9 +1142,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void possiblyResizeChildOfContent() {
-        if (BAR_HIDDEN !=statusbar) {
-            return;
-        }
         int usableHeightNow = computeUsableHeight();
         if (usableHeightNow != usableHeightPrevious) {
             int usableHeightSansKeyboard = childOfContent.getRootView().getHeight();
@@ -1267,5 +1162,33 @@ public class MainActivity extends AppCompatActivity {
         Rect r = new Rect();
         childOfContent.getWindowVisibleDisplayFrame(r);
         return (r.bottom - r.top);
+    }
+
+    public boolean usingGestureNavigation() {
+        Resources resources = getResources();
+        int resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
+        if (resourceId > 0) {
+            return 2==resources.getInteger(resourceId);
+        }
+        return false;
+    }
+
+    private void setFullScreen(boolean on) {
+        if (on) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_IMMERSIVE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        }
+        isFullScreen = on;
     }
 }

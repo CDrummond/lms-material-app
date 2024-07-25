@@ -39,18 +39,11 @@
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:title="@string/ui">
-        <ListPreference
-            android:entries="@array/statusbar"
-            android:entryValues="@array/statusbarAlias"
-            android:key="statusbar"
-            android:title="@string/statusbar"
-            app:iconSpaceReserved="false" />
-        <ListPreference
-            android:entries="@array/statusbar"
-            android:entryValues="@array/statusbarAlias"
-            android:key="navbar"
-            android:title="@string/navbar"
-            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="fullscreen"
+            app:summary="@string/fullscreen_summary"
+            app:title="@string/fullscreen" />
         <ListPreference
             android:entries="@array/orientation"
             android:entryValues="@array/orientationAlias"

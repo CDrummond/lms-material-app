@@ -14,8 +14,6 @@
     <string name="no_new_server">Новый сервер не найден</string>
     <string name="discovering_server">Поиск сервера</string>
     <string name="ui">Интерфейс</string>
-    <string name="statusbar">Строка состояния</string>
-    <string name="navbar">Панель навигации</string>
     <string name="scale">Масштаб</string>
     <string name="scale_summary">ПРИМЕЧАНИЕ: Возможно, вам придется перезапустить приложение, чтобы изменения масштаба отображались корректно.</string>
     <string name="waiting_for_network">Ожидание сети</string>

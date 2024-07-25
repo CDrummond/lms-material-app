@@ -7,6 +7,8 @@ Improved
 • Ukrainian and Russian translations added.
 • Remove option to enable WiFi as this is no longer possible.
 • Hide 'Web page not available' and just show blank view.
+• Use MaterialSkin 5.2.0's top and bottom padding option to fill screen.
+• Remove navigation and status bar settings and replace with single fullscreen option.
 
 Fixed
 
