@@ -269,7 +269,6 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             Uri.Builder builder = Uri.parse("http://" + server.ip + ":" + server.port + "/material/").buildUpon();
-            builder.appendQueryParameter("nativeColors", "1");
             if (defaultPlayer!=null && !defaultPlayer.isEmpty()) {
                 builder.appendQueryParameter("player", defaultPlayer);
                 if (sharedPreferences.getBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false)) {
@@ -277,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             builder.appendQueryParameter("nativePlayer", "1");
-            //builder.appendQueryParameter("nativeTheme", "1");
+            builder.appendQueryParameter("nativeTheme", "1");
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
                 builder.appendQueryParameter("nativePlayerPower", "1");
             }
@@ -739,17 +738,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @JavascriptInterface
-    public void updateTheme(final String topColor, String botColor) {
-        Log.d(TAG, topColor+" "+botColor);
-        if (null==topColor || topColor.length()<4) {
+    public void updateTheme(final String theme) {
+        Log.d(TAG, theme);
+        if (null==theme || theme.length()<4) {
             return;
         }
         try {
             runOnUiThread(() -> {
                 try {
                     int flags = getWindow().getDecorView().getSystemUiVisibility();
-                    // TODO: Need better way of detecting light toolbar!
-                    boolean dark = !topColor.equalsIgnoreCase("#f5f5f5");
+                    boolean dark = !theme.contains("light") || theme.contains("-colored");
                     if (Build.VERSION.SDK_INT >= 23) {
                         getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR)) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR));
                     }
