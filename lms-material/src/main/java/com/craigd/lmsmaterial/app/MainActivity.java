@@ -34,6 +34,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -103,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
     private LocalPlayer localPlayer = null;
     private boolean isDark = true;
     private boolean pageLoaded = false;
+    private long recreateTime = 0;
 
     public static String activePlayer = null;
     public static String activePlayerName = null;
@@ -471,7 +473,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Load URL:"+url);
         pageLoadHandler.removeCallbacks(pageLoadTimeout);
         webView.loadUrl(u);
-        pageLoadHandler.postDelayed(pageLoadTimeout, PAGE_TIMEOUT);
+        if (SystemClock.elapsedRealtime()-recreateTime>1000) {
+            pageLoadHandler.postDelayed(pageLoadTimeout, PAGE_TIMEOUT);
+        }
     }
 
     private void discoverServer(boolean force) {
@@ -496,7 +500,7 @@ public class MainActivity extends AppCompatActivity {
         setTheme();
         setDefaults();
         if (sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false)) {
-            setFullScreen(true);
+            setFullScreen(true, true);
         }
         manageControlService(false);
         onCall = sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
@@ -905,6 +909,10 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) { }
             cacheCleared = true;
         }
+        if (isFullScreen != sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, isFullScreen)) {
+            setFullScreen(!isFullScreen, false);
+            needReload = true;
+        }
         Log.i(TAG, "onResume, URL:"+u);
         if (u==null) {
             Log.i(TAG,"Start settings");
@@ -924,9 +932,6 @@ public class MainActivity extends AppCompatActivity {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        }
-        if (isFullScreen != sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, isFullScreen)) {
-            setFullScreen(!isFullScreen);
         }
         setOrientation();
         manageControlService(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING).equals(this.onCall));
@@ -1171,7 +1176,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private void setFullScreen(boolean on) {
+    private void setFullScreen(boolean on, boolean isStartup) {
         if (on) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -1191,6 +1196,15 @@ public class MainActivity extends AppCompatActivity {
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                             | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                             | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                getWindow().getAttributes().layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
+            }
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+            if (!isStartup) {
+                recreate();
+                recreateTime = SystemClock.elapsedRealtime();
+            }
         }
         isFullScreen = on;
     }

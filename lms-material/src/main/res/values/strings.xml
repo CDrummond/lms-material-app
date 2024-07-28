@@ -15,7 +15,7 @@
     <string name="discovering_server">Discovering server</string>
     <string name="ui">Interface</string>
     <string name="fullscreen">Fullscreen</string>
-    <string name="fullscreen_summary">Hide status and navigation bars.\n\nNOTE: You may need to restart the application for the display to be correct.</string>
+    <string name="fullscreen_summary">Hide status and navigation bars.</string>
     <string name="scale">Scale</string>
     <string name="scale_summary">Set zoom level.\n\nNOTE: You may need to restart the application for zoom changes to be correct.</string>
     <string name="waiting_for_network">Waiting for network</string>
