@@ -292,11 +292,13 @@ public class MainActivity extends AppCompatActivity {
                 builder.appendQueryParameter("download", "native");
             }
             if (!sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false)) {
-                boolean gestureNav = usingGestureNavigation();
-                builder.appendQueryParameter("topPad", "24");
-                builder.appendQueryParameter("botPad", gestureNav ? "12" : "40");
-                if (!gestureNav) {
-                    builder.appendQueryParameter("dlgPad", "48");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    boolean gestureNav = usingGestureNavigation();
+                    builder.appendQueryParameter("topPad", "24");
+                    builder.appendQueryParameter("botPad", gestureNav ? "12" : "40");
+                    if (!gestureNav) {
+                        builder.appendQueryParameter("dlgPad", "48");
+                    }
                 }
             }
 
@@ -508,8 +510,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "MainActivity.onCreate");
-        Window window = getWindow();
-        WindowCompat.setDecorFitsSystemWindows(window, false);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Window window = getWindow();
+            WindowCompat.setDecorFitsSystemWindows(window, false);
+        }
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         //isDark = sharedPreferences.getBoolean(SettingsActivity.IS_DARK_PREF_KEY, true);
@@ -522,7 +527,6 @@ public class MainActivity extends AppCompatActivity {
         manageControlService(false);
         onCall = sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
         setOrientation();
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
             ab.hide();
