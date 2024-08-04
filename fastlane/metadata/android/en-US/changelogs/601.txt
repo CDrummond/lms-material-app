@@ -1,0 +1,3 @@
+Fixed
+
+• Handle screen rotation.
