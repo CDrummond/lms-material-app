@@ -291,7 +291,8 @@ public class MainActivity extends AppCompatActivity {
             if (Utils.notificationAllowed(this, DownloadService.NOTIFICATION_CHANNEL_ID)) {
                 builder.appendQueryParameter("download", "native");
             }
-            if (!sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false)) {
+            if (!sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false) &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 boolean gestureNav = usingGestureNavigation();
                 builder.appendQueryParameter("topPad", "24");
                 builder.appendQueryParameter("botPad", gestureNav ? "12" : "40");
@@ -508,9 +509,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "MainActivity.onCreate");
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        Window window = getWindow();
-        WindowCompat.setDecorFitsSystemWindows(window, false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            requestWindowFeature(Window.FEATURE_NO_TITLE);
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        } else {
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorBackground));
+            getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorBackground));
+        }
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         //isDark = sharedPreferences.getBoolean(SettingsActivity.IS_DARK_PREF_KEY, true);
@@ -531,7 +537,6 @@ public class MainActivity extends AppCompatActivity {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         setContentView(R.layout.activity_main);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         init5497Workaround();
         manageShowOverLockscreen();
         webView = findViewById(R.id.webview);
@@ -1215,7 +1220,9 @@ public class MainActivity extends AppCompatActivity {
                 getWindow().getAttributes().layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
             }
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+            }
             if (!isStartup) {
                 recreate();
                 recreateTime = SystemClock.elapsedRealtime();
