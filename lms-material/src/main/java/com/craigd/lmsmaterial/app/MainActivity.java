@@ -63,6 +63,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowCompat;
 import androidx.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -507,6 +508,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "MainActivity.onCreate");
+        Window window = getWindow();
+        WindowCompat.setDecorFitsSystemWindows(window, false);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         //isDark = sharedPreferences.getBoolean(SettingsActivity.IS_DARK_PREF_KEY, true);
@@ -528,8 +531,6 @@ public class MainActivity extends AppCompatActivity {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         setContentView(R.layout.activity_main);
-        getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorBackground));
-        getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorBackground));
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         init5497Workaround();
         manageShowOverLockscreen();

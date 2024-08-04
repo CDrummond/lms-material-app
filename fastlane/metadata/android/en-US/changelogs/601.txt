@@ -1,3 +1,4 @@
 Fixed
 
 • Handle screen rotation.
+• Fix edge-to-edge view for pre Android 14 devices.
