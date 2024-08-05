@@ -7,6 +7,7 @@
 
 package com.craigd.lmsmaterial.app;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -18,10 +19,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
-
-import com.android.volley.Response;
-
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -38,8 +35,8 @@ public class LocalPlayer {
     public static final String TERMUX_PLAYER = "termux";
     public static final String TERMUX_MAC_PREF = "termux_mac";
 
-    private SharedPreferences sharedPreferences;
-    private Context context;
+    private final SharedPreferences sharedPreferences;
+    private final Context context;
     private JsonRpc rpc = null;
 
     private enum State {
@@ -73,6 +70,7 @@ public class LocalPlayer {
         }
     }
 
+    @SuppressLint("SdCardPath")
     public void start() {
         String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
         Log.d(MainActivity.TAG, "Start player: " + playerApp);
@@ -90,6 +88,7 @@ public class LocalPlayer {
         }
     }
 
+    @SuppressLint("SdCardPath")
     public void startTermuxSqueezeLite() {
         ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
         state = State.INITIAL;
@@ -134,6 +133,7 @@ public class LocalPlayer {
         rpc.sendMessage(playerId, new String[]{"client", "forget"}, response -> stop());
     }
 
+    @SuppressLint("SdCardPath")
     public void stop() {
         String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
         Log.d(MainActivity.TAG, "Stop player: " + playerApp);

@@ -36,19 +36,19 @@ abstract class ServerDiscovery {
         public String name = "";
         public int port = DEFAULT_PORT;
 
-        private static String getString(JSONObject json, String key, String def) {
+        private static String getString(JSONObject json, String key) {
             try {
                 return json.getString(key);
             } catch (JSONException e) {
-                return def;
+                return "";
             }
         }
 
-        private static int getInt(JSONObject json, String key, int def) {
+        private static int getPort(JSONObject json) {
             try {
-                return json.getInt(key);
+                return json.getInt("port");
             } catch (JSONException e) {
-                return def;
+                return Server.DEFAULT_PORT;
             }
         }
 
@@ -57,10 +57,10 @@ abstract class ServerDiscovery {
             if (str != null) {
                 try {
                     JSONObject json = new JSONObject(str);
-                    ip = getString(json, "ip", "");
-                    name = getString(json, "name", "");
-                    port = getInt(json, "port", DEFAULT_PORT);
-                } catch (JSONException e) {
+                    ip = getString(json, "ip");
+                    name = getString(json, "name");
+                    port = getPort(json);
+                } catch (JSONException ignored) {
                 }
             }
         }
@@ -100,7 +100,7 @@ abstract class ServerDiscovery {
                     try {
                         port = Integer.parseInt(new String(bytes, i, valueLen));
                         Log.d(MainActivity.TAG, "Port:"+port);
-                    } catch (NumberFormatException e) {
+                    } catch (NumberFormatException ignored) {
                     }
                 }
                 i += valueLen;
@@ -190,7 +190,7 @@ abstract class ServerDiscovery {
                     }
                 }
 
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             } finally {
                 if (socket != null) {
                     socket.close();
@@ -219,7 +219,7 @@ abstract class ServerDiscovery {
         this.discoverAll = discoverAll;
         handler = new Handler(Looper.getMainLooper()) {
             @Override
-            public void handleMessage(Message unused) {
+            public void handleMessage(@NonNull Message unused) {
                 discoveryFinished(runnable.servers);
             }
         };

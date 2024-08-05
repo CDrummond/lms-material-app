@@ -23,8 +23,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class JsonRpc {
-    private RequestQueue requestQueue;
-    private SharedPreferences prefs ;
+    private final RequestQueue requestQueue;
+    private final SharedPreferences prefs ;
 
     JsonRpc(Context context) {
         prefs = PreferenceManager.getDefaultSharedPreferences(context);

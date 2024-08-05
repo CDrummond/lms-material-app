@@ -23,10 +23,12 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -42,6 +44,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,9 +65,7 @@ public class DownloadService extends Service {
     private SharedPreferences sharedPreferences;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManagerCompat notificationManager;
-    private final Messenger messenger = new Messenger(
-            new IncomingHandler()
-    );
+    private final Messenger messenger = new Messenger(new IncomingHandler(this));
 
     static String getString(JSONObject obj, String key) {
         try {
@@ -173,18 +174,28 @@ public class DownloadService extends Service {
     Set<Integer> trackIds = new HashSet<>();
     Set<Integer> albumIds = new HashSet<>();
 
-    class IncomingHandler extends Handler {
+    private static class IncomingHandler extends Handler {
+        private final WeakReference<DownloadService> serviceRef;
+        public IncomingHandler(DownloadService service) {
+            super(Looper.getMainLooper());
+            serviceRef = new WeakReference<>(service);
+        }
         @Override
-        public void handleMessage(Message msg) {
+        public void handleMessage(@NonNull Message msg) {
+            DownloadService srv = serviceRef.get();
+            if (null==srv) {
+                super.handleMessage(msg);
+                return;
+            }
             switch (msg.what) {
                 case DOWNLOAD_LIST:
-                    addTracks((JSONArray) msg.obj);
+                    srv.addTracks((JSONArray) msg.obj);
                     break;
                 case CANCEL_LIST:
-                    cancel((JSONArray) msg.obj);
+                    srv.cancel((JSONArray) msg.obj);
                     break;
                 case STATUS_REQ:
-                    sendStatusUpdate();
+                    srv.sendStatusUpdate();
                     break;
                 default:
                     super.handleMessage(msg);
@@ -263,8 +274,8 @@ public class DownloadService extends Service {
             startService(new Intent(this, DownloadService.class));
         }
 
-        if (Build.VERSION.SDK_INT >= 29) {
-            ServiceCompat.startForeground(this, MSG_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ServiceCompat.startForeground(this, MSG_ID, notification, Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE ? ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE : 0);
         }
     }
 
@@ -454,8 +465,13 @@ public class DownloadService extends Service {
         File destDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), item.getFolder());
         File destFile = new File(destDir, item.filename);
         File sourceFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), item.getDownloadFileName());
-        if (!destDir.exists()) {
-            destDir.mkdir();
+        try {
+            if (!destDir.exists() && !destDir.mkdir()) {
+                Log.e(MainActivity.TAG, "Failed to create " + destDir.getAbsolutePath());
+                return;
+            }
+        } catch (Exception e) {
+            Log.e(MainActivity.TAG, "Failed to create " + destDir.getAbsolutePath(), e);
         }
 
         Log.d(MainActivity.TAG, "Copy from: " + sourceFile.getPath() + " to " + destFile.getAbsolutePath());
@@ -466,9 +482,15 @@ public class DownloadService extends Service {
             while ((bytesRead = inputStream.read(b)) > 0) {
                 outputStream.write(b, 0, bytesRead);
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
-        sourceFile.delete();
+        try {
+            if (!sourceFile.delete()) {
+                Log.e(MainActivity.TAG, "Failed to delete " + sourceFile.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            Log.e(MainActivity.TAG, "Failed to delete " + sourceFile.getAbsolutePath(), e);
+        }
     }
 
     void stop() {

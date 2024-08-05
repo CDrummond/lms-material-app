@@ -37,11 +37,9 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.SystemClock;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.HttpAuthHandler;
@@ -108,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     private UrlHandler urlHander;
     private JSONArray downloadData = null;
     private LocalPlayer localPlayer = null;
-    private boolean isDark = true;
+    //private boolean isDark = true;
     private boolean pageLoaded = false;
     private long recreateTime = 0;
 
@@ -157,7 +155,11 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.d(MainActivity.TAG, "Download status received: " + intent.getStringExtra(DownloadService.STATUS_BODY));
-                    String msg  = intent.getStringExtra(DownloadService.STATUS_BODY).replace("\n", "")
+                    String msg  = intent.getStringExtra(DownloadService.STATUS_BODY);
+                    if (null==msg) {
+                        return;
+                    }
+                    msg = msg.replace("\n", "")
                             .replace("\\\"", "\\\\\"")
                             .replace("\"", "\\\"");
                     webView.evaluateJavascript("downloadStatus(\"" + msg +"\")", null);
@@ -215,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
 
     // static class to keep lint happy...
     public static class ConnectionChangeListener extends BroadcastReceiver {
-        private MainActivity activity;
+        private final MainActivity activity;
 
         ConnectionChangeListener(MainActivity activity) {
             this.activity = activity;
@@ -224,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if ("android.net.conn.CONNECTIVITY_CHANGE".equals(intent.getAction()) && null!=activity) {
-                activity.runOnUiThread(() -> activity.checkNetworkConnection());
+                activity.runOnUiThread(activity::checkNetworkConnection);
             }
         }
     }
@@ -414,8 +416,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean gestureNavigationEnabled() {
         try {
             Resources resources = getResources();
-            int resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
-            return resources.getInteger(resourceId) == 2; // 2 = Androdid Q gesture nav?
+            @SuppressLint("DiscouragedApi") int resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
+            return resources.getInteger(resourceId) == 2; // 2 = Android Q gesture nav?
         } catch (Exception e) {
             return false;
         }
@@ -474,7 +476,7 @@ public class MainActivity extends AppCompatActivity {
         discoverServer(false);
     };
 
-    private final Handler pageLoadHandler = new Handler(Looper.myLooper());
+    private final Handler pageLoadHandler = new Handler(Looper.getMainLooper());
 
     private void loadUrl(String u) {
         Log.d(TAG, "Load URL:"+url);
@@ -496,7 +498,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         Log.d(TAG, "MainActivity.onConfigurationChanged");
         Point size = new Point();
@@ -592,11 +594,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    Log.i(TAG, "onReceivedError:" + error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
-                } else {
-                    Log.i(TAG, "onReceivedError, mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
-                }
+                Log.i(TAG, "onReceivedError:" + error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
                 if (request.isForMainFrame()) {
                     webView.setVisibility(View.GONE);
                     pageError = true;
@@ -608,20 +606,19 @@ public class MainActivity extends AppCompatActivity {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Log.i(TAG, "shouldOverrideUrlLoading:" + url);
 
-                if (url.equals(SETTINGS_URL)) {
-                    navigateToSettingsActivity();
-                    return true;
-                }
-                if (url.equals(QUIT_URL)) {
-                    stopControlService();
-                    finishAffinity();
-                    localPlayer.autoStop();
-                    System.exit(0);
-                    return true;
-                }
-                if (url.equals(STARTPLAYER_URL)) {
-                    localPlayer.start();
-                    return true;
+                switch (url) {
+                    case SETTINGS_URL:
+                        navigateToSettingsActivity();
+                        return true;
+                    case QUIT_URL:
+                        stopControlService();
+                        finishAffinity();
+                        localPlayer.autoStop();
+                        System.exit(0);
+                        return true;
+                    case STARTPLAYER_URL:
+                        localPlayer.start();
+                        return true;
                 }
 
                 Uri uri=Uri.parse(url);
@@ -745,7 +742,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-        } catch (SocketException ex) {
+        } catch (SocketException ignored) {
         }
         return null;
     }
@@ -763,22 +760,24 @@ public class MainActivity extends AppCompatActivity {
 
     @JavascriptInterface
     public void updateTheme(final String theme) {
-        Log.d(TAG, theme);
         if (null==theme || theme.length()<4) {
             return;
         }
+        Log.d(TAG, theme);
         try {
             runOnUiThread(() -> {
                 try {
                     int flags = getWindow().getDecorView().getSystemUiVisibility();
                     boolean dark = !theme.contains("light") || theme.contains("-colored");
-                    if (Build.VERSION.SDK_INT >= 23) {
-                        getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR)) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR)) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR));
+                    } else {
+                        getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
                     }
-                } catch (Exception e) {
+                } catch (Exception ignored) {
                 }
             });
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
     }
 
@@ -799,7 +798,7 @@ public class MainActivity extends AppCompatActivity {
     */
 
     private void setTheme() {
-        setTheme(isDark ? R.style.AppTheme : R.style.AppTheme_Light);
+        setTheme(/*isDark ?*/ R.style.AppTheme /*: R.style.AppTheme_Light*/);
     }
 
     @JavascriptInterface
@@ -832,9 +831,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void doDownload(JSONArray data) {
-        if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.M &&
-                ( checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) ) {
+        if (( checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+              checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) ) {
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
             downloadData = data;
         } else {
@@ -926,7 +924,7 @@ public class MainActivity extends AppCompatActivity {
                 ignore.add("lib");
                 ignore.add("shared_prefs");
                 deleteDir(this.getCacheDir(), ignore);
-            } catch (Exception e) { }
+            } catch (Exception ignored) { }
             cacheCleared = true;
         }
         if (isFullScreen != sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, isFullScreen)) {
@@ -1007,6 +1005,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     private void setOrientation() {
         String o = sharedPreferences.getString(SettingsActivity.ORIENTATION_PREF_KEY, null);
         if ("landscape".equals(o)) {
@@ -1121,7 +1120,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private Boolean lockScreenInit = false;
     private void manageShowOverLockscreen() {
         boolean showOver = sharedPreferences.getBoolean(SettingsActivity.SHOW_OVER_LOCK_SCREEN_PREF_KEY, true);
         if (showOver==showOverLockscreen) {
@@ -1133,7 +1131,7 @@ public class MainActivity extends AppCompatActivity {
             setShowWhenLocked(showOverLockscreen);
             setTurnScreenOn(showOverLockscreen);
 
-            if (showOverLockscreen && !lockScreenInit) {
+            if (showOverLockscreen) {
                 KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
                 if (keyguardManager != null) {
                     keyguardManager.requestDismissKeyguard(this, null);
@@ -1189,7 +1187,7 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean usingGestureNavigation() {
         Resources resources = getResources();
-        int resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
+        @SuppressLint("DiscouragedApi") int resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
         if (resourceId > 0) {
             return 2==resources.getInteger(resourceId);
         }
@@ -1201,7 +1199,10 @@ public class MainActivity extends AppCompatActivity {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                getWindow().getAttributes().layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+                getWindow().getAttributes().layoutInDisplayCutoutMode =
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                                ? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                                : WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
             }
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_IMMERSIVE

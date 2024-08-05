@@ -23,6 +23,7 @@ import android.media.MediaMetadata;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.support.v4.media.MediaMetadataCompat;
@@ -42,6 +43,8 @@ import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 import androidx.media.VolumeProviderCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
+
+import java.lang.ref.WeakReference;
 
 public class ControlService extends Service {
     private static final String NEXT_TRACK = ControlService.class.getCanonicalName() + ".NEXT_TRACK";
@@ -73,22 +76,31 @@ public class ControlService extends Service {
     private MediaSessionCompat mediaSession;
     private PlaybackStateCompat playbackState;
 
-    private final Messenger messenger = new Messenger(
-            new IncomingHandler()
-    );
+    private final Messenger messenger = new Messenger(new IncomingHandler(this));
 
-    class IncomingHandler extends Handler {
+    private static class IncomingHandler extends Handler {
+        private final WeakReference<ControlService> serviceRef;
+        public IncomingHandler(ControlService service) {
+            super(Looper.getMainLooper());
+            serviceRef = new WeakReference<>(service);
+        }
         @Override
-        public void handleMessage(Message msg) {
-            if (msg.what == PLAYER_NAME && null!=notificationBuilder && null!=notificationManager) {
-                Log.d(MainActivity.TAG, "Set notification player name " + (String) (msg.obj));
-                notificationBuilder.setContentTitle((String) (msg.obj));
-                if (Build.VERSION.SDK_INT >= 33 && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        public void handleMessage(@NonNull Message msg) {
+            Log.d(MainActivity.TAG, "Handle message " + msg.what);
+            ControlService srv = serviceRef.get();
+            if (null==srv) {
+                super.handleMessage(msg);
+                return;
+            }
+            if (msg.what == PLAYER_NAME && null!=srv.notificationBuilder && null!=srv.notificationManager) {
+                Log.d(MainActivity.TAG, "Set notification player name " + msg.obj);
+                srv.notificationBuilder.setContentTitle((String) (msg.obj));
+                if (Build.VERSION.SDK_INT >= 33 && ActivityCompat.checkSelfPermission(srv.getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
-                updateNotification();
-            } else if (msg.what == PLAYER_REFRESH && null!=notificationBuilder && null!=notificationManager) {
-                createNotification();
+                srv.updateNotification();
+            } else if (msg.what == PLAYER_REFRESH && null!=srv.notificationBuilder && null!=srv.notificationManager) {
+                srv.createNotification();
             } else {
                 super.handleMessage(msg);
             }
@@ -171,6 +183,7 @@ public class ControlService extends Service {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private void createNotificationChannel() {
+        Log.d(MainActivity.TAG, "Create notification channel.");
         notificationManager = NotificationManagerCompat.from(this);
         NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, getApplicationContext().getResources().getString(R.string.main_notification), NotificationManager.IMPORTANCE_LOW);
         chan.setLightColor(Color.BLUE);
@@ -201,6 +214,7 @@ public class ControlService extends Service {
 
     @SuppressLint("MissingPermission")
     private Notification updateNotification() {
+        Log.d(MainActivity.TAG, "Update notification.");
         if (!Utils.notificationAllowed(this, NOTIFICATION_CHANNEL_ID)) {
             return null;
         }
@@ -276,7 +290,7 @@ public class ControlService extends Service {
             }
 
             Notification notification = notificationBuilder.build();
-
+            Log.d(MainActivity.TAG, "Build notification.");
             notificationManager.notify(MSG_ID, notificationBuilder.build());
             return notification;
         } catch (Exception e) {
@@ -286,18 +300,22 @@ public class ControlService extends Service {
     }
 
     private void createNotification() {
+        Log.d(MainActivity.TAG, "Create notification.");
         Notification notification = updateNotification();
         if (null==notification) {
             return;
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.d(MainActivity.TAG, "startForegroundService");
             startForegroundService(new Intent(this, ControlService.class));
         } else {
+            Log.d(MainActivity.TAG, "startService");
             startService(new Intent(this, ControlService.class));
         }
 
-        if (Build.VERSION.SDK_INT >= 29) {
-            ServiceCompat.startForeground(this, MSG_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Log.d(MainActivity.TAG, "ServiceCompat.startForeground");
+            ServiceCompat.startForeground(this, MSG_ID, notification, Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0);
         }
     }
 

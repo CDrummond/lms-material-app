@@ -83,9 +83,7 @@ public class SettingsActivity extends AppCompatActivity {
         getWindow().setStatusBarColor(ContextCompat.getColor(this, isDark ? R.color.colorBackground : R.color.colorBackgroundLight));
         getWindow().setNavigationBarColor(ContextCompat.getColor(this, isDark ? R.color.colorBackground : R.color.colorBackgroundLight));
         int flags = getWindow().getDecorView().getSystemUiVisibility();
-        if (Build.VERSION.SDK_INT >= 23) {
-            getWindow().getDecorView().setSystemUiVisibility(isDark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
-        }
+        getWindow().getDecorView().setSystemUiVisibility(isDark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
 
         visible = true;
         setContentView(R.layout.settings_activity);

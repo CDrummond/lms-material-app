@@ -30,12 +30,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class UrlHandler {
-    private MainActivity mainActivity;
+    private final MainActivity mainActivity;
     private JsonRpc rpc;
     private String handlingUrl;
     private Dialog dialog;
     private Spinner playerName;
-    private List<Player> playerList = new LinkedList<>();
+    private final List<Player> playerList = new LinkedList<>();
     private int chosenPlayer = 0;
 
     private static class Player implements Comparable {
@@ -52,7 +52,7 @@ public class UrlHandler {
         }
     }
 
-    private Response.Listener<JSONObject> serverStatusResponse = new Response.Listener<JSONObject> () {
+    private final Response.Listener<JSONObject> serverStatusResponse = new Response.Listener<JSONObject> () {
         @Override
         public void onResponse(JSONObject response) {
             playerList.clear();
@@ -141,7 +141,7 @@ public class UrlHandler {
         }
     };
 
-    private Response.Listener<JSONObject> addActionResponse = new Response.Listener<JSONObject> () {
+    private final Response.Listener<JSONObject> addActionResponse = new Response.Listener<JSONObject> () {
         @Override
         public void onResponse(JSONObject response) {
             if (chosenPlayer>=0 && chosenPlayer<playerList.size()) {
