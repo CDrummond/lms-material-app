@@ -1,0 +1,3 @@
+Improved
+
+• Adjust top/bottom padding base on zoom factor, if this is less than default.

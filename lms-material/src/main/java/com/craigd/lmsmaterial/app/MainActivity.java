@@ -296,10 +296,15 @@ public class MainActivity extends AppCompatActivity {
             if (!sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false) &&
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 boolean gestureNav = usingGestureNavigation();
-                builder.appendQueryParameter("topPad", "24");
-                builder.appendQueryParameter("botPad", gestureNav ? "12" : "40");
+                int scale = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
+                double adjust = 1.0;
+                if (scale<5) {
+                    adjust += (5-scale)/10.0;
+                }
+                builder.appendQueryParameter("topPad", ""+(int) Math.ceil(24*adjust));
+                builder.appendQueryParameter("botPad", ""+(int)Math.ceil((gestureNav ? 12 : 40)*adjust));
                 if (!gestureNav) {
-                    builder.appendQueryParameter("dlgPad", "48");
+                    builder.appendQueryParameter("dlgPad", ""+(int)Math.ceil(48*adjust));
                 }
             }
 
