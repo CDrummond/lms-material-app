@@ -51,10 +51,10 @@ public class JsonRpc {
                 request.put("method", "slim.request");
                 request.put("params", params);
 
-                Log.i(MainActivity.TAG, "MSG:" + request);
+                Utils.info("MSG:" + request);
                 requestQueue.add(new JsonObjectRequest(Request.Method.POST, "http://" + server.ip + ":" + server.port + "/jsonrpc.js", request, responseListener, null));
             } catch (Exception e) {
-                Log.e(MainActivity.TAG, "Failed to send control message", e);
+                Utils.error("Failed to send control message", e);
             }
         }
     }

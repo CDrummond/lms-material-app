@@ -82,7 +82,6 @@ import java.util.Set;
 import io.github.muddz.styleabletoast.StyleableToast;
 
 public class MainActivity extends AppCompatActivity {
-    public final static String TAG = "LMS";
     private static final String SETTINGS_URL = "mska://settings";
     private static final String QUIT_URL = "mska://quit";
     private static final String STARTPLAYER_URL = "mska://startplayer";
@@ -131,8 +130,7 @@ public class MainActivity extends AppCompatActivity {
     private Messenger controlServiceMessenger;
     private final ServiceConnection controlServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
-            Log.d(TAG, "onServiceConnected: "+className.getClassName());
-            Log.d(TAG, "Setup control messenger");
+            Utils.debug("Setup control messenger");
             controlServiceMessenger = new Messenger(service);
             if (null != activePlayerName) {
                 updateControlService(activePlayerName);
@@ -140,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            Log.d(TAG, "onServiceDisconnected:" + className.getClassName());
+            Utils.debug("onServiceDisconnected:" + className.getClassName());
             controlServiceMessenger = null;
         }
     };
@@ -149,12 +147,12 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver downloadStatusReceiver = null;
     private final ServiceConnection downloadServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
-            Log.d(TAG, "Setup download messenger");
+            Utils.debug("Setup download messenger");
             downloadServiceMessenger = new Messenger(service);
             downloadStatusReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    Log.d(MainActivity.TAG, "Download status received: " + intent.getStringExtra(DownloadService.STATUS_BODY));
+                    Utils.debug("Download status received: " + intent.getStringExtra(DownloadService.STATUS_BODY));
                     String msg  = intent.getStringExtra(DownloadService.STATUS_BODY);
                     if (null==msg) {
                         return;
@@ -168,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                         try {
                             unbindService(downloadServiceConnection);
                         } catch (Exception e) {
-                            Log.e(TAG, "Failed to unbind download service");
+                            Utils.error("Failed to unbind download service");
                         }
                         downloadServiceMessenger = null;
                     }
@@ -182,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            Log.d(TAG, "onServiceDisconnected:" + className.getClassName());
+            Utils.debug("onServiceDisconnected:" + className.getClassName());
             downloadServiceMessenger = null;
             unregisterReceiver(downloadStatusReceiver);
             downloadStatusReceiver = null;
@@ -195,20 +193,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void discoveryFinished(List<Server> servers) {
-            Log.d(TAG, "Discovery finished");
+            Utils.debug("Discovery finished");
             if (servers.isEmpty()) {
-                Log.d(TAG, "No server found, show settings");
+                Utils.debug("No server found, show settings");
                 StyleableToast.makeText(context, getResources().getString(R.string.no_servers), Toast.LENGTH_SHORT, R.style.toast).show();
                 navigateToSettingsActivity();
             } else {
-                Log.d(TAG, "Discovered server");
+                Utils.debug("Discovered server");
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString(SettingsActivity.SERVER_PREF_KEY, servers.get(0).encode());
                 editor.apply();
                 StyleableToast.makeText(context, getResources().getString(R.string.server_discovered)+"\n\n"+servers.get(0).describe(), Toast.LENGTH_SHORT, R.style.toast).show();
 
                 url = getConfiguredUrl();
-                Log.i(TAG, "URL:"+url);
+                Utils.info("URL:"+url);
                 pageError = false;
                 loadUrl(url);
             }
@@ -263,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navigateToSettingsActivity() {
-        Log.d(TAG, "Navigate to settings");
+        Utils.debug("Navigate to settings");
         if (!SettingsActivity.isVisible()) {
             settingsShown = true;
             startActivity(new Intent(this, SettingsActivity.class));
@@ -317,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
                         ? ("&appLaunchPlayer="+STARTPLAYER_URL) : "") +
                     "&dontEmbed=pdf";
         } catch (Exception e) {
-            Log.e(TAG, "Failed to build URL", e);
+            Utils.error("Failed to build URL", e);
         }
         return null;
     }
@@ -394,7 +392,7 @@ public class MainActivity extends AppCompatActivity {
             editor.apply();
         }
         activePlayer = sharedPreferences.getString(CURRENT_PLAYER_ID_KEY, activePlayer);
-        Log.d(TAG, "Startup player set to:"+activePlayer);
+        Utils.debug("Startup player set to:"+activePlayer);
     }
 
     private Boolean clearCache() {
@@ -477,14 +475,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private final Runnable pageLoadTimeout = () -> {
-        Log.d(TAG, "Page failed to load");
+        Utils.debug("Page failed to load");
         discoverServer(false);
     };
 
     private final Handler pageLoadHandler = new Handler(Looper.getMainLooper());
 
     private void loadUrl(String u) {
-        Log.d(TAG, "Load URL:"+url);
+        Utils.debug("Load URL:"+url);
         pageLoadHandler.removeCallbacks(pageLoadTimeout);
         webView.loadUrl(u);
         if (SystemClock.elapsedRealtime()-recreateTime>1000) {
@@ -505,7 +503,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        Log.d(TAG, "MainActivity.onConfigurationChanged");
+        Utils.debug("MainActivity.onConfigurationChanged");
         Point size = new Point();
         getWindowManager().getDefaultDisplay().getRealSize(size);
         webView.setLayoutParams(new RelativeLayout.LayoutParams(size.x, size.y));
@@ -515,7 +513,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "MainActivity.onCreate");
+        Utils.debug("MainActivity.onCreate");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             requestWindowFeature(Window.FEATURE_NO_TITLE);
             WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
@@ -573,9 +571,8 @@ public class MainActivity extends AppCompatActivity {
             private boolean firstAuthReq = true;
             @Override
             public void onPageStarted(WebView view, String u, Bitmap favicon) {
-                Log.d(TAG, "onPageStarted:" + u);
+                Utils.debug(u);
                 if (u.equals(url)) {
-                    Log.d(TAG, u + " is loading");
                     pageLoadHandler.removeCallbacks(pageLoadTimeout);
                     firstAuthReq=true;
                 }
@@ -587,7 +584,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
-                Log.d(TAG, "onReceivedHttpError url:" + request.getUrl() + ", mf:" + request.isForMainFrame() + ", sc:" + errorResponse.getStatusCode());
+                Utils.debug(request.getUrl() + ", mf:" + request.isForMainFrame() + ", sc:" + errorResponse.getStatusCode());
                 if (request.isForMainFrame() && 404== errorResponse.getStatusCode() && request.getUrl().toString().equals(getConfiguredUrl())) {
                     pageError = true;
                     //discoverServer(false);
@@ -599,7 +596,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                Log.i(TAG, "onReceivedError:" + error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
+                Utils.info(error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
                 if (request.isForMainFrame()) {
                     webView.setVisibility(View.GONE);
                     pageError = true;
@@ -609,7 +606,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                Log.i(TAG, "shouldOverrideUrlLoading:" + url);
+                Utils.info(url);
 
                 switch (url) {
                     case SETTINGS_URL:
@@ -655,7 +652,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler httpAuthHandler, String host, String realm) {
-                Log.i(TAG, "onReceivedHttpAuthRequest");
+                Utils.info("");
                 pageLoadHandler.removeCallbacks(pageLoadTimeout);
                 // If this is the first time we have been asked for auth on this page, then use and settings stored in preferences.
                 if (firstAuthReq) {
@@ -663,12 +660,12 @@ public class MainActivity extends AppCompatActivity {
                     String user = sharedPreferences.getString(LMS_USERNAME_KEY, null);
                     String pass = sharedPreferences.getString(LMS_PASSWORD_KEY, null);
                     if (user!=null && pass!=null) {
-                        Log.i(TAG, "Try prev auth detail");
+                        Utils.info("Try prev auth detail");
                         httpAuthHandler.proceed(user, pass);
                         return;
                     }
                 }
-                Log.i(TAG, "Prompt for auth details");
+                Utils.info("Prompt for auth details");
                 promptForUserNameAndPassword(httpAuthHandler);
             }
         });
@@ -680,12 +677,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkNetworkConnection() {
-        Log.d(TAG, "Check network connection");
+        Utils.debug("Check network connection");
         View progress = findViewById(R.id.progress);
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = connectivityManager.getActiveNetworkInfo();
         if (null!=info && info.isConnected()) {
-            Log.d(TAG, "Connected");
+            Utils.debug("Connected");
             webView.setVisibility(View.VISIBLE);
 
             if (connectionChangeListener != null) {
@@ -699,7 +696,7 @@ public class MainActivity extends AppCompatActivity {
                 discoverServer(true);
             } else {
                 // Try to connect to previous server
-                Log.i(TAG, "URL:" + url);
+                Utils.info("URL:" + url);
                 StyleableToast.makeText(getApplicationContext(),
                         new Discovery.Server(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(SettingsActivity.SERVER_PREF_KEY, null)).describe(),
                         Toast.LENGTH_SHORT, R.style.toast).show();
@@ -707,7 +704,7 @@ public class MainActivity extends AppCompatActivity {
                 loadUrl(url);
             }
         } else if (connectionChangeListener==null) {
-            Log.d(TAG, "Not connected");
+            Utils.debug("Not connected");
             // No network connection, show progress spinner until we are connected
             webView.setVisibility(View.GONE);
             progress.setVisibility(View.VISIBLE);
@@ -719,7 +716,7 @@ public class MainActivity extends AppCompatActivity {
     /*
     @JavascriptInterface
     public void updateStatus(String status) {
-        Log.d(TAG, status);
+        Utils.debug(status);
 
         try {
             JSONObject json = new JSONObject(status);
@@ -730,7 +727,7 @@ public class MainActivity extends AppCompatActivity {
 
     @JavascriptInterface
     public void updatePlayer(String playerId, String playerName) {
-        Log.d(TAG, "Active player: "+playerId+", name: "+playerName);
+        Utils.debug("Active player: "+playerId+", name: "+playerName);
         activePlayer = playerId;
         activePlayerName = playerName;
         updateControlService(playerName);
@@ -755,7 +752,7 @@ public class MainActivity extends AppCompatActivity {
     @JavascriptInterface
     public int controlLocalPlayerPower(String playerId, String ipAddress, int state) {
         String[] parts = ipAddress.split(":");
-        Log.d(TAG, "Player Power, ID: "+playerId+", IP:"+parts[0]+", State: "+state);
+        Utils.debug("Player Power, ID: "+playerId+", IP:"+parts[0]+", State: "+state);
         if (0==state && parts[0].compareTo(getLocalIpAddress())==0) {
             localPlayer.stopPlayer(playerId);
             return 1;
@@ -768,7 +765,7 @@ public class MainActivity extends AppCompatActivity {
         if (null==theme || theme.length()<4) {
             return;
         }
-        Log.d(TAG, theme);
+        Utils.debug(theme);
         try {
             runOnUiThread(() -> {
                 try {
@@ -789,7 +786,7 @@ public class MainActivity extends AppCompatActivity {
     /*
     @JavascriptInterface
     public void updateTheme(String theme) {
-        Log.d(TAG, "updateTheme: " + theme);
+        Utils.debug("updateTheme: " + theme);
         String ltheme = theme.toLowerCase(Locale.ROOT);
         boolean dark = ltheme.contains("dark") || ltheme.contains("black");
         if (dark!=isDark) {
@@ -808,7 +805,7 @@ public class MainActivity extends AppCompatActivity {
 
     @JavascriptInterface
     public void cancelDownload(String str) {
-        Log.d(TAG, "cancelDownload: " + str);
+        Utils.debug(str);
 
         try {
             if (downloadServiceMessenger!=null) {
@@ -816,22 +813,22 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     downloadServiceMessenger.send(msg);
                 } catch (RemoteException e) {
-                    Log.d(TAG, "Failed to request download cancel");
+                    Utils.error("Failed to request download cancel");
                 }
             }
         } catch (Exception e) {
-            Log.e(TAG, "failed to decode cancelDownload", e);
+            Utils.error("failed to decode cancelDownload", e);
         }
     }
 
     @JavascriptInterface
     public void download(String str) {
-        Log.d(TAG, "download: " + str);
+        Utils.debug(str);
 
         try {
             doDownload(new JSONArray(str));
         } catch (Exception e) {
-            Log.e(TAG, "failed to decode download", e);
+            Utils.error("failed to decode download", e);
         }
     }
 
@@ -860,7 +857,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        Log.i(TAG, "Pause");
+        Utils.info("");
         webView.onPause();
         webView.pauseTimers();
         super.onPause();
@@ -879,10 +876,10 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-                Log.i(TAG, "Delete dir:" + path.getAbsolutePath());
+                Utils.info("Delete dir:" + path.getAbsolutePath());
                 return path.delete();
             } else if (path.isFile()) {
-                Log.i(TAG, "Delete file:" + path.getAbsolutePath());
+                Utils.info("Delete file:" + path.getAbsolutePath());
                 return path.delete();
             }
         }
@@ -891,7 +888,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        Log.i(TAG, "Resume");
+        Utils.info("");
         webView.onResume();
         webView.resumeTimers();
         super.onResume();
@@ -922,7 +919,7 @@ public class MainActivity extends AppCompatActivity {
             needReload = true;
         }
         if (clearCache()) {
-            Log.i(TAG,"Clear cache");
+            Utils.info("Clear cache");
             webView.clearCache(true);
             try {
                 Set<String> ignore = new HashSet<>();
@@ -936,17 +933,17 @@ public class MainActivity extends AppCompatActivity {
             setFullScreen(!isFullScreen, false);
             needReload = true;
         }
-        Log.i(TAG, "onResume, URL:"+u);
+        Utils.info("URL:"+u);
         if (u==null) {
-            Log.i(TAG,"Start settings");
+            Utils.info("Start settings");
             navigateToSettingsActivity();
         } else if (!u.equals(url)) {
-            Log.i(TAG, "Load new URL");
+            Utils.info("Load new URL");
             pageError = false;
             url = u;
             loadUrl(u);
         } else if (pageError || cacheCleared || needReload || reloadUrlAfterSettings) {
-            Log.i(TAG, "Reload URL");
+            Utils.info("Reload URL");
             pageError = false;
             webView.reload();
         }
@@ -969,14 +966,14 @@ public class MainActivity extends AppCompatActivity {
             try {
                 downloadServiceMessenger.send(msg);
             } catch (RemoteException e) {
-                Log.d(TAG, "Failed to request download update");
+                Utils.error("Failed to request download update");
             }
         }
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
-        Log.d(TAG, "onNewIntent: "+intent.getAction());
+        Utils.debug(intent.getAction());
         handleIntent(intent);
         super.onNewIntent(intent);
     }
@@ -985,14 +982,14 @@ public class MainActivity extends AppCompatActivity {
         if (intent!=null && "android.intent.action.SEND".equals(intent.getAction())) {
             try {
                 String url = intent.getStringExtra(Intent.EXTRA_TEXT);
-                Log.d(TAG, "Received: "+url);
+                Utils.debug("Received: "+url);
                 if (url!=null && !url.startsWith("http") && (url.contains("http://") || url.contains("https://"))) {
                     String[] parts = url.split("\\s");
                     for (String part: parts) {
                         part = part.trim();
                         if (part.startsWith("http://") || part.startsWith("https://")) {
                             url=part;
-                            Log.d(TAG, "Converted: "+url);
+                            Utils.debug("Converted: "+url);
                             break;
                         }
                     }
@@ -1005,7 +1002,7 @@ public class MainActivity extends AppCompatActivity {
                     urlHander.handle(url);
                 }
             } catch (MalformedURLException e) {
-                Log.d(TAG, "Malformed URL", e);
+                Utils.error("Malformed URL", e);
             }
         }
     }
@@ -1028,7 +1025,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        Log.i(TAG, "Destroy");
+        Utils.info("");
         webView.destroy();
         webView = null;
         stopControlService();
@@ -1041,7 +1038,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void manageControlService(boolean onCallChanged) {
-        Log.d(TAG, "MainActivity.manageControlService onCallChanged:"+onCallChanged);
+        Utils.debug("MainActivity.manageControlService onCallChanged:"+onCallChanged);
         boolean showNotif = sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
         if (showNotif && !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
             showNotif = false;
@@ -1064,18 +1061,18 @@ public class MainActivity extends AppCompatActivity {
         if (controlServiceMessenger!=null) {
             return;
         }
-        Log.d(TAG, "Start control service");
+        Utils.debug("Start control service");
         Intent intent = new Intent(MainActivity.this, ControlService.class);
         bindService(intent, controlServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     void stopControlService() {
         if (controlServiceMessenger!=null) {
-            Log.d(TAG, "Stop control service");
+            Utils.debug("Stop control service");
             try {
                 unbindService(controlServiceConnection);
             } catch (Exception e) {
-                Log.e(TAG, "Failed to unbind control service");
+                Utils.error("Failed to unbind control service");
             }
             stopService(new Intent(MainActivity.this, ControlService.class));
             controlServiceMessenger = null;
@@ -1088,7 +1085,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 controlServiceMessenger.send(msg);
             } catch (RemoteException e) {
-                Log.d(TAG, "Failed to update service");
+                Utils.error("Failed to update service");
             }
         }
     }
@@ -1102,24 +1099,24 @@ public class MainActivity extends AppCompatActivity {
             try {
                 controlServiceMessenger.send(msg);
             } catch (RemoteException e) {
-                Log.d(TAG, "Failed to refresh service");
+                Utils.error("Failed to refresh service");
             }
         }
     }
 
     void startDownload(JSONArray data) {
         if (downloadServiceMessenger!= null) {
-            Log.d(TAG, "Send track list to download service");
+            Utils.debug("Send track list to download service");
             Message msg = Message.obtain(null, DownloadService.DOWNLOAD_LIST, data);
             try {
                 downloadServiceMessenger.send(msg);
             } catch (RemoteException e) {
-                Log.d(TAG, "Failed to send data to download service");
+                Utils.error("Failed to send data to download service");
             }
             downloadData = null;
         } else {
             downloadData = data;
-            Log.d(TAG, "Start download service");
+            Utils.debug("Start download service");
             Intent intent = new Intent(MainActivity.this, DownloadService.class);
             bindService(intent, downloadServiceConnection, Context.BIND_AUTO_CREATE);
         }

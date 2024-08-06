@@ -156,7 +156,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
 
             public void discoveryFinished(List<Server> servers) {
-                Log.d(MainActivity.TAG, "Discovery finished");
+                Utils.debug("Discovery finished");
                 if (getContext()==null) {
                     return;
                 }
@@ -210,7 +210,7 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
-            Log.d(MainActivity.TAG, "SETUP");
+            Utils.debug("SETUP");
 
             if (getContext()==null) {
                 return;
@@ -257,7 +257,7 @@ public class SettingsActivity extends AppCompatActivity {
             Preference discoverButton = getPreferenceManager().findPreference("discover");
             if (discoverButton != null) {
                 discoverButton.setOnPreferenceClickListener(arg0 -> {
-                    Log.d(MainActivity.TAG, "Discover clicked");
+                    Utils.debug("Discover clicked");
                     if (getContext()!=null) {
                         StyleableToast.makeText(getContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT, R.style.toast).show();
                         if (discovery == null) {
@@ -319,7 +319,7 @@ public class SettingsActivity extends AppCompatActivity {
                     if (getContext()!=null) {
                         SharedPreferences sharedPreferences13 = PreferenceManager.getDefaultSharedPreferences(getContext());
                         boolean clear = sharedPreferences13.getBoolean(CLEAR_CACHE_PREF_KEY, false);
-                        Log.d(MainActivity.TAG, "Clear clicked, config:" + clear);
+                        Utils.debug("Clear clicked, config:" + clear);
                         if (!clear) {
                             SharedPreferences.Editor editor = sharedPreferences13.edit();
                             editor.putBoolean(CLEAR_CACHE_PREF_KEY, true);

@@ -222,7 +222,7 @@ public class DownloadService extends Service {
     }
 
     private void startForegroundService() {
-        Log.d(MainActivity.TAG, "Start download service.");
+        Utils.debug("Start download service.");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel();
         } else {
@@ -280,7 +280,7 @@ public class DownloadService extends Service {
     }
 
     void addTracks(JSONArray tracks) {
-        Log.d(MainActivity.TAG, "addTracks");
+        Utils.debug("");
         boolean transcode = sharedPreferences.getBoolean("transcode", false);
 
         synchronized (items) {
@@ -299,7 +299,7 @@ public class DownloadService extends Service {
                     }
                 }
                 items.addAll(newAlbumCovers);
-                Log.d(MainActivity.TAG, "Before: " + before + " now:"+ items.size());
+                Utils.debug("Before: " + before + " now:"+ items.size());
                 if (before!=items.size()) {
                     if (0==before) {
                         downloadItems();
@@ -308,13 +308,13 @@ public class DownloadService extends Service {
                     }
                 }
             } catch (JSONException e) {
-                Log.e(MainActivity.TAG, "Failed to add tracks", e);
+                Utils.error("Failed to add tracks", e);
             }
         }
     }
 
     void cancel(JSONArray ids) {
-        Log.d(MainActivity.TAG, "Cancel downloads");
+        Utils.debug("");
         List<DownloadItem> toRemove = new LinkedList<>();
         List<DownloadItem> toRemoveQueued = new LinkedList<>();
         Set<Integer> idSet = new HashSet<>();
@@ -322,7 +322,7 @@ public class DownloadService extends Service {
             try {
                 idSet.add(ids.getInt(i));
             } catch (JSONException e) {
-                Log.e(MainActivity.TAG, "Failed to decode cancel array", e);
+                Utils.error("Failed to decode cancel array", e);
             }
         }
         if (!idSet.isEmpty()) {
@@ -337,7 +337,7 @@ public class DownloadService extends Service {
                         toRemoveQueued.add(queuedItems.get(i));
                     }
                 }
-                Log.d(MainActivity.TAG, "Remove " + toRemove.size() + " item(s)");
+                Utils.debug("Remove " + toRemove.size() + " item(s)");
                 if (!toRemove.isEmpty()) {
                     for (DownloadItem item : toRemove) {
                         items.remove(item);
@@ -353,7 +353,7 @@ public class DownloadService extends Service {
                 if (!toRemove.isEmpty() || !toRemoveQueued.isEmpty()) {
                     sendStatusUpdate();
                     if (items.isEmpty()) {
-                        Log.d(MainActivity.TAG, "Empty, so stop");
+                        Utils.debug("Empty, so stop");
                         stop();
                     } else if (!toRemoveQueued.isEmpty()) {
                         downloadItems();
@@ -366,14 +366,14 @@ public class DownloadService extends Service {
     void sendStatusUpdate() {
         JSONArray update = new JSONArray();
         int count = 0;
-        Log.d(MainActivity.TAG, "Items:" + items.size()+" Queued:"+queuedItems.size());
+        Utils.debug("Items:" + items.size()+" Queued:"+queuedItems.size());
         synchronized (items) {
             for (DownloadItem item: queuedItems) {
                 try {
                     update.put(item.toObject(true));
                     count++;
                 } catch (JSONException e) {
-                    Log.e(MainActivity.TAG, "Failed to create item string", e);
+                    Utils.error("Failed to create item string", e);
                 }
             }
             for (DownloadItem item: items) {
@@ -381,24 +381,24 @@ public class DownloadService extends Service {
                     update.put(item.toObject(false));
                     count++;
                 } catch (JSONException e) {
-                    Log.e(MainActivity.TAG, "Failed to create item string", e);
+                    Utils.error("Failed to create item string", e);
                 }
             }
         }
         try {
-            Log.d(MainActivity.TAG, "Send status update to webview, count:" + count);
+            Utils.debug("Send status update to webview, count:" + count);
             Intent intent = new Intent();
             intent.setAction(STATUS);
             intent.putExtra(STATUS_BODY, update.toString(0));
             intent.putExtra(STATUS_LEN, count);
             sendBroadcast(intent);
         } catch (JSONException e) {
-            Log.e(MainActivity.TAG, "Failed to create update string", e);
+            Utils.error("Failed to create update string", e);
         }
     }
 
     void downloadItems() {
-        Log.d(MainActivity.TAG, "Download some items");
+        Utils.debug("");
         synchronized (items) {
             while(!items.isEmpty() && queuedItems.size()<MAX_QUEUED_ITEMS) {
                 DownloadItem item = items.remove(0);
@@ -421,12 +421,12 @@ public class DownloadService extends Service {
                 .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, item.getDownloadFileName());
 
         item.downloadId = downloadManager.enqueue(request);
-        Log.d(MainActivity.TAG, "Download url: " + url + " id: " + item.downloadId);
+        Utils.debug("Download url: " + url + " id: " + item.downloadId);
         queuedItems.add(item);
     }
 
     void downloadComplete(long id) {
-        Log.d(MainActivity.TAG, "Download completed: "  +id);
+        Utils.debug(""+id);
 
         DownloadItem item = null;
         synchronized (items) {
@@ -439,14 +439,14 @@ public class DownloadService extends Service {
         }
 
         if (item==null) {
-            Log.e(MainActivity.TAG, "Failed to find queue item id " + id);
+            Utils.error("Failed to find queue item id " + id);
             return;
         }
 
         queuedItems.remove(item);
         addToMediaStorage(item);
 
-        Log.d(MainActivity.TAG, "Num items: " + items.size() + " Queue size:" + queuedItems.size());
+        Utils.debug("Num items: " + items.size() + " Queue size:" + queuedItems.size());
         if (items.isEmpty() && queuedItems.isEmpty()) {
             sendStatusUpdate();
             stop();
@@ -457,7 +457,7 @@ public class DownloadService extends Service {
 
     boolean destExists(DownloadItem item) {
         File destFile = new File(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), item.getFolder()), item.filename);
-        Log.d(MainActivity.TAG, "Check dest: " + destFile.getAbsolutePath() + " exists:" + destFile.exists());
+        Utils.debug("Check dest: " + destFile.getAbsolutePath() + " exists:" + destFile.exists());
         return destFile.exists();
     }
 
@@ -467,14 +467,14 @@ public class DownloadService extends Service {
         File sourceFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), item.getDownloadFileName());
         try {
             if (!destDir.exists() && !destDir.mkdir()) {
-                Log.e(MainActivity.TAG, "Failed to create " + destDir.getAbsolutePath());
+                Utils.error("Failed to create " + destDir.getAbsolutePath());
                 return;
             }
         } catch (Exception e) {
-            Log.e(MainActivity.TAG, "Failed to create " + destDir.getAbsolutePath(), e);
+            Utils.error("Failed to create " + destDir.getAbsolutePath(), e);
         }
 
-        Log.d(MainActivity.TAG, "Copy from: " + sourceFile.getPath() + " to " + destFile.getAbsolutePath());
+        Utils.debug("Copy from: " + sourceFile.getPath() + " to " + destFile.getAbsolutePath());
         try (InputStream inputStream = new FileInputStream(sourceFile); OutputStream outputStream = new FileOutputStream(destFile)) {
 
             byte[] b = new byte[16 * 1024];
@@ -486,15 +486,15 @@ public class DownloadService extends Service {
         }
         try {
             if (!sourceFile.delete()) {
-                Log.e(MainActivity.TAG, "Failed to delete " + sourceFile.getAbsolutePath());
+                Utils.error("Failed to delete " + sourceFile.getAbsolutePath());
             }
         } catch (Exception e) {
-            Log.e(MainActivity.TAG, "Failed to delete " + sourceFile.getAbsolutePath(), e);
+            Utils.error("Failed to delete " + sourceFile.getAbsolutePath(), e);
         }
     }
 
     void stop() {
-        Log.d(MainActivity.TAG, "Stop download service.");
+        Utils.debug("");
         stopForeground(true);
         stopSelf();
     }

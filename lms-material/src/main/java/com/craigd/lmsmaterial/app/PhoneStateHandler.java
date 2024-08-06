@@ -39,7 +39,7 @@ public class PhoneStateHandler {
         activePlayers.clear();
         if (inCall) {
             try {
-                Log.d(MainActivity.TAG, "RESP" + response.toString(4));
+                Utils.debug("RESP" + response.toString(4));
                 JSONObject result = response.getJSONObject("result");
                 if (result.has("players")) {
                     JSONArray players = result.getJSONArray("players");
@@ -47,12 +47,12 @@ public class PhoneStateHandler {
                         for (int i = 0; i < players.length(); ++i) {
                             activePlayers.add(players.getJSONObject(i).getString("id"));
                         }
-                        Log.d(MainActivity.TAG, "RPC response, activePlayers:" + activePlayers);
+                        Utils.debug("RPC response, activePlayers:" + activePlayers);
                         controlPlayers();
                     }
                 }
             } catch (JSONException e) {
-                Log.e(MainActivity.TAG, "Failed to parse response", e);
+                Utils.error("Failed to parse response", e);
             }
         }
     };
@@ -68,7 +68,7 @@ public class PhoneStateHandler {
         if (null==rpc) {
             rpc = new JsonRpc(context);
         }
-        Log.d(MainActivity.TAG, "Call state:" + state);
+        Utils.debug("Call state:" + state);
         if (state == TelephonyManager.CALL_STATE_RINGING || state == TelephonyManager.CALL_STATE_OFFHOOK) {
             callStarted();
         } else {
@@ -77,17 +77,17 @@ public class PhoneStateHandler {
     }
 
     private void callStarted() {
-        Log.d(MainActivity.TAG, "Call started, activePlayers:"+activePlayers);
+        Utils.debug("Call started, activePlayers:"+activePlayers);
         if (MainActivity.isActive() || ControlService.isActive()) {
             inCall = true;
             getActivePlayers();
         } else {
-            Log.d(MainActivity.TAG, "App is not currently active");
+            Utils.debug("App is not currently active");
         }
     }
 
     private void callEnded() {
-        Log.d(MainActivity.TAG, "Call ended, activePlayers:"+activePlayers);
+        Utils.debug("Call ended, activePlayers:"+activePlayers);
         if (inCall) {
             inCall = false;
             controlPlayers();
@@ -101,21 +101,21 @@ public class PhoneStateHandler {
 
     private void controlPlayers() {
         if (activePlayers.isEmpty()) {
-            Log.d(MainActivity.TAG, "Control players NO ACTIVE PLAYERS");
+            Utils.debug("Control players NO ACTIVE PLAYERS");
             return;
         }
         String action = prefs.getString(SettingsActivity.ON_CALL_PREF_KEY, DO_NOTHING);
-        Log.d(MainActivity.TAG, "Control players, action:" + action + ", active:" + activePlayers + ", current:"+MainActivity.activePlayer);
+        Utils.debug("Control players, action:" + action + ", active:" + activePlayers + ", current:"+MainActivity.activePlayer);
         if (MUTE_ALL.equals(action) || PAUSE_ALL.equals(action)) {
             for (String id: activePlayers) {
                 controlPlayer(action, id);
             }
         } else if (MUTE_CURRENT.equals(action) || PAUSE_CURRENT.equals(action)) {
             for (String id: activePlayers) {
-                Log.d(MainActivity.TAG, id+"=="+MainActivity.activePlayer+" ? " + id.equals(MainActivity.activePlayer));
+                Utils.debug(id+"=="+MainActivity.activePlayer+" ? " + id.equals(MainActivity.activePlayer));
 
                 if (id.equals(MainActivity.activePlayer)) {
-                    Log.d(MainActivity.TAG, "Matched ID");
+                    Utils.debug("Matched ID");
                     controlPlayer(action, id);
                     break;
                 }
@@ -124,7 +124,7 @@ public class PhoneStateHandler {
     }
 
     private void controlPlayer(String action, String player) {
-        Log.d(MainActivity.TAG, action+" on "+player);
+        Utils.debug(action+" on "+player);
         if (MUTE_ALL.equals(action) || MUTE_CURRENT.equals(action)) {
             rpc.sendMessage(player, new String[]{"mixer", "muting", inCall ? "1" : "0"});
         } else if (PAUSE_ALL.equals(action) || PAUSE_CURRENT.equals(action)) {

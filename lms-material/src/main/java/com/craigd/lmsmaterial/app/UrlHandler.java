@@ -57,7 +57,7 @@ public class UrlHandler {
         public void onResponse(JSONObject response) {
             playerList.clear();
             try {
-                Log.d(MainActivity.TAG, "RESP" + response.toString(4));
+                Utils.debug("RESP" + response.toString(4));
                 JSONObject result = response.getJSONObject("result");
                 if (result.has("players_loop")) {
                     JSONArray players = result.getJSONArray("players_loop");
@@ -66,11 +66,11 @@ public class UrlHandler {
                             JSONObject obj = players.getJSONObject(i);
                             playerList.add(new Player(obj.getString("name"), obj.getString("playerid")));
                         }
-                        Log.d(MainActivity.TAG, "RPC response, numPlayers:" + playerList.size());
+                        Utils.debug("RPC response, numPlayers:" + playerList.size());
                     }
                 }
             } catch (JSONException e) {
-                Log.e(MainActivity.TAG, "Failed to parse response", e);
+                Utils.error( "Failed to parse response", e);
             }
             if (playerList.isEmpty()) {
                 return;
@@ -155,7 +155,7 @@ public class UrlHandler {
     }
 
     public synchronized void handle(String url) {
-        Log.d(MainActivity.TAG, "Shared URL:" + url);
+        Utils.debug("Shared URL:" + url);
         if (null==rpc) {
             rpc = new JsonRpc(mainActivity);
         }
@@ -168,7 +168,7 @@ public class UrlHandler {
             return;
         }
         Player player = playerList.get(chosenPlayer);
-        Log.d(MainActivity.TAG, action+": "+handlingUrl+", to: "+player.name);
+        Utils.debug(action+": "+handlingUrl+", to: "+player.name);
         rpc.sendMessage(player.id, new String[]{"playlist", action, handlingUrl}, addActionResponse);
         handlingUrl = null;
     }

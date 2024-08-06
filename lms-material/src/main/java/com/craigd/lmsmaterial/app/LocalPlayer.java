@@ -73,7 +73,7 @@ public class LocalPlayer {
     @SuppressLint("SdCardPath")
     public void start() {
         String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
-        Log.d(MainActivity.TAG, "Start player: " + playerApp);
+        Utils.debug("Start player: " + playerApp);
         if (SB_PLAYER.equals(playerApp)) {
             if (sendSbPlayerIntent(true)) {
                 state = State.STARTED;
@@ -136,7 +136,7 @@ public class LocalPlayer {
     @SuppressLint("SdCardPath")
     public void stop() {
         String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
-        Log.d(MainActivity.TAG, "Stop player: " + playerApp);
+        Utils.debug("Stop player: " + playerApp);
         if (SB_PLAYER.equals(playerApp)) {
             if (sendSbPlayerIntent(false)) {
                 state = State.STOPPED;
@@ -180,7 +180,7 @@ public class LocalPlayer {
             context.sendBroadcast(intent);
             return true;
         } catch (Exception e) {
-            Log.e(MainActivity.TAG, "Failed to control SB Player - " + e.getMessage());
+            Utils.error("Failed to control SB Player - " + e.getMessage());
             return false;
         }
     }
@@ -212,7 +212,7 @@ public class LocalPlayer {
             }
             return true;
         } catch (Exception e) {
-            Log.e(MainActivity.TAG, "Failed to control SqueezePlayer - " + e.getMessage());
+            Utils.error("Failed to control SqueezePlayer - " + e.getMessage());
             return false;
         }
     }
@@ -230,14 +230,14 @@ public class LocalPlayer {
         intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
         intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
         if (handleResp) {
-            Log.d(MainActivity.TAG, "HANDLE RESP");
+            Utils.debug("HANDLE RESP");
             int executionId = TermuxResultsService.getNextExecutionId();
             Intent pluginResultsServiceIntent = new Intent(context, TermuxResultsService.class);
             pluginResultsServiceIntent.putExtra(TermuxResultsService.EXTRA_EXECUTION_ID, executionId);
             PendingIntent pendingIntent = PendingIntent.getService(context, executionId, pluginResultsServiceIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
             intent.putExtra("com.termux.RUN_COMMAND_PENDING_INTENT", pendingIntent);
         }
-        Log.d(MainActivity.TAG, "Send Termux command:"+app+" args:"+String.join(", ", args));
+        Utils.debug("Send Termux command:"+app+" args:"+String.join(", ", args));
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent);
@@ -246,7 +246,7 @@ public class LocalPlayer {
             }
             return true;
         } catch (Exception e) {
-            Log.e(MainActivity.TAG, "Failed to send Termux command - " + e.getMessage());
+            Utils.error("Failed to send Termux command - " + e.getMessage());
             return false;
         }
     }

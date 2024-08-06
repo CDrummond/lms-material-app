@@ -46,7 +46,7 @@ public class TermuxResultsService extends IntentService {
 
         String stdout = resultBundle.getString("stdout", "");
         if (stdout.contains("/data/data/com.termux/files/usr/bin/squeezelite")) {
-            Log.d(MainActivity.TAG, "Squeezelite is already running");
+            Utils.debug("Squeezelite is already running");
         } else {
             LocalPlayer localPlayer = new LocalPlayer(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()), getApplicationContext());
             localPlayer.startTermuxSqueezeLite();

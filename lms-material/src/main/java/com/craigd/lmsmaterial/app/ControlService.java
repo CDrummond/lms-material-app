@@ -86,14 +86,14 @@ public class ControlService extends Service {
         }
         @Override
         public void handleMessage(@NonNull Message msg) {
-            Log.d(MainActivity.TAG, "Handle message " + msg.what);
+            Utils.debug("Handle message " + msg.what);
             ControlService srv = serviceRef.get();
             if (null==srv) {
                 super.handleMessage(msg);
                 return;
             }
             if (msg.what == PLAYER_NAME && null!=srv.notificationBuilder && null!=srv.notificationManager) {
-                Log.d(MainActivity.TAG, "Set notification player name " + msg.obj);
+                Utils.debug("Set notification player name " + msg.obj);
                 srv.notificationBuilder.setContentTitle((String) (msg.obj));
                 if (Build.VERSION.SDK_INT >= 33 && ActivityCompat.checkSelfPermission(srv.getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     return;
@@ -112,20 +112,20 @@ public class ControlService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(MainActivity.TAG, "ControlService.onBind");
+        Utils.debug("");
         return messenger.getBinder();
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.d(MainActivity.TAG, "ControlService.onUnbind");
+        Utils.debug("");
         return super.onUnbind(intent);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d("LMS", "ControlService.onCreate");
+        Utils.debug("");
         mediaSession = new MediaSessionCompat(getApplicationContext(), "Lyrion");
         startForegroundService();
     }
@@ -133,7 +133,7 @@ public class ControlService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d("LMS", "ControlService.onDestroy");
+        Utils.debug("");
         if (mediaSession != null) {
             mediaSession.setActive(false);
             mediaSession.release();
@@ -170,7 +170,7 @@ public class ControlService extends Service {
     }
 
     private void startForegroundService() {
-        Log.d(MainActivity.TAG, "Start control service.");
+        Utils.debug("");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel();
         } else {
@@ -183,7 +183,7 @@ public class ControlService extends Service {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private void createNotificationChannel() {
-        Log.d(MainActivity.TAG, "Create notification channel.");
+        Utils.debug("");
         notificationManager = NotificationManagerCompat.from(this);
         NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, getApplicationContext().getResources().getString(R.string.main_notification), NotificationManager.IMPORTANCE_LOW);
         chan.setLightColor(Color.BLUE);
@@ -214,7 +214,7 @@ public class ControlService extends Service {
 
     @SuppressLint("MissingPermission")
     private Notification updateNotification() {
-        Log.d(MainActivity.TAG, "Update notification.");
+        Utils.debug("");
         if (!Utils.notificationAllowed(this, NOTIFICATION_CHANNEL_ID)) {
             return null;
         }
@@ -251,7 +251,7 @@ public class ControlService extends Service {
                 mediaSession.setCallback(new MediaSessionCompat.Callback() {
                     @Override
                     public void onPlay() {
-                        Log.d(MainActivity.TAG, "onPlay");
+                        Utils.debug("");
                         mediaSession.setPlaybackState(null);
                         sendCommand(TOGGLE_PLAY_PAUSE_COMMAND);
                         mediaSession.setPlaybackState(playbackState);
@@ -270,7 +270,7 @@ public class ControlService extends Service {
                 mediaSession.setPlaybackToRemote(new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 50, 1) {
                     @Override
                     public void onAdjustVolume(int direction) {
-                        Log.d(MainActivity.TAG, "onAdjustVolume:" + direction);
+                        Utils.debug(""+direction);
                         if (direction > 0) {
                             sendCommand(INC_VOLUME_COMMAND);
                         } else if (direction < 0) {
@@ -284,43 +284,43 @@ public class ControlService extends Service {
                         .putString(MediaMetadata.METADATA_KEY_TITLE, title)
                         .putString(MediaMetadata.METADATA_KEY_ARTIST, getResources().getString(R.string.notification_meta_text))
                         .putLong(MediaMetadata.METADATA_KEY_DURATION, 0);
-                Log.d(MainActivity.TAG, "Set media session title to " + title);
+                Utils.debug("Set media session title to " + title);
                 mediaSession.setMetadata(metaBuilder.build());
                 mediaSession.setActive(true);
             }
 
             Notification notification = notificationBuilder.build();
-            Log.d(MainActivity.TAG, "Build notification.");
+            Utils.debug("Build notification.");
             notificationManager.notify(MSG_ID, notificationBuilder.build());
             return notification;
         } catch (Exception e) {
-            Log.e("LMS", "Failed to create control notification", e);
+            Utils.error("Failed to create control notification", e);
         }
         return null;
     }
 
     private void createNotification() {
-        Log.d(MainActivity.TAG, "Create notification.");
+        Utils.debug("");
         Notification notification = updateNotification();
         if (null==notification) {
             return;
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Log.d(MainActivity.TAG, "startForegroundService");
+            Utils.debug("startForegroundService");
             startForegroundService(new Intent(this, ControlService.class));
         } else {
-            Log.d(MainActivity.TAG, "startService");
+            Utils.debug("startService");
             startService(new Intent(this, ControlService.class));
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            Log.d(MainActivity.TAG, "ServiceCompat.startForeground");
+            Utils.debug("ServiceCompat.startForeground");
             ServiceCompat.startForeground(this, MSG_ID, notification, Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0);
         }
     }
 
     private void stopForegroundService() {
-        Log.d(MainActivity.TAG, "Stop control service.");
+        Utils.debug("");
         if (mediaSession!=null) {
             mediaSession.setActive(false);
         }
@@ -365,7 +365,7 @@ public class ControlService extends Service {
             TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                    Log.d(MainActivity.TAG, "calling registerTelephonyCallback");
+                    Utils.debug("calling registerTelephonyCallback");
                     telephonyManager.registerTelephonyCallback(getMainExecutor(), callStateListener);
                 }
             } else {
