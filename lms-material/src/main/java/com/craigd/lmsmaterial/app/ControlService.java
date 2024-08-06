@@ -94,7 +94,7 @@ public class ControlService extends Service {
             if (msg.what == PLAYER_NAME && null!=srv.notificationBuilder && null!=srv.notificationManager) {
                 Utils.debug("Set notification player name " + msg.obj);
                 srv.notificationBuilder.setContentTitle((String) (msg.obj));
-                if (Build.VERSION.SDK_INT >= 33 && ActivityCompat.checkSelfPermission(srv.getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ActivityCompat.checkSelfPermission(srv.getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
                 srv.updateNotification();

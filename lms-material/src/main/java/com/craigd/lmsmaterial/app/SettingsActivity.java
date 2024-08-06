@@ -493,7 +493,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     public void checkNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= 33 && !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_POST_NOTIFICATIONS);
         }
     }

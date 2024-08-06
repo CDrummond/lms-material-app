@@ -1090,7 +1090,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshControlService() {
-        if (Build.VERSION.SDK_INT < 33) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             return;
         }
         if (controlServiceMessenger!=null) {
