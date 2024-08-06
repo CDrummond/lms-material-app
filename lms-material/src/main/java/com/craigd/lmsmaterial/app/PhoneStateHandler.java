@@ -10,7 +10,6 @@ package com.craigd.lmsmaterial.app;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 

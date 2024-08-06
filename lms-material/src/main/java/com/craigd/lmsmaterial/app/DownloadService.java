@@ -26,7 +26,6 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -214,7 +213,7 @@ public class DownloadService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d("LMS", "DownloadService.onCreate()");
+        Utils.debug("");
         DownloadStatusReceiver.init(this);
         startForegroundService();
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);

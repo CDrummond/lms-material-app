@@ -12,7 +12,6 @@ import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -196,7 +195,7 @@ abstract class ServerDiscovery {
                     socket.close();
                 }
 
-                Log.v(Utils.LOG_TAG, "Scanning complete, unlocking WiFi");
+                Utils.verbose("Scanning complete, unlocking WiFi");
                 wifiLock.release();
             }
 

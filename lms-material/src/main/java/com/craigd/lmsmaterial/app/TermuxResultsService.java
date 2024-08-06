@@ -11,7 +11,6 @@ import android.annotation.SuppressLint;
 import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 

@@ -32,7 +32,6 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;

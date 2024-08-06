@@ -53,6 +53,12 @@ public class Utils {
         return "";
     }
 
+    public static void verbose(String message) {
+        if (BuildConfig.DEBUG) {
+            Log.v(LOG_TAG, logPrefix() + message);
+        }
+    }
+
     public static void debug(String message) {
         if (BuildConfig.DEBUG) {
             Log.d(LOG_TAG, logPrefix() + message);
