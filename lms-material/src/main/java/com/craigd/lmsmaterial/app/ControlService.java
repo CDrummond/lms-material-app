@@ -126,7 +126,9 @@ public class ControlService extends Service {
     public void onCreate() {
         super.onCreate();
         Utils.debug("");
-        mediaSession = new MediaSessionCompat(getApplicationContext(), "Lyrion");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mediaSession = new MediaSessionCompat(getApplicationContext(), "Lyrion");
+        }
         startForegroundService();
     }
 
@@ -207,8 +209,9 @@ public class ControlService extends Service {
         MediaStyle mediaStyle = new MediaStyle();
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             mediaStyle.setShowActionsInCompactView(1, 2, 3);
+        } else {
+            mediaStyle.setMediaSession(mediaSession.getSessionToken());
         }
-        mediaStyle.setMediaSession(mediaSession.getSessionToken());
         return mediaStyle;
     }
 

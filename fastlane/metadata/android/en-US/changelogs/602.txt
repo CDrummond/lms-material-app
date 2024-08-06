@@ -1,3 +1,6 @@
 Improved
 
 • Adjust top/bottom padding base on zoom factor, if this is less than default.
+
+Fixed
+• Notifications on pre-Android 13 devices.
