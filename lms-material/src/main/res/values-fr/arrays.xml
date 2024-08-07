@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="statusbar">
+        <item>Visible (standard)</item>
+        <item>Visible (fusionnée)</item>
+        <item>Cachée</item>
+    </string-array>
+    <string-array name="statusbarAlias">
+        <item>visible</item>
+        <item>blend</item>
+        <item>hidden</item>
+    </string-array>
+    <string-array name="orientation">
+        <item>Automatique</item>
+        <item>Portrait</item>
+        <item>Paysage</item>
+    </string-array>
+    <string-array name="orientationAlias">
+        <item>auto</item>
+        <item>portrait</item>
+        <item>landscape</item>
+    </string-array>
+    <string-array name="oncall">
+        <item>Ne rien faire</item>
+        <item>Couper le son des platines actives</item>
+        <item>Couper le son de la platine courante</item>
+        <item>Suspendre toutes les platines actives</item>
+        <item>Suspendre la platine courante</item>
+    </string-array>
+    <string-array name="oncallAlias">
+        <item>nothing</item>
+        <item>muteall</item>
+        <item>muteecurrent</item>
+        <item>pauseall</item>
+        <item>pausecurrent</item>
+    </string-array>
+    <string-array name="playerapps">
+        <item>Aucune</item>
+        <item>SB Player</item>
+	    <item>SqueezePlayer</item>
+	    <item>Squeezelite (via Termux)</item>
+    </string-array>
+    <string-array name="playerappsAlias">
+        <item>none</item>
+        <item>sbplayer</item>
+	    <item>squeezeplayer</item>
+	    <item>termux</item>
+    </string-array>
+</resources>
