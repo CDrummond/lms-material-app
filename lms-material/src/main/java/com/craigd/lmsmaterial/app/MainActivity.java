@@ -292,15 +292,14 @@ public class MainActivity extends AppCompatActivity {
             }
             if (!sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false) &&
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                boolean gestureNav = usingGestureNavigation();
                 int scale = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
                 double adjust = 1.0;
                 if (scale<5) {
                     adjust += (5-scale)/10.0;
                 }
-                builder.appendQueryParameter("topPad", ""+(int) Math.ceil(24*adjust));
-                builder.appendQueryParameter("botPad", ""+(int)Math.ceil((gestureNav ? 12 : 40)*adjust));
-                if (!gestureNav) {
+                builder.appendQueryParameter("topPad", ""+(int) Math.ceil(Utils.getTopPadding(this)*adjust));
+                builder.appendQueryParameter("botPad", ""+(int)Math.ceil(Utils.getBottomPadding(this)*adjust));
+                if (!Utils.usingGestureNavigation(this)) {
                     builder.appendQueryParameter("dlgPad", ""+(int)Math.ceil(48*adjust));
                 }
             }
@@ -1184,15 +1183,6 @@ public class MainActivity extends AppCompatActivity {
         Rect r = new Rect();
         childOfContent.getWindowVisibleDisplayFrame(r);
         return (r.bottom - r.top);
-    }
-
-    public boolean usingGestureNavigation() {
-        Resources resources = getResources();
-        @SuppressLint("DiscouragedApi") int resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
-        if (resourceId > 0) {
-            return 2==resources.getInteger(resourceId);
-        }
-        return false;
     }
 
     private void setFullScreen(boolean on, boolean isStartup) {
