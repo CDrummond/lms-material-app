@@ -297,6 +297,7 @@ public class MainActivity extends AppCompatActivity {
                 if (scale<5) {
                     adjust += (5-scale)/10.0;
                 }
+                Utils.cutoutTopLeft(this);
                 builder.appendQueryParameter("topPad", ""+(int) Math.ceil(Utils.getTopPadding(this)*adjust));
                 builder.appendQueryParameter("botPad", ""+(int)Math.ceil(Utils.getBottomPadding(this)*adjust));
                 if (!Utils.usingGestureNavigation(this)) {
@@ -339,7 +340,8 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean(SettingsActivity.KEEP_SCREEN_ON_PREF_KEY, false);
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.FULLSCREEN_PREF_KEY)) {
+        if (!sharedPreferences.contains(SettingsActivity.FULLSCREEN_PREF_KEY) ||
+            (sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false) && Utils.cutoutTopLeft(this))) {
             editor.putBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false);
             modified=true;
         }

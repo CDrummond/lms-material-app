@@ -1,4 +1,8 @@
-Fixed
+Improved
 
 • Use WindowInsets to calculate top and bottom padding required.
+
+Fixed
+
 • Fix starting Squeezelite (via Termux)
+• Don't allow fullscreen option on devices with top-left camera cutout.

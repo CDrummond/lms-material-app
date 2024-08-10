@@ -15,21 +15,38 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Insets;
+import android.graphics.Rect;
 import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.DisplayCutout;
-import android.view.Window;
 import android.view.WindowInsets;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
+
+import java.util.List;
 
 public class Utils {
     public static final String LOG_TAG = "LMS";
 
     public static float convertPixelsToDp(float px, Context context){
         return px / ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+    }
+
+    public static boolean cutoutTopLeft(Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            DisplayCutout displayCutout = activity.getWindowManager().getDefaultDisplay().getCutout();
+            if (null != displayCutout) {
+                List<Rect> rects = displayCutout.getBoundingRects();
+                for (Rect rect : rects) {
+                    if (rect.left >= 0 && rect.left <= 10 && rect.width() > 100 && rect.width()<300) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public static boolean usingGestureNavigation(Activity activity) {

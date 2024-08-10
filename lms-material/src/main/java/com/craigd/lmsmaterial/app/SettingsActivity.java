@@ -73,6 +73,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private SettingsFragment fragment;
+    private SettingsActivity activity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +87,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         visible = true;
         setContentView(R.layout.settings_activity);
+        activity = this;
         fragment = new SettingsFragment();
         fragment.setActivity(this);
         getSupportFragmentManager()
@@ -268,7 +270,7 @@ public class SettingsActivity extends AppCompatActivity {
                 });
             }
 
-            final Preference defaultPlayerButton = getPreferenceManager().findPreference("default_player");
+            final Preference defaultPlayerButton = getPreferenceManager().findPreference(DEFAULT_PLAYER_PREF_KEY);
             if (defaultPlayerButton != null) {
                 String defaultPlayer = sharedPreferences.getString(DEFAULT_PLAYER_PREF_KEY, null);
                 if (defaultPlayer!=null && !defaultPlayer.isEmpty()) {
@@ -384,6 +386,13 @@ public class SettingsActivity extends AppCompatActivity {
                 SwitchPreferenceCompat notifPref = getPreferenceManager().findPreference(ENABLE_NOTIF_PREF_KEY);
                 if (null != notifPref) {
                     notifPref.setSummary(getResources().getString(R.string.enable_notif_summary_media_session));
+                }
+            }
+
+            if (Utils.cutoutTopLeft(activity)) {
+                SwitchPreferenceCompat fullscreenPref = getPreferenceManager().findPreference("fullscreen");
+                if (null != fullscreenPref) {
+                    fullscreenPref.setVisible(false);
                 }
             }
 
