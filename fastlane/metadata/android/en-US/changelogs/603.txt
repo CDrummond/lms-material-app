@@ -1,3 +1,4 @@
 Fixed
 
 • Use WindowInsets to calculate top and bottom padding required.
+• Fix starting Squeezelite (via Termux)

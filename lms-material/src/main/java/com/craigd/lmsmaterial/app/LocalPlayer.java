@@ -231,9 +231,10 @@ public class LocalPlayer {
         if (handleResp) {
             Utils.debug("HANDLE RESP");
             int executionId = TermuxResultsService.getNextExecutionId();
-            Intent pluginResultsServiceIntent = new Intent(context, TermuxResultsService.class);
-            pluginResultsServiceIntent.putExtra(TermuxResultsService.EXTRA_EXECUTION_ID, executionId);
-            PendingIntent pendingIntent = PendingIntent.getService(context, executionId, pluginResultsServiceIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+            Intent serviceIntent = new Intent(context, TermuxResultsService.class);
+            serviceIntent.putExtra(TermuxResultsService.EXTRA_EXECUTION_ID, executionId);
+            PendingIntent pendingIntent = PendingIntent.getService(context, executionId, serviceIntent,
+                        PendingIntent.FLAG_ONE_SHOT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : 0));
             intent.putExtra("com.termux.RUN_COMMAND_PENDING_INTENT", pendingIntent);
         }
         Utils.debug("Send Termux command:"+app+" args:"+String.join(", ", args));
