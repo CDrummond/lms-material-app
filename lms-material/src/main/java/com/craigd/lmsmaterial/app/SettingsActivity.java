@@ -390,7 +390,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
 
             if (Utils.cutoutTopLeft(activity)) {
-                SwitchPreferenceCompat fullscreenPref = getPreferenceManager().findPreference("fullscreen");
+                SwitchPreferenceCompat fullscreenPref = getPreferenceManager().findPreference(FULLSCREEN_PREF_KEY);
                 if (null != fullscreenPref) {
                     fullscreenPref.setVisible(false);
                 }
