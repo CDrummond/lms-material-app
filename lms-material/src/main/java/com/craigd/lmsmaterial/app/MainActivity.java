@@ -517,7 +517,6 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             requestWindowFeature(Window.FEATURE_NO_TITLE);
             WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         } else {
             getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorBackground));
             getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorBackground));
