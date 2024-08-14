@@ -74,7 +74,6 @@ public class HttpStreamingTransport extends HttpClientTransport implements Messa
     public static final String NAME = "streaming";
     public static final String PREFIX = "http-streaming.json";
     public static final String MAX_BUFFER_SIZE_OPTION = "maxBufferSize";
-    private static final String TAG = HttpStreamingTransport.class.getSimpleName();
 
     private ScheduledExecutorService _scheduler;
     private boolean _shutdownScheduler;
