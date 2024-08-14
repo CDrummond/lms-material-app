@@ -15,6 +15,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.graphics.BitmapFactory;
@@ -42,15 +43,21 @@ import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 import androidx.media.VolumeProviderCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
+import androidx.preference.PreferenceManager;
+
+import com.craigd.lmsmaterial.app.cometd.CometClient;
 
 import java.lang.ref.WeakReference;
 
 public class ControlService extends Service {
+    public static final String NO_NOTIFICATION = "none";
+    public static final String BASIC_NOTIFICATION = "basic";
+    public static final String FULL_NOTIFICATION = "full";
     private static final String NEXT_TRACK = ControlService.class.getCanonicalName() + ".NEXT_TRACK";
     private static final String PREV_TRACK = ControlService.class.getCanonicalName() + ".PREV_TRACK";
     private static final String PLAY_TRACK = ControlService.class.getCanonicalName() + ".PLAY_TRACK";
     private static final String PAUSE_TRACK = ControlService.class.getCanonicalName() + ".PAUSE_TRACK";
-    public static final int PLAYER_NAME = 1;
+    public static final int ACTIVE_PLAYER = 1;
     public static final int PLAYER_REFRESH = 2;
 
     private static final int MSG_ID = 1;
@@ -74,6 +81,9 @@ public class ControlService extends Service {
     private NotificationManagerCompat notificationManager;
     private MediaSessionCompat mediaSession;
     private PlaybackStateCompat playbackState;
+    private String notificationType = NO_NOTIFICATION;
+    private CometClient cometClient = null;
+    private SharedPreferences prefs = null;
 
     private final Messenger messenger = new Messenger(new IncomingHandler(this));
 
@@ -91,9 +101,11 @@ public class ControlService extends Service {
                 super.handleMessage(msg);
                 return;
             }
-            if (msg.what == PLAYER_NAME && null!=srv.notificationBuilder && null!=srv.notificationManager) {
-                Utils.debug("Set notification player name " + msg.obj);
-                srv.notificationBuilder.setContentTitle((String) (msg.obj));
+            if (msg.what == ACTIVE_PLAYER && null!=srv.notificationBuilder && null!=srv.notificationManager) {
+                String[] vals = (String[])msg.obj;
+                Utils.debug("Set notification player name " + vals[1] + ", id:" + vals[0]);
+                srv.notificationBuilder.setContentTitle(vals[1]);
+                srv.cometClient.setPlayer(vals[0]);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ActivityCompat.checkSelfPermission(srv.getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
@@ -125,6 +137,7 @@ public class ControlService extends Service {
     public void onCreate() {
         super.onCreate();
         Utils.debug("");
+        cometClient = new CometClient(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             mediaSession = new MediaSessionCompat(getApplicationContext(), "Lyrion");
         }
@@ -177,9 +190,23 @@ public class ControlService extends Service {
         } else {
             notificationBuilder = new NotificationCompat.Builder(this);
         }
+        initialiseCometClient();
         createNotification();
         registerCallStateListener();
         isRunning = true;
+    }
+
+    private void initialiseCometClient() {
+        if (null==prefs) {
+            prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        }
+        String setting = prefs.getString(SettingsActivity.NOTIFCATIONS_PREF_KEY, NO_NOTIFICATION);
+        if (!setting.equals(FULL_NOTIFICATION)) {
+            cometClient.disconnect();
+        } else {
+            cometClient.connect();
+        }
+        notificationType = setting;
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

@@ -129,6 +129,18 @@ public class Utils {
         }
     }
 
+    public static void warn(String message) {
+        if (BuildConfig.DEBUG) {
+            Log.w(LOG_TAG, logPrefix() + message);
+        }
+    }
+
+    public static void warn(String message, Throwable t) {
+        if (BuildConfig.DEBUG) {
+            Log.w(LOG_TAG, logPrefix() + message, t);
+        }
+    }
+
     public static void error(String message) {
         if (BuildConfig.DEBUG) {
             Log.e(LOG_TAG, logPrefix() + message);

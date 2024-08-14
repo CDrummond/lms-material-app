@@ -26,7 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-abstract class ServerDiscovery {
+public abstract class ServerDiscovery {
     private static final int SERVER_DISCOVERY_TIMEOUT = 1500;
 
     public static class Server implements Comparable<Server> {

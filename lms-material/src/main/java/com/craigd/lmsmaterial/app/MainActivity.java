@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
     private ConnectionChangeListener connectionChangeListener;
     private double initialWebViewScale;
     private String onCall = null;
+    private String notifications = null;
     private boolean showOverLockscreen = false;
     private UrlHandler urlHander;
     private JSONArray downloadData = null;
@@ -131,8 +132,8 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName className, IBinder service) {
             Utils.debug("Setup control messenger");
             controlServiceMessenger = new Messenger(service);
-            if (null != activePlayerName) {
-                updateControlService(activePlayerName);
+            if (null != activePlayer && null != activePlayerName) {
+                updateControlService(activePlayer, activePlayerName);
             }
         }
 
@@ -361,9 +362,9 @@ public class MainActivity extends AppCompatActivity {
             editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.ENABLE_NOTIF_PREF_KEY) ||
-              (sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false) && !haveNotifPerm)) {
-            editor.putBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
+        if (!sharedPreferences.contains(SettingsActivity.NOTIFCATIONS_PREF_KEY) ||
+              (!haveNotifPerm && !ControlService.NO_NOTIFICATION.equals(sharedPreferences.getString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION)))) {
+            editor.putString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION);
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.SHOW_OVER_LOCK_SCREEN_PREF_KEY)) {
@@ -532,6 +533,7 @@ public class MainActivity extends AppCompatActivity {
         }
         manageControlService(false);
         onCall = sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
+        notifications = sharedPreferences.getString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION);
         setOrientation();
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
@@ -729,7 +731,7 @@ public class MainActivity extends AppCompatActivity {
         Utils.debug("Active player: "+playerId+", name: "+playerName);
         activePlayer = playerId;
         activePlayerName = playerName;
-        updateControlService(playerName);
+        updateControlService(activePlayer, playerName);
     }
 
     public static String getLocalIpAddress() {
@@ -898,7 +900,7 @@ public class MainActivity extends AppCompatActivity {
             if (pageLoaded) {
                 localPlayer.autoStart(true);
             }
-            if (sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false) && Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
+            if (!ControlService.NO_NOTIFICATION.equals(sharedPreferences.getString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION)) && Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
                 if (!ControlService.isActive()) {
                     startControlService();
                 } else {
@@ -953,7 +955,11 @@ public class MainActivity extends AppCompatActivity {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         setOrientation();
-        manageControlService(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING).equals(this.onCall));
+        String onCallNow = sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
+        String notificationsNow = sharedPreferences.getString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION);
+        manageControlService(!onCallNow.equals(onCall) || !notificationsNow.equals(notifications));
+        onCall = onCallNow;
+        notifications = notificationsNow;
         manageShowOverLockscreen();
         reloadUrlAfterSettings=false;
         updateDownloadStatus();
@@ -1036,18 +1042,18 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    void manageControlService(boolean onCallChanged) {
-        Utils.debug("MainActivity.manageControlService onCallChanged:"+onCallChanged);
-        boolean showNotif = sharedPreferences.getBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
+    void manageControlService(boolean needRestart) {
+        Utils.debug("needRestart:"+needRestart);
+        boolean showNotif = !ControlService.NO_NOTIFICATION.equals(sharedPreferences.getString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION));
         if (showNotif && !Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
             showNotif = false;
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean(SettingsActivity.ENABLE_NOTIF_PREF_KEY, false);
+            editor.putString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION);
             editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
             editor.apply();
         }
         if (showNotif) {
-            if (onCallChanged) {
+            if (needRestart) {
                 stopControlService();
             }
             startControlService();
@@ -1078,9 +1084,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateControlService(String playerName) {
+    private void updateControlService(String playerId, String playerName) {
         if (controlServiceMessenger!=null) {
-            Message msg = Message.obtain(null, ControlService.PLAYER_NAME, playerName);
+            Message msg = Message.obtain(null, ControlService.ACTIVE_PLAYER, new String[]{playerId, playerName});
             try {
                 controlServiceMessenger.send(msg);
             } catch (RemoteException e) {
