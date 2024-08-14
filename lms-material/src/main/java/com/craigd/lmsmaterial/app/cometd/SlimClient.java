@@ -8,6 +8,8 @@
 
 package com.craigd.lmsmaterial.app.cometd;
 
+import android.util.Log;
+
 import com.craigd.lmsmaterial.app.Utils;
 
 import org.cometd.bayeux.Channel;
@@ -28,8 +30,27 @@ public class SlimClient extends BayeuxClient {
     }
 
     @Override
+    public void onSending(List<? extends Message> messages) {
+        super.onSending(messages);
+        for (Message message : messages) {
+            Utils.verbose(message.getJSON());
+        }
+    }
+
+    @Override
+    public void onMessages(List<Message.Mutable> messages) {
+        super.onMessages(messages);
+        for (Message message : messages) {
+            Utils.verbose(message.getJSON());
+        }
+    }
+
+    @Override
     public void onFailure(Throwable failure, List<? extends Message> messages) {
         super.onFailure(failure, messages);
+        for (Message message : messages) {
+            Utils.error(message.getJSON(), failure);
+        }
         if (failure instanceof IOException && connectionState.isConnected()) {
             rehandshake();
         }

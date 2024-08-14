@@ -181,7 +181,7 @@ public class HttpStreamingTransport extends HttpClientTransport implements Messa
         List<Message.Mutable> transportMessages = new ArrayList<>();
         for (Message.Mutable message : messages) {
             String channel = message.getChannel();
-
+            Utils.debug(channel);
             if (Channel.META_HANDSHAKE.equals(channel)) {
                 if (_delegate.isConnected()) {
                     _delegate.disconnect("Disconnect to prepare for a new handshake");
@@ -450,6 +450,7 @@ public class HttpStreamingTransport extends HttpClientTransport implements Messa
         }
 
         private void fail(Throwable failure, String reason) {
+            Utils.debug(reason);
             disconnect(reason);
             if (!_exchanges.isEmpty()) {
                 failMessages(failure);
@@ -698,9 +699,9 @@ public class HttpStreamingTransport extends HttpClientTransport implements Messa
                                     delegate.onData(unprocessed);
                                 }
                                 unprocessed = "";
-                            } else {
+                            } /*else {
                                 Utils.verbose("JSON is not valid! Appending to next chunk: " + data);
-                            }
+                            }*/
                         }
                         readLine();//Read final/empty chunk
                         delegate.disconnect("End of chunks");
