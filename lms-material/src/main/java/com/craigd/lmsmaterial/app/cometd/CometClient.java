@@ -142,8 +142,6 @@ public class CometClient {
     public synchronized void connect() {
         Utils.debug("");
         disconnect();
-        currentPlayer = null;
-        connectionState.setAutoConnect();
         connectionState.setConnectionState(ConnectionState.State.CONNECTION_STARTED);
         backgroundHandler.post(() -> {
             ServerDiscovery.Server server = new ServerDiscovery.Server(prefs.getString(SettingsActivity.SERVER_PREF_KEY, null));
@@ -258,7 +256,7 @@ public class CometClient {
     }
 
     private synchronized void onConnected() {
-        Utils.debug("subscribedPlayer:"+currentPlayer);
+        Utils.debug("currentPlayer:"+currentPlayer);
         connectionState.setConnectionState(ConnectionState.State.CONNECTION_COMPLETED);
         bayeuxClient.getChannel("/"+bayeuxClient.getId() + "/slim/playerstatus/*").subscribe(this::handlePlayerStatus);
         subscribeToPlayer(currentPlayer);
@@ -390,7 +388,7 @@ public class CometClient {
     }
 
     private String coverUrl(String path) {
-        return path.startsWith("http") ? path : (serverAddress + (path.startsWith("/") ? path : ("/"+path)) + IMAGE_SIZE);
+        return path.startsWith("http") ? path : (serverAddress + (path.startsWith("/") ? path : ("/"+path)));
     }
 
     private void handlePlayerStatus(String id, String mode, String remote_title, String artist, String album, String title,
@@ -415,7 +413,7 @@ public class CometClient {
             }
         }
         if (Utils.isEmpty(status.cover) && !Utils.isEmpty(coverid)) {
-            status.cover = coverUrl("/music/"+coverid+"/cover");
+            status.cover = coverUrl("/music/"+coverid+"/cover"+IMAGE_SIZE);
         }
         if (Utils.isEmpty(status.cover)) {
             status.cover = coverUrl(DEFAULT_COVER);
@@ -458,27 +456,35 @@ public class CometClient {
         }
     }
 
-    private synchronized void handlePlayerStatus(String id, JSONObject response) throws JSONException {
+    private synchronized void handlePlayerStatus(String id, JSONObject response) {
         Utils.verbose(id);
         if (!Objects.equals(id, currentPlayer)) {
             return;
         }
-        JSONArray playlist_loop = response.getJSONArray("playlist_loop");
-        if (playlist_loop.length()>0) {
-            JSONObject track = playlist_loop.getJSONObject(0);
-            handlePlayerStatus(id,
-                    getString(response,"mode"),
-                    getString(track, "remote_title"),
-                    getString(track, "artist"),
-                    getString(track, "album"),
-                    getString(track, "title"),
-                    getString(track, "artwork_url"),
-                    getString(track, "coverid"),
-                    (long)(getFloat(track, "duration")*1000.0f),
-                    (long)(getFloat(track, "time")*1000.0f));
-        } else {
-            handlePlayerStatus(id, response.getString("mode"), null, null, null, null, null, null, 0, 0);
+        JSONArray playlist_loop = null;
+        try {
+            playlist_loop = response.getJSONArray("playlist_loop");
+        } catch (JSONException ignored) { }
+        if (playlist_loop!=null && playlist_loop.length()>0) {
+            JSONObject track = null;
+            try {
+                track = playlist_loop.getJSONObject(0);
+            } catch (JSONException ignored) { }
+            if (null!=track) {
+                handlePlayerStatus(id,
+                        getString(response, "mode"),
+                        getString(track, "remote_title"),
+                        getString(track, "artist"),
+                        getString(track, "album"),
+                        getString(track, "title"),
+                        getString(track, "artwork_url"),
+                        getString(track, "coverid"),
+                        (long) (getFloat(track, "duration") * 1000.0f),
+                        (long) (getFloat(track, "time") * 1000.0f));
+                return;
+            }
         }
+        handlePlayerStatus(id, getString(response, "mode"), null, null, null, null, null, null, 0, 0);
     }
 
     @SuppressWarnings("unchecked")

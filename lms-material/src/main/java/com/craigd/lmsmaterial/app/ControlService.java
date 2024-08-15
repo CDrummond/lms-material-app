@@ -14,7 +14,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
@@ -49,7 +52,6 @@ import androidx.preference.PreferenceManager;
 import com.craigd.lmsmaterial.app.cometd.CometClient;
 import com.craigd.lmsmaterial.app.cometd.PlayerStatus;
 
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.LinkedList;
@@ -95,8 +97,10 @@ public class ControlService extends Service {
     private PlayerStatus lastStatus;
     private String currentCover = null;
     private Bitmap currentBitmap = null;
+    private Bitmap fallbackBitmap = null;
     private Handler handler;
     private Executor executor= null;
+    private ConnectionChangeListener connectionChangeListener;
     private final Messenger messenger = new Messenger(new IncomingHandler(this));
 
     private static class IncomingHandler extends Handler {
@@ -130,8 +134,36 @@ public class ControlService extends Service {
         }
     }
 
+    public static class ConnectionChangeListener extends BroadcastReceiver {
+        private final ControlService service;
+
+        ConnectionChangeListener(ControlService service) {
+            this.service = service;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("android.net.conn.CONNECTIVITY_CHANGE".equals(intent.getAction()) && null!=service) {
+                service.handler.post(service::networkConnectivityChanged);
+            }
+        }
+    }
     public ControlService() {
         handler = new Handler(Looper.getMainLooper());
+    }
+
+    private void networkConnectivityChanged() {
+        Utils.debug("");
+        if (FULL_NOTIFICATION.equals(notificationType)) {
+            if (Utils.isNetworkConnected(this)) {
+                cometClient.setPlayer(MainActivity.activePlayer);
+                cometClient.connect();
+            } else {
+                lastStatus = null;
+                cometClient.disconnect();
+            }
+            updateNotification();
+        }
     }
 
     public synchronized void updatePlayerStatus(PlayerStatus status) {
@@ -169,7 +201,6 @@ public class ControlService extends Service {
         if (mediaSession != null) {
             mediaSession.setActive(false);
             mediaSession.release();
-            mediaSession = null;
         }
         stopForegroundService();
     }
@@ -221,8 +252,16 @@ public class ControlService extends Service {
         String setting = prefs.getString(SettingsActivity.NOTIFCATIONS_PREF_KEY, NO_NOTIFICATION);
         if (!setting.equals(FULL_NOTIFICATION)) {
             cometClient.disconnect();
+            if (null!=connectionChangeListener) {
+                unregisterReceiver(connectionChangeListener);
+                connectionChangeListener = null;
+            }
         } else {
             cometClient.connect();
+            if (null==connectionChangeListener) {
+                connectionChangeListener = new ConnectionChangeListener(this);
+                registerReceiver(connectionChangeListener, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
+            }
         }
         notificationType = setting;
     }
@@ -257,6 +296,13 @@ public class ControlService extends Service {
             mediaStyle.setMediaSession(mediaSession.getSessionToken());
         }
         return mediaStyle;
+    }
+
+    private synchronized Bitmap getFallback() {
+        if (null==fallbackBitmap) {
+            fallbackBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.notification_image);
+        }
+        return fallbackBitmap;
     }
 
     @SuppressLint("MissingPermission")
@@ -357,7 +403,7 @@ public class ControlService extends Service {
                 });
                 String title = MainActivity.activePlayerName == null || MainActivity.activePlayerName.isEmpty() ? getResources().getString(R.string.no_player) : MainActivity.activePlayerName;
                 MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder();
-                metaBuilder.putString(MediaMetadata.METADATA_KEY_TITLE, title);
+                metaBuilder.putString(MediaMetadata.METADATA_KEY_ARTIST, title);
 
                 if (statusValid) {
                     Utils.debug("Full meta data - " + lastStatus.toString());
@@ -368,11 +414,11 @@ public class ControlService extends Service {
                     if (!Utils.isEmpty(lastStatus.artist)) {
                         parts.add(lastStatus.artist);
                     }
-                    if (!Utils.isEmpty(lastStatus.album)) {
-                        parts.add(lastStatus.album);
-                    }
+                    //if (!Utils.isEmpty(lastStatus.album)) {
+                    //    parts.add(lastStatus.album);
+                    //}
 
-                    metaBuilder.putString(MediaMetadata.METADATA_KEY_ARTIST, String.join(" • ", parts))
+                    metaBuilder.putString(MediaMetadata.METADATA_KEY_TITLE, String.join(" • ", parts))
                             .putLong(MediaMetadata.METADATA_KEY_DURATION, lastStatus.duration);
                     if (!Utils.isEmpty(lastStatus.cover)) {
                         if (lastStatus.cover.equals(currentCover)) {
@@ -382,8 +428,8 @@ public class ControlService extends Service {
                         }
                     }
                 } else {
-                    metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, BitmapFactory.decodeResource(getResources(), R.drawable.notification_image))
-                            .putString(MediaMetadata.METADATA_KEY_ARTIST, getResources().getString(R.string.notification_meta_text))
+                    metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, getFallback())
+                            .putString(MediaMetadata.METADATA_KEY_TITLE, getResources().getString(R.string.notification_meta_text))
                             .putLong(MediaMetadata.METADATA_KEY_DURATION, 0);
                 }
                 Utils.debug("Set media session title to " + title);
@@ -403,6 +449,7 @@ public class ControlService extends Service {
 
     private void fetchCover(MediaMetadataCompat.Builder metaBuilder) {
         currentCover = null;
+        Utils.debug(lastStatus.cover);
         if (null==executor) {
             executor = Executors.newSingleThreadExecutor();
         }
@@ -413,9 +460,10 @@ public class ControlService extends Service {
                     currentCover = lastStatus.cover;
                 }
                 handler.post(() -> {
-                    metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, currentBitmap);
+                    metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, currentBitmap==null ? getFallback() : currentBitmap);
                     mediaSession.setMetadata(metaBuilder.build());
                     mediaSession.setActive(true);
+                    updateNotification();
                 });
             } catch (Exception e) { Utils.error("Cover error", e); }
         });
