@@ -59,6 +59,9 @@ public class ConnectionState  {
 
     private volatile State state = State.DISCONNECTED;
 
+    /** Milliseconds since boot of latest auto connect */
+    private volatile long autoConnect;
+
     /** Minimum milliseconds between automatic connection */
     private static final long AUTO_CONNECT_INTERVAL = 60_000;
 
@@ -67,6 +70,15 @@ public class ConnectionState  {
 
     /** Duration before we give up rehandshake */
     private static final long REHANDSHAKE_TIMEOUT = 15 * 60_000;
+
+    public boolean canAutoConnect() {
+        return (state == State.DISCONNECTED || state == State.CONNECTION_FAILED || state == State.REHANDSHAKING)
+                && ((SystemClock.elapsedRealtime() - autoConnect) > AUTO_CONNECT_INTERVAL);
+    }
+
+    public void setAutoConnect() {
+        this.autoConnect = SystemClock.elapsedRealtime();
+    }
 
     /**
      * Sets a new connection state, and posts a sticky

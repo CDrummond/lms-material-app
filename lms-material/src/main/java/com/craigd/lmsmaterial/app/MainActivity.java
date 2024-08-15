@@ -680,13 +680,14 @@ public class MainActivity extends AppCompatActivity {
     private void checkNetworkConnection() {
         Utils.debug("Check network connection");
         View progress = findViewById(R.id.progress);
-        if (Utils.isNetworkConnected(this)) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+        if (null!=info && info.isConnected()) {
             Utils.debug("Connected");
             webView.setVisibility(View.VISIBLE);
 
             if (connectionChangeListener != null) {
                 unregisterReceiver(connectionChangeListener);
-                connectionChangeListener = null;
             }
             progress.setVisibility(View.GONE);
 
