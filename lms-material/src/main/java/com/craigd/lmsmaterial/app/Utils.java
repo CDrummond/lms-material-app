@@ -25,8 +25,6 @@ import android.view.WindowInsets;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.List;
 
 public class Utils {
@@ -102,24 +100,6 @@ public class Utils {
         }
         debug("Notifs are allowed");
         return true;
-    }
-
-    public static boolean isEmpty(String str) {
-        return null==str || str.isEmpty();
-    }
-
-    public static String encodeURIComponent(String str) {
-        try {
-            return URLEncoder.encode(str, "UTF-8")
-                    .replaceAll("\\+", "%20")
-                    .replaceAll("\\%21", "!")
-                    .replaceAll("\\%27", "'")
-                    .replaceAll("\\%28", "(")
-                    .replaceAll("\\%29", ")")
-                    .replaceAll("\\%7E", "~");
-        } catch (UnsupportedEncodingException ignored)  {
-        }
-        return str;
     }
 
     private static String logPrefix() {

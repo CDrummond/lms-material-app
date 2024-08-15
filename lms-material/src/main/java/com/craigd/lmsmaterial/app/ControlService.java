@@ -18,7 +18,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.MediaMetadata;
@@ -47,15 +46,8 @@ import androidx.media.app.NotificationCompat.MediaStyle;
 import androidx.preference.PreferenceManager;
 
 import com.craigd.lmsmaterial.app.cometd.CometClient;
-import com.craigd.lmsmaterial.app.cometd.PlayerStatus;
 
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.net.URL;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class ControlService extends Service {
     public static final String NO_NOTIFICATION = "none";
@@ -92,11 +84,7 @@ public class ControlService extends Service {
     private String notificationType = NO_NOTIFICATION;
     private CometClient cometClient = null;
     private SharedPreferences prefs = null;
-    private PlayerStatus lastStatus;
-    private String currentCover = null;
-    private Bitmap currentBitmap = null;
-    private Handler handler;
-    private Executor executor= null;
+
     private final Messenger messenger = new Messenger(new IncomingHandler(this));
 
     private static class IncomingHandler extends Handler {
@@ -131,12 +119,6 @@ public class ControlService extends Service {
     }
 
     public ControlService() {
-        handler = new Handler(Looper.getMainLooper());
-    }
-
-    public synchronized void updatePlayerStatus(PlayerStatus status) {
-        lastStatus = status;
-        handler.post(this::updateNotification);
     }
 
     @Override
@@ -260,7 +242,7 @@ public class ControlService extends Service {
     }
 
     @SuppressLint("MissingPermission")
-    private synchronized Notification updateNotification() {
+    private Notification updateNotification() {
         Utils.debug("");
         if (!Utils.notificationAllowed(this, NOTIFICATION_CHANNEL_ID)) {
             return null;
@@ -269,7 +251,6 @@ public class ControlService extends Service {
             Intent intent = new Intent(this, MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
-            boolean statusValid = false;
             notificationBuilder
                     .setOngoing(true)
                     .setOnlyAlertOnce(true)
@@ -284,49 +265,25 @@ public class ControlService extends Service {
                     .setStyle(getMediaStyle())
                     .setChannelId(NOTIFICATION_CHANNEL_ID);
 
-            if (null!=lastStatus && lastStatus.id.equals(MainActivity.activePlayer) && FULL_NOTIFICATION.equals(notificationType)) {
-                statusValid = true;
-            } else {
-                lastStatus = null;
-            }
-
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_prev, "Previous", getPendingIntent(PREV_TRACK)));
-                if (!statusValid || !lastStatus.isPlaying) {
-                    notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play", getPendingIntent(PLAY_TRACK)));
-                }
-                if (!statusValid || lastStatus.isPlaying) {
-                    notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_pause, "Pause", getPendingIntent(PAUSE_TRACK)));
-                }
-                notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)));
+                notificationBuilder
+                        .addAction(new NotificationCompat.Action(R.drawable.ic_prev, "Previous", getPendingIntent(PREV_TRACK)))
+                        .addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play", getPendingIntent(PLAY_TRACK)))
+                        .addAction(new NotificationCompat.Action(R.drawable.ic_pause, "Pause", getPendingIntent(PAUSE_TRACK)))
+                        .addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)));
             } else {
-                PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder();
-                if (statusValid) {
-                    playbackStateBuilder.setState(lastStatus.isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_STOPPED, lastStatus.time, lastStatus.isPlaying ? 1.0f : 0)
-                                        .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SEEK_TO);
-                } else {
-                    playbackStateBuilder.setState(PlaybackStateCompat.STATE_STOPPED, 0, 0)
-                                        .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT);
-                }
-                playbackState = playbackStateBuilder.build();
+                playbackState = new PlaybackStateCompat.Builder()
+                        .setState(PlaybackStateCompat.STATE_STOPPED, 0, 0)
+                        .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
+                        .build();
                 mediaSession.setPlaybackState(playbackState);
                 mediaSession.setCallback(new MediaSessionCompat.Callback() {
                     @Override
                     public void onPlay() {
                         Utils.debug("");
-                        if (null!=lastStatus && lastStatus.id.equals(MainActivity.activePlayer) && FULL_NOTIFICATION.equals(notificationType)) {
-                            sendCommand(PLAY_COMMAND);
-                        } else {
-                            mediaSession.setPlaybackState(null);
-                            sendCommand(TOGGLE_PLAY_PAUSE_COMMAND);
-                            mediaSession.setPlaybackState(playbackState);
-                        }
-                    }
-
-                    @Override
-                    public void onPause() {
-                        Utils.debug("");
-                        sendCommand(PAUSE_COMMAND);
+                        mediaSession.setPlaybackState(null);
+                        sendCommand(TOGGLE_PLAY_PAUSE_COMMAND);
+                        mediaSession.setPlaybackState(playbackState);
                     }
 
                     @Override
@@ -337,11 +294,6 @@ public class ControlService extends Service {
                     @Override
                     public void onSkipToPrevious() {
                         sendCommand(PREV_COMMAND);
-                    }
-
-                    @Override
-                    public void onSeekTo(long pos) {
-                        sendCommand(new String[]{"time", Double.toString(pos/1000.0)});
                     }
                 });
                 mediaSession.setPlaybackToRemote(new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 50, 1) {
@@ -357,35 +309,10 @@ public class ControlService extends Service {
                 });
                 String title = MainActivity.activePlayerName == null || MainActivity.activePlayerName.isEmpty() ? getResources().getString(R.string.no_player) : MainActivity.activePlayerName;
                 MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder();
-                metaBuilder.putString(MediaMetadata.METADATA_KEY_TITLE, title);
-
-                if (statusValid) {
-                    Utils.debug("Full meta data - " + lastStatus.toString());
-                    List<String> parts = new LinkedList<>();
-                    if (!Utils.isEmpty(lastStatus.title)) {
-                        parts.add(lastStatus.title);
-                    }
-                    if (!Utils.isEmpty(lastStatus.artist)) {
-                        parts.add(lastStatus.artist);
-                    }
-                    if (!Utils.isEmpty(lastStatus.album)) {
-                        parts.add(lastStatus.album);
-                    }
-
-                    metaBuilder.putString(MediaMetadata.METADATA_KEY_ARTIST, String.join(" • ", parts))
-                            .putLong(MediaMetadata.METADATA_KEY_DURATION, lastStatus.duration);
-                    if (!Utils.isEmpty(lastStatus.cover)) {
-                        if (lastStatus.cover.equals(currentCover)) {
-                            metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, currentBitmap);
-                        } else {
-                            fetchCover(metaBuilder);
-                        }
-                    }
-                } else {
-                    metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, BitmapFactory.decodeResource(getResources(), R.drawable.notification_image))
-                            .putString(MediaMetadata.METADATA_KEY_ARTIST, getResources().getString(R.string.notification_meta_text))
-                            .putLong(MediaMetadata.METADATA_KEY_DURATION, 0);
-                }
+                metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, BitmapFactory.decodeResource(getResources(), R.drawable.notification_image))
+                        .putString(MediaMetadata.METADATA_KEY_TITLE, title)
+                        .putString(MediaMetadata.METADATA_KEY_ARTIST, getResources().getString(R.string.notification_meta_text))
+                        .putLong(MediaMetadata.METADATA_KEY_DURATION, 0);
                 Utils.debug("Set media session title to " + title);
                 mediaSession.setMetadata(metaBuilder.build());
                 mediaSession.setActive(true);
@@ -393,32 +320,12 @@ public class ControlService extends Service {
 
             Notification notification = notificationBuilder.build();
             Utils.debug("Build notification.");
-            notificationManager.notify(MSG_ID, notification);
+            notificationManager.notify(MSG_ID, notificationBuilder.build());
             return notification;
         } catch (Exception e) {
             Utils.error("Failed to create control notification", e);
         }
         return null;
-    }
-
-    private void fetchCover(MediaMetadataCompat.Builder metaBuilder) {
-        currentCover = null;
-        if (null==executor) {
-            executor = Executors.newSingleThreadExecutor();
-        }
-        executor.execute(() -> {
-            try {
-                currentBitmap = BitmapFactory.decodeStream(new URL(lastStatus.cover).openStream());
-                if (null!=currentBitmap) {
-                    currentCover = lastStatus.cover;
-                }
-                handler.post(() -> {
-                    metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, currentBitmap);
-                    mediaSession.setMetadata(metaBuilder.build());
-                    mediaSession.setActive(true);
-                });
-            } catch (Exception e) { Utils.error("Cover error", e); }
-        });
     }
 
     private void createNotification() {

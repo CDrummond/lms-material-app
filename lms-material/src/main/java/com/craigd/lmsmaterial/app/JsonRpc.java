@@ -58,7 +58,7 @@ public class JsonRpc {
         }
     };
 
-    public JsonRpc(Context context) {
+    JsonRpc(Context context) {
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         requestQueue = Volley.newRequestQueue(context);
     }
