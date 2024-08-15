@@ -16,7 +16,6 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 
@@ -33,8 +32,6 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.util.B64Code;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,21 +48,7 @@ public class CometClient {
     private static final int MSG_HANDSHAKE_TIMEOUT = 1;
     private static final int MSG_DISCONNECT = 2;
     private static final int MSG_SET_PLAYER = 3;
-    private static final int MSG_PUBLISH = 4;
 
-    private static class PublishMessage {
-        final Object request;
-        final String channel;
-        final String responseChannel;
-        final PublishListener publishListener;
-
-        private PublishMessage(Object request, String channel, String responseChannel, PublishListener publishListener) {
-            this.request = request;
-            this.channel = channel;
-            this.responseChannel = responseChannel;
-            this.publishListener = publishListener;
-        }
-    }
 
     private class MessageHandler extends Handler {
         MessageHandler(Looper looper) {
@@ -82,15 +65,8 @@ public class CometClient {
                     break;
                 case MSG_DISCONNECT:
                     disconnectFromServer();
-                    break;
                 case MSG_SET_PLAYER:
                     subscribeToPlayer((String)msg.obj);
-                    break;
-                case MSG_PUBLISH: {
-                    PublishMessage message = (PublishMessage) msg.obj;
-                    _publishMessage(message.request, message.channel, message.responseChannel, message.publishListener);
-                    break;
-                }
                 default:
                     break;
             }
@@ -142,7 +118,6 @@ public class CometClient {
             bayeuxClient = new SlimClient(connectionState, url, clientTransport);
             backgroundHandler.sendEmptyMessageDelayed(MSG_HANDSHAKE_TIMEOUT, HANDSHAKE_TIMEOUT);
             bayeuxClient.getChannel(Channel.META_HANDSHAKE).addListener((ClientSessionChannel.MessageListener) (channel, message) -> {
-                Utils.debug("Handshake OK? " + message.isSuccessful());
                 if (message.isSuccessful()) {
                     onConnected();
                 } else if (!connectionState.canRehandshake()) {
@@ -156,7 +131,6 @@ public class CometClient {
                 }
             });
             bayeuxClient.getChannel(Channel.META_CONNECT).addListener((ClientSessionChannel.MessageListener) (channel, message) -> {
-                Utils.debug("Connect OK? " + message.isSuccessful());
                 // Advices are handled internally by the bayeux protocol, so skip these here
                 if (!message.isSuccessful() && (getAdviceAction(message.getAdvice()) == null)) {
                     Utils.warn("Unsuccessful message on connect channel: " + message.getJSON());
@@ -206,8 +180,7 @@ public class CometClient {
 
     private synchronized void disconnectFromServer() {
         if (bayeuxClient != null) {
-            String[] channels = new String[]{Channel.META_HANDSHAKE, Channel.META_CONNECT};
-            for (String channelId: channels) {
+            for (String channelId: List.of(Channel.META_HANDSHAKE, Channel.META_CONNECT)) {
                 ClientSessionChannel channel = bayeuxClient.getChannel(channelId);
                 for (ClientSessionChannel.ClientSessionChannelListener listener : channel.getListeners()) {
                     channel.removeListener(listener);
@@ -222,23 +195,19 @@ public class CometClient {
     }
 
     private void subscribe(String id) {
-        Utils.debug("ID:"+id+", connected:"+connectionState.isConnected());
+        Utils.debug(id);
         if (null!=id && !id.isEmpty() && connectionState.isConnected()) {
-            subscribePlayerStatus(id);
-            //bayeuxClient.getChannel("/"+bayeuxClient.getId() + "/slim/playerstatus/" + id).subscribe(this::handlePlayerStatus);
+            bayeuxClient.getChannel("/"+bayeuxClient.getId() + "/slim/playerstatus/" + id).subscribe(this::handlePlayerStatus);
         }
     }
     private void unsubscribe(String id) {
-        Utils.debug("ID:"+id+", connected:"+connectionState.isConnected());
+        Utils.debug(id);
         if (null!=id && !id.isEmpty() && connectionState.isConnected()) {
-            //bayeuxClient.getChannel("/"+bayeuxClient.getId() + "/slim/playerstatus/" + id).unsubscribe();
-            //unsubscribePlayerStatus(id)
+            bayeuxClient.getChannel("/"+bayeuxClient.getId() + "/slim/playerstatus/" + id).unsubscribe();
         }
     }
     private synchronized void onConnected() {
-        Utils.debug("currentPlayer:"+currentPlayer);
         connectionState.setConnectionState(ConnectionState.State.CONNECTION_COMPLETED);
-        bayeuxClient.getChannel("/"+bayeuxClient.getId() + "/slim/playerstatus/*").subscribe(this::handlePlayerStatus);
         subscribe(currentPlayer);
         backgroundHandler.removeMessages(MSG_HANDSHAKE_TIMEOUT);
     }
@@ -255,61 +224,5 @@ public class CometClient {
 
         Map<String, Object> messageData = message.getDataAsMap();
         // TODO: Update notification...
-    }
-
-    private class PublishListener implements ClientSessionChannel.MessageListener {
-        @Override
-        public void onMessage(ClientSessionChannel channel, Message message) {
-            if (!message.isSuccessful()) {
-                if (Message.RECONNECT_HANDSHAKE_VALUE.equals(getAdviceAction(message.getAdvice()))) {
-                    Utils.info("rehandshake");
-                    bayeuxClient.rehandshake();
-                } else {
-                    Map<String, Object> failure = (Map<String, Object>) message.get("failure");
-                    Exception exception = (failure != null) ? (Exception) failure.get("exception") : null;
-                    Utils.warn(channel + ": " + message.getJSON(), exception);
-                }
-            }
-        }
-    }
-
-    private void publishMessage(Object request, final String channel, final String responseChannel, final PublishListener publishListener) {
-        // Make sure all requests are done in the handler thread
-        if (backgroundHandler.getLooper() == Looper.myLooper()) {
-            _publishMessage(request, channel, responseChannel, publishListener);
-        } else {
-            PublishMessage publishMessage = new PublishMessage(request, channel, responseChannel, publishListener);
-            android.os.Message message = backgroundHandler.obtainMessage(MSG_PUBLISH, publishMessage);
-            backgroundHandler.sendMessage(message);
-        }
-    }
-
-    private void _publishMessage(Object request, String channel, String responseChannel, PublishListener publishListener) {
-        Map<String, Object> data = new HashMap<>();
-        if (request != null) {
-            data.put("request", request);
-            data.put("response", responseChannel);
-        } else {
-            data.put("unsubscribe", responseChannel);
-        }
-        bayeuxClient.getChannel(channel).publish(data);
-    }
-
-    private void subscribePlayerStatus(String id) {
-        List<Object> req = new ArrayList<>();
-        List<Object> params = new ArrayList<>();
-        params.add("status");
-        params.add("-");
-        params.add("1");
-        params.add("subscribe:0");
-        params.add("tags:cdegilopqrstuyAABEGIKNPSTV"); // TODO
-        req.add(id);
-        req.add(params);
-        publishMessage(req, "/slim/subscribe", "/"+bayeuxClient.getId() + "/slim/playerstatus/" + id, new PublishListener() {
-            @Override
-            public void onMessage(ClientSessionChannel channel, Message message) {
-                super.onMessage(channel, message);
-            }
-        });
     }
 }
