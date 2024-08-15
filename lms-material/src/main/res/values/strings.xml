@@ -28,7 +28,9 @@
     <string name="oncall">During phone call</string>
     <string name="orientation">Orientation</string>
     <string name="no_player">No player</string>
-    <string name="notifications">Show notification</string>
+    <string name="enable_notif">Show notification</string>
+    <string name="enable_notif_summary">Display current player name and basic controls in notification and lockscreen.\n\nNOTE: Playback state is not reflected in these controls, both \'play\' and \'pause\' buttons wil be visible.</string>
+    <string name="enable_notif_summary_media_session">Display current player name and basic controls in notification and lockscreen.\n\nNOTE: Playback state is not reflected in these controls, the  \'play\' buttons is always visible and will toggle play/pause.</string>
     <string name="auth_request">Server requires authentication</string>
     <string name="username">Username</string>
     <string name="password">Password</string>

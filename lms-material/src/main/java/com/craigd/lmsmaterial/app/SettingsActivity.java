@@ -49,7 +49,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String KEEP_SCREEN_ON_PREF_KEY = "keep_screen_on";
     public static final String ORIENTATION_PREF_KEY = "orientation";
     public static final String ON_CALL_PREF_KEY = "on_call";
-    public static final String NOTIFCATIONS_PREF_KEY = "notifs";
+    public static final String ENABLE_NOTIF_PREF_KEY = "enable_notif";
     public static final String SHOW_OVER_LOCK_SCREEN_PREF_KEY ="show_over_lock_screen";
     public static final String DEFAULT_PLAYER_PREF_KEY ="default_player";
     public static final String SINGLE_PLAYER_PREF_KEY ="single_player";
@@ -382,6 +382,13 @@ public class SettingsActivity extends AppCompatActivity {
                 });
             }
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                SwitchPreferenceCompat notifPref = getPreferenceManager().findPreference(ENABLE_NOTIF_PREF_KEY);
+                if (null != notifPref) {
+                    notifPref.setSummary(getResources().getString(R.string.enable_notif_summary_media_session));
+                }
+            }
+
             if (Utils.cutoutTopLeft(activity)) {
                 SwitchPreferenceCompat fullscreenPref = getPreferenceManager().findPreference(FULLSCREEN_PREF_KEY);
                 if (null != fullscreenPref) {
@@ -389,7 +396,6 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
 
-            updateListSummary(NOTIFCATIONS_PREF_KEY);
             updateListSummary(ORIENTATION_PREF_KEY);
             updateListSummary(ON_CALL_PREF_KEY);
             updateListSummary(PLAYER_APP_PREF_KEY);
@@ -418,9 +424,8 @@ public class SettingsActivity extends AppCompatActivity {
                     activity.checkTermuxPermission();
                 }
             }
-            if (NOTIFCATIONS_PREF_KEY.equals(key)) {
-                updateListSummary(key);
-                if (! ControlService.NO_NOTIFICATION.equals(sharedPreferences.getString(key, ControlService.NO_NOTIFICATION))) {
+            if (ENABLE_NOTIF_PREF_KEY.equals(key)) {
+                if (sharedPreferences.getBoolean(key, false)) {
                     activity.checkNotificationPermission();
                 } else {
                     resetOnCall();
@@ -475,25 +480,22 @@ public class SettingsActivity extends AppCompatActivity {
             updateListSummary(PLAYER_APP_PREF_KEY);
         }
 
-        public void setNotifications(String val) {
+        public void enableNotifications(boolean enabled) {
             if (getContext()==null) {
                 return;
             }
-            ListPreference pref = getPreferenceManager().findPreference(NOTIFCATIONS_PREF_KEY);
-            String current = null==pref ? ControlService.NO_NOTIFICATION : pref.getValue();
+            SwitchPreferenceCompat pref = getPreferenceManager().findPreference(ENABLE_NOTIF_PREF_KEY);
 
-            if (!ControlService.NO_NOTIFICATION.equals(val) && !ControlService.NO_NOTIFICATION.equals(current)) {
-                // Already enabled
-                return;
+            if (pref==null || pref.isChecked()!=enabled) {
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean(ENABLE_NOTIF_PREF_KEY, enabled);
+                if (pref != null) {
+                    pref.setChecked(enabled);
+                }
+                editor.apply();
             }
-
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString(NOTIFCATIONS_PREF_KEY, val);
-            editor.apply();
-            updateListSummary(NOTIFCATIONS_PREF_KEY);
-
-            if (ControlService.NO_NOTIFICATION.equals(val)) {
+            if (!enabled) {
                 resetOnCall();
             }
         }
@@ -517,7 +519,7 @@ public class SettingsActivity extends AppCompatActivity {
         } else if (reqPhoneState) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, PERMISSION_READ_PHONE_STATE);
         } else  {
-            fragment.setNotifications(ControlService.FULL_NOTIFICATION);
+            fragment.enableNotifications(true);
         }
     }
 
@@ -525,7 +527,7 @@ public class SettingsActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, PERMISSION_READ_PHONE_STATE);
         } else  {
-            fragment.setNotifications(ControlService.FULL_NOTIFICATION);
+            fragment.enableNotifications(true);
         }
     }
 
@@ -542,7 +544,7 @@ public class SettingsActivity extends AppCompatActivity {
                 if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     fragment.resetOnCall();
                 } else {
-                    fragment.setNotifications(ControlService.FULL_NOTIFICATION);
+                    fragment.enableNotifications(true);
                 }
                 return;
             }
@@ -554,18 +556,18 @@ public class SettingsActivity extends AppCompatActivity {
             }
             case PERMISSION_POST_NOTIFICATIONS: {
                 if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    fragment.setNotifications(ControlService.FULL_NOTIFICATION);
+                    fragment.enableNotifications(false);
                 }
                 return;
             }
             case PERMISSION_NOTIFS_AND_READ_PHONE_STATE:
                 if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    fragment.setNotifications(ControlService.NO_NOTIFICATION);
+                    fragment.enableNotifications(false);
                     fragment.resetOnCall();
                 } else if (grantResults[1] != PackageManager.PERMISSION_GRANTED) {
                     fragment.resetOnCall();
                 } else {
-                    fragment.setNotifications(ControlService.FULL_NOTIFICATION);
+                    fragment.enableNotifications(true);
                 }
                 return;
         }

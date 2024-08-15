@@ -28,7 +28,9 @@
     <string name="oncall">Pendant un appel téléphonique</string>
     <string name="orientation">Orientation</string>
     <string name="no_player">Aucune platine</string>
-    <string name="notifications">Afficher les notifications</string>
+    <string name="enable_notif">Afficher les notifications</string>
+    <string name="enable_notif_summary">Affiche le nom de la platine actuelle et les commandes de base dans les notifications et sur l\'écran de verrouillage.\n\nREMARQUE : l\'état de lecture n\'étant pas actualisé, les boutons \'lecture\' et \'pause\' resteront visibles.</string>
+    <string name="enable_notif_summary_media_session">Affiche le nom de la platine actuelle et les commandes de base dans les notifications et sur l\'écran de verrouillage.\n\nREMARQUE : l\'état de lecture n\'étant pas actualisé, le bouton \'lecture\' restera visible et alternera les lectures et pauses.</string>
     <string name="auth_request">Le serveur nécessite une authentification</string>
     <string name="username">Nom d\'utilisateur</string>
     <string name="password">Mot de passe</string>
