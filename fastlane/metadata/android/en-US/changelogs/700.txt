@@ -1,0 +1,3 @@
+Improved
+
+• Add option to allow full media-session notifications, with cover art and status updates.
