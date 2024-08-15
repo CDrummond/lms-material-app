@@ -133,7 +133,7 @@ public class HttpStreamingTransport extends HttpClientTransport implements Messa
         Matcher uriMatcher = uriRegexp.matcher(getURL());
         if (uriMatcher.matches()) {
             String afterPath = uriMatcher.group(9);
-            _appendMessageType = afterPath == null || afterPath.trim().isEmpty();
+            _appendMessageType = afterPath == null || afterPath.trim().length() == 0;
         }
         _cookieManager = new CookieManager(getCookieStore(), CookiePolicy.ACCEPT_ALL);
 
@@ -770,6 +770,7 @@ public class HttpStreamingTransport extends HttpClientTransport implements Messa
         }
     }
 
+
     private static String getAdviceAction(Map<String, Object> advice) {
         String action = null;
         if (advice != null && advice.containsKey(Message.RECONNECT_FIELD))
@@ -784,4 +785,5 @@ public class HttpStreamingTransport extends HttpClientTransport implements Messa
 
     protected void customize(Request request) {
     }
+
 }
