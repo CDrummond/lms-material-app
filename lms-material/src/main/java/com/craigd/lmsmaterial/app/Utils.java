@@ -16,6 +16,8 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Insets;
 import android.graphics.Rect;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -25,10 +27,18 @@ import android.view.WindowInsets;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 
 public class Utils {
     public static final String LOG_TAG = "LMS";
+
+    public static boolean isNetworkConnected(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+        return null!=info && info.isConnected();
+    }
 
     public static float convertPixelsToDp(float px, Context context){
         return px / ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
@@ -102,6 +112,24 @@ public class Utils {
         return true;
     }
 
+    public static boolean isEmpty(String str) {
+        return null==str || str.isEmpty();
+    }
+
+    public static String encodeURIComponent(String str) {
+        try {
+            return URLEncoder.encode(str, "UTF-8")
+                    .replaceAll("\\+", "%20")
+                    .replaceAll("\\%21", "!")
+                    .replaceAll("\\%27", "'")
+                    .replaceAll("\\%28", "(")
+                    .replaceAll("\\%29", ")")
+                    .replaceAll("\\%7E", "~");
+        } catch (UnsupportedEncodingException ignored)  {
+        }
+        return str;
+    }
+
     private static String logPrefix() {
         StackTraceElement st[] = Thread.currentThread().getStackTrace();
         if (null!=st && st.length>4) {
@@ -126,6 +154,18 @@ public class Utils {
     public static void info(String message) {
         if (BuildConfig.DEBUG) {
             Log.i(LOG_TAG, logPrefix() + message);
+        }
+    }
+
+    public static void warn(String message) {
+        if (BuildConfig.DEBUG) {
+            Log.w(LOG_TAG, logPrefix() + message);
+        }
+    }
+
+    public static void warn(String message, Throwable t) {
+        if (BuildConfig.DEBUG) {
+            Log.w(LOG_TAG, logPrefix() + message, t);
         }
     }
 

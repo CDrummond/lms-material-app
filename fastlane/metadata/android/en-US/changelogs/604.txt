@@ -1,3 +1,0 @@
-Fixed
-
-• Resize view when keyboard shown.

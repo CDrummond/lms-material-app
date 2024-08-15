@@ -79,11 +79,12 @@
             app:key="show_over_lock_screen"
             app:summary="@string/show_over_lock_screen_summary"
             app:title="@string/show_over_lock_screen" />
-        <SwitchPreferenceCompat
-            app:iconSpaceReserved="false"
-            app:key="enable_notif"
-            app:summary="@string/enable_notif_summary"
-            app:title="@string/enable_notif" />
+        <ListPreference
+            android:entries="@array/notifs"
+            android:entryValues="@array/notifsAlias"
+            android:key="notifs"
+            android:title="@string/notifications"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

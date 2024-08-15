@@ -26,8 +26,7 @@
     <string name="oncall">Під час розмови</string>
     <string name="orientation">Орієнтація</string>
     <string name="no_player">Немає плеєра</string>
-    <string name="enable_notif">Показувати сповіщення</string>
-    <string name="enable_notif_summary">Відображати ім\'я поточного плеєра та основні елементи керування в сповіщеннях і на екрані блокування.\n\nПРИМІТКА: Стан відтворення не відображається в цих елементах керування, буде відображено кнопки «Відтворення» та «Пауза».</string>
+    <string name="notifications">Показувати сповіщення</string>
     <string name="auth_request">Сервер вимагає автентифікації</string>
     <string name="username">Ім\'я користувача</string>
     <string name="password">Пароль</string>
