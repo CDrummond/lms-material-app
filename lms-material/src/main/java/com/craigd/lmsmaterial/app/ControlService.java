@@ -91,6 +91,7 @@ public class ControlService extends Service {
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManagerCompat notificationManager;
     private MediaSessionCompat mediaSession;
+    MediaSessionCompat.Callback mediaSessionCallback;
     private PlaybackStateCompat playbackState;
     private String notificationType = NO_NOTIFICATION;
     private CometClient cometClient = null;
@@ -359,40 +360,44 @@ public class ControlService extends Service {
                 }
                 playbackState = playbackStateBuilder.build();
                 mediaSession.setPlaybackState(playbackState);
-                mediaSession.setCallback(new MediaSessionCompat.Callback() {
-                    @Override
-                    public void onPlay() {
-                        Utils.debug("");
-                        if (null!=lastStatus && lastStatus.id.equals(MainActivity.activePlayer) && FULL_NOTIFICATION.equals(notificationType)) {
-                            sendCommand(PLAY_COMMAND);
-                        } else {
-                            mediaSession.setPlaybackState(null);
-                            sendCommand(TOGGLE_PLAY_PAUSE_COMMAND);
-                            mediaSession.setPlaybackState(playbackState);
+                if (mediaSessionCallback==null) {
+                    mediaSessionCallback=new MediaSessionCompat.Callback() {
+                        @Override
+                        public void onPlay() {
+                            Utils.debug("");
+                            if (null!=lastStatus && lastStatus.id.equals(MainActivity.activePlayer) && FULL_NOTIFICATION.equals(notificationType)) {
+                                sendCommand(PLAY_COMMAND);
+                            } else {
+                                mediaSession.setPlaybackState(null);
+                                sendCommand(TOGGLE_PLAY_PAUSE_COMMAND);
+                                mediaSession.setPlaybackState(playbackState);
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onPause() {
-                        Utils.debug("");
-                        sendCommand(PAUSE_COMMAND);
-                    }
+                        @Override
+                        public void onPause() {
+                            Utils.debug("");
+                            sendCommand(PAUSE_COMMAND);
+                        }
 
-                    @Override
-                    public void onSkipToNext() {
-                        sendCommand(NEXT_COMMAND);
-                    }
+                        @Override
+                        public void onSkipToNext() {
+                            sendCommand(NEXT_COMMAND);
+                        }
 
-                    @Override
-                    public void onSkipToPrevious() {
-                        sendCommand(PREV_COMMAND);
-                    }
+                        @Override
+                        public void onSkipToPrevious() {
+                            sendCommand(PREV_COMMAND);
+                        }
 
-                    @Override
-                    public void onSeekTo(long pos) {
-                        sendCommand(new String[]{"time", Double.toString(pos/1000.0)});
-                    }
-                });
+                        @Override
+                        public void onSeekTo(long pos) {
+                            sendCommand(new String[]{"time", Double.toString(pos/1000.0)});
+                        }
+                    };
+                }
+                mediaSession.setCallback(mediaSessionCallback);
+
                 mediaSession.setPlaybackToRemote(new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 50, 1) {
                     @Override
                     public void onAdjustVolume(int direction) {
