@@ -481,7 +481,7 @@ public class CometClient {
     }
 
     private synchronized void handlePlayerStatus(String id, JSONObject response) {
-        Utils.verbose(id);
+        Utils.verbose("JSON " + id);
         if (!Objects.equals(id, currentPlayer)) {
             return;
         }
@@ -504,7 +504,7 @@ public class CometClient {
                         getString(track, "artwork_url"),
                         getString(track, "coverid"),
                         (long) (getFloat(track, "duration") * 1000.0f),
-                        (long) (getFloat(track, "time") * 1000.0f));
+                        (long) (getFloat(response, "time") * 1000.0f));
                 return;
             }
         }
@@ -513,10 +513,9 @@ public class CometClient {
 
     @SuppressWarnings("unchecked")
     private synchronized void handlePlayerStatus(ClientSessionChannel channel, Message message) {
-        Utils.debug("");
         String[] parts = message.getChannel().split("/");
         String playerId = parts[parts.length - 1];
-        Utils.verbose(playerId);
+        Utils.verbose("CometD " + playerId);
 
         if (!Objects.equals(playerId, currentPlayer)) {
             return;
