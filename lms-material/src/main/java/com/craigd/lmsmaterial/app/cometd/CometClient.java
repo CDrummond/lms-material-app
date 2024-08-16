@@ -193,6 +193,7 @@ public class CometClient {
                 }
             };
             bayeuxClient = new SlimClient(connectionState, url, clientTransport);
+            bayeuxClient.addExtension(new BayeuxExtension());
             backgroundHandler.sendEmptyMessageDelayed(MSG_HANDSHAKE_TIMEOUT, HANDSHAKE_TIMEOUT);
             bayeuxClient.getChannel(Channel.META_HANDSHAKE).addListener((ClientSessionChannel.MessageListener) (channel, message) -> {
                 Utils.debug("Handshake OK? " + message.isSuccessful() + " , canRehandshake? " + connectionState.canRehandshake());
@@ -281,6 +282,7 @@ public class CometClient {
 
     private synchronized void onConnected() {
         Utils.debug("currentPlayer:"+currentPlayer);
+        subscribedPlayer = null;
         connectionState.setConnectionState(ConnectionState.State.CONNECTION_COMPLETED);
         bayeuxClient.getChannel("/"+bayeuxClient.getId() + "/slim/playerstatus/*").subscribe(this::handlePlayerStatus);
         subscribeToPlayer(currentPlayer);
