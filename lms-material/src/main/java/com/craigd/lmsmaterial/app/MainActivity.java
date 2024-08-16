@@ -25,8 +25,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -133,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
             Utils.debug("Setup control messenger");
             controlServiceMessenger = new Messenger(service);
             if (null != activePlayer && null != activePlayerName) {
-                updateControlService(activePlayer, activePlayerName);
+                sendMessageToService(ControlService.ACTIVE_PLAYER, new String[]{activePlayer, activePlayerName});
             }
         }
 
@@ -584,6 +582,7 @@ public class MainActivity extends AppCompatActivity {
                 localPlayer.autoStart(false);
                 pageLoaded = true;
                 webView.setVisibility(View.VISIBLE);
+                sendMessageToService(ControlService.CHECK_COMET_CONNECTION, null);
                 super.onPageStarted(view, u, favicon);
             }
 
@@ -734,7 +733,7 @@ public class MainActivity extends AppCompatActivity {
         Utils.debug("Active player: "+playerId+", name: "+playerName);
         activePlayer = playerId;
         activePlayerName = playerName;
-        updateControlService(activePlayer, playerName);
+        sendMessageToService(ControlService.ACTIVE_PLAYER, new String[]{activePlayer, activePlayerName});
     }
 
     public static String getLocalIpAddress() {
@@ -1087,13 +1086,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateControlService(String playerId, String playerName) {
+    private void sendMessageToService(int msgId, Object params) {
         if (controlServiceMessenger!=null) {
-            Message msg = Message.obtain(null, ControlService.ACTIVE_PLAYER, new String[]{playerId, playerName});
+            Message msg = Message.obtain(null, msgId, params);
             try {
                 controlServiceMessenger.send(msg);
             } catch (RemoteException e) {
-                Utils.error("Failed to update service");
+                Utils.error("Failed to send id:" + msgId + " to service");
             }
         }
     }

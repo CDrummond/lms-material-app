@@ -52,7 +52,11 @@ public class CometClient {
     private SlimClient bayeuxClient;
     private String currentPlayer = null;
     private String subscribedPlayer = null;
-    private String serverAddress = null;
+    // Keep server details so that we can detect if changed
+    private String serverAddress = "";
+    private int serverPort = 9000;
+    private String serverUser = "";
+    private String serverPass = "";
     private final Handler backgroundHandler;
     private ControlService service;
     private JsonRpc rpc;
@@ -67,8 +71,9 @@ public class CometClient {
     private static final int HANDSHAKE_TIMEOUT = 4*1000;
     private static final int MSG_HANDSHAKE_TIMEOUT = 1;
     private static final int MSG_DISCONNECT = 2;
-    private static final int MSG_SET_PLAYER = 3;
-    private static final int MSG_PUBLISH = 4;
+    private static final int MSG_RECONNECT = 3;
+    private static final int MSG_SET_PLAYER = 4;
+    private static final int MSG_PUBLISH = 5;
 
     private class PublishListener implements ClientSessionChannel.MessageListener {
         @Override
@@ -116,6 +121,10 @@ public class CometClient {
                 case MSG_DISCONNECT:
                     disconnectFromServer();
                     break;
+                case MSG_RECONNECT:
+                    disconnectFromServer();
+                    connect();
+                    break;
                 case MSG_SET_PLAYER:
                     subscribeToPlayer((String)msg.obj);
                     break;
@@ -139,9 +148,19 @@ public class CometClient {
         backgroundHandler = new MessageHandler(handlerThread.getLooper());
     }
 
+    public synchronized void reconnectIfChanged() {
+        Utils.debug("");
+        ServerDiscovery.Server server = new ServerDiscovery.Server(prefs.getString(SettingsActivity.SERVER_PREF_KEY, null));
+        boolean changed = !serverUser.equals(prefs.getString(LMS_USERNAME_KEY, "")) ||
+                          !serverPass.equals(prefs.getString(LMS_PASSWORD_KEY, "")) ||
+                          serverPort!=server.port || !serverAddress.equals(server.ip);
+        if (changed) {
+            disconnect(true);
+        }
+    }
+
     public synchronized void connect() {
         Utils.debug("");
-        disconnect();
         connectionState.setConnectionState(ConnectionState.State.CONNECTION_STARTED);
         backgroundHandler.post(() -> {
             ServerDiscovery.Server server = new ServerDiscovery.Server(prefs.getString(SettingsActivity.SERVER_PREF_KEY, null));
@@ -158,17 +177,18 @@ public class CometClient {
                 return;
             }
 
-            serverAddress = "http://" + server.ip + ":" + server.port;
-            String url = serverAddress + "/cometd";
+            serverAddress = server.ip;
+            serverPort = server.port;
+            String url = "http://"+serverAddress+":"+serverPort + "/cometd";
             Utils.debug("CometD URL: " + url);
             ClientTransport clientTransport = new HttpStreamingTransport(url, null, httpClient) {
                 @Override
                 protected void customize(org.eclipse.jetty.client.api.Request request) {
-                    String user = prefs.getString(LMS_USERNAME_KEY, "");
-                    String pass = prefs.getString(LMS_PASSWORD_KEY, "");
+                    serverUser = prefs.getString(LMS_USERNAME_KEY, "");
+                    serverPass= prefs.getString(LMS_PASSWORD_KEY, "");
 
-                    if (!user.isEmpty() && !pass.isEmpty()) {
-                        request.header(HttpHeader.AUTHORIZATION, "Basic " + B64Code.encode(user + ":" + pass));
+                    if (!serverUser.isEmpty() && !serverPass.isEmpty()) {
+                        request.header(HttpHeader.AUTHORIZATION, "Basic " + B64Code.encode(serverUser + ":" + serverPass));
                     }
                 }
             };
@@ -231,9 +251,13 @@ public class CometClient {
     }
 
     public void disconnect() {
+        disconnect(false);
+    }
+
+    private void disconnect(boolean andReconnect) {
         Utils.debug("");
         if (bayeuxClient != null) {
-            backgroundHandler.sendEmptyMessage(MSG_DISCONNECT);
+            backgroundHandler.sendEmptyMessage(andReconnect ? MSG_RECONNECT : MSG_DISCONNECT);
         }
         connectionState.setConnectionState(ConnectionState.State.DISCONNECTED);
     }
@@ -388,7 +412,7 @@ public class CometClient {
     }
 
     private String coverUrl(String path) {
-        return path.startsWith("http") ? path : (serverAddress + (path.startsWith("/") ? path : ("/"+path)));
+        return path.startsWith("http") ? path : ("http://"+serverAddress+":"+serverPort + (path.startsWith("/") ? path : ("/"+path)));
     }
 
     private void handlePlayerStatus(String id, String mode, String remote_title, String artist, String album, String title,

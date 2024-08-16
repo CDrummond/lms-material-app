@@ -69,6 +69,7 @@ public class ControlService extends Service {
     private static final String PAUSE_TRACK = ControlService.class.getCanonicalName() + ".PAUSE_TRACK";
     public static final int ACTIVE_PLAYER = 1;
     public static final int PLAYER_REFRESH = 2;
+    public static final int CHECK_COMET_CONNECTION = 3;
 
     private static final int MSG_ID = 1;
     private static final String[] PREV_COMMAND = {"button", "jump_rew"};
@@ -128,6 +129,8 @@ public class ControlService extends Service {
                 srv.updateNotification();
             } else if (msg.what == PLAYER_REFRESH && null!=srv.notificationBuilder && null!=srv.notificationManager) {
                 srv.createNotification();
+            } else if (msg.what == CHECK_COMET_CONNECTION && null!=srv.cometClient && FULL_NOTIFICATION.equals(srv.notificationType)) {
+                srv.cometClient.reconnectIfChanged();
             } else {
                 super.handleMessage(msg);
             }
