@@ -11,6 +11,6 @@
     <color name="colorPrimaryLight">#222</color>
     <color name="colorPrimaryDarkLight">#fff</color>
     <color name="colorBackgroundLight">#fff</color>
-    <color name="colorToastBackgroundLight">#e5e5e5</color>
     <color name="colorTextLight">#333</color>
+    <color name="colorTextDimLight">#999</color>
 </resources>

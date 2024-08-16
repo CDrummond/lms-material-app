@@ -12,6 +12,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
@@ -58,7 +60,6 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String AUTO_START_PLAYER_APP_PREF_KEY = "auto_start_player";
     public static final String PLAYER_START_MENU_ITEM_PREF_KEY = "menu_start_player";
     public static final String STOP_APP_ON_QUIT_PREF_KEY = "stop_app_on_quit";
-    //public static final String IS_DARK_PREF_KEY = "is_dark";
     public static final String SQUEEZELITE_OPTIONS_KEY = "squeezelite_options";
 
     public static final String TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND";
@@ -78,12 +79,11 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        boolean isDark = true; // PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean(IS_DARK_PREF_KEY, true);
-        setTheme(isDark ? R.style.AppTheme : R.style.AppTheme_Light);
-        getWindow().setStatusBarColor(ContextCompat.getColor(this, isDark ? R.color.colorBackground : R.color.colorBackgroundLight));
-        getWindow().setNavigationBarColor(ContextCompat.getColor(this, isDark ? R.color.colorBackground : R.color.colorBackgroundLight));
+        setTheme(MainActivity.isDark ? R.style.AppTheme : R.style.AppTheme_Light);
+        getWindow().setStatusBarColor(ContextCompat.getColor(this, MainActivity.isDark ? R.color.colorBackground : R.color.colorBackgroundLight));
+        getWindow().setNavigationBarColor(ContextCompat.getColor(this, MainActivity.isDark ? R.color.colorBackground : R.color.colorBackgroundLight));
         int flags = getWindow().getDecorView().getSystemUiVisibility();
-        getWindow().getDecorView().setSystemUiVisibility(isDark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
+        getWindow().getDecorView().setSystemUiVisibility(MainActivity.isDark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
 
         visible = true;
         setContentView(R.layout.settings_activity);
@@ -97,6 +97,7 @@ public class SettingsActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, MainActivity.isDark ? R.color.colorBackground : R.color.colorBackgroundLight)));
         }
     }
 

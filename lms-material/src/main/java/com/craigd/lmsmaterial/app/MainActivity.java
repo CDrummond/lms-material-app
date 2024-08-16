@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
     private UrlHandler urlHander;
     private JSONArray downloadData = null;
     private LocalPlayer localPlayer = null;
-    //private boolean isDark = true;
+    public static boolean isDark = true;
     private boolean pageLoaded = false;
     private long recreateTime = 0;
 
@@ -522,7 +522,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        //isDark = sharedPreferences.getBoolean(SettingsActivity.IS_DARK_PREF_KEY, true);
         localPlayer = new LocalPlayer(sharedPreferences, this);
         setTheme();
         setDefaults();
@@ -773,7 +772,12 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 try {
                     int flags = getWindow().getDecorView().getSystemUiVisibility();
-                    boolean dark = !theme.contains("light") || theme.contains("-colored");
+                    boolean darkTheme = !theme.contains("light");
+                    if (darkTheme!=isDark) {
+                        isDark = darkTheme;
+                        //setTheme();
+                    }
+                    boolean dark = isDark || theme.contains("-colored");
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR)) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR));
                     } else {
