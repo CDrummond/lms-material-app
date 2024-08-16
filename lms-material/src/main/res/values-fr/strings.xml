@@ -54,7 +54,7 @@
     <string name="auto_start_player">Démarrer automatiquement la platine</string>
     <string name="auto_start_player_summary">Lance automatiquement l\'application \"platine\" en même temps que cette application.</string>
     <string name="stop_app_on_quit">Arrêter la platine en quittant</string>
-    <string name="stop_app_on_quit_summary">Arrête l\'application \"platine\" en sortant par le menu \'Quitter\'.</string>
+    <string name="stop_app_on_quit_summary">Arrête l\'application \"platine\" en sortant par le menu \"Quitter\".</string>
     <string name="stop_app">Appuyer ici pour arrêter la platine</string>
     <string name="stop_app_summary">Arrête l\'application \"platine\" choisie.</string>
     <string name="menu_start_player">Ajouter un menu pour démarrer la platine</string>
