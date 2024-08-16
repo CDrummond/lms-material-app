@@ -195,7 +195,7 @@ public class CometClient {
             bayeuxClient = new SlimClient(connectionState, url, clientTransport);
             backgroundHandler.sendEmptyMessageDelayed(MSG_HANDSHAKE_TIMEOUT, HANDSHAKE_TIMEOUT);
             bayeuxClient.getChannel(Channel.META_HANDSHAKE).addListener((ClientSessionChannel.MessageListener) (channel, message) -> {
-                Utils.debug("Handshake OK? " + message.isSuccessful());
+                Utils.debug("Handshake OK? " + message.isSuccessful() + " , canRehandshake? " + connectionState.canRehandshake());
                 if (message.isSuccessful()) {
                     onConnected();
                 } else if (!connectionState.canRehandshake()) {
