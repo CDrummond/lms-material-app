@@ -23,6 +23,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="quit">Quit</string>
+    <string name="power">Power</string>
     <string name="keep_screen_on">Keep screen on</string>
     <string name="keep_screen_on_summary">Keep screen on whilst in use.</string>
     <string name="oncall">During phone call</string>

@@ -26,6 +26,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.MediaMetadata;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -70,7 +71,8 @@ public class ControlService extends Service {
     public static final int ACTIVE_PLAYER = 1;
     public static final int PLAYER_REFRESH = 2;
     public static final int CHECK_COMET_CONNECTION = 3;
-
+    private static final String ACTION_POWER = "power";
+    private static final String ACTION_QUIT = "quit";
     private static final int MSG_ID = 1;
     private static final String[] PREV_COMMAND = {"button", "jump_rew"};
     private static final String[] PLAY_COMMAND = {"play"};
@@ -79,6 +81,7 @@ public class ControlService extends Service {
     private static final String[] TOGGLE_PLAY_PAUSE_COMMAND = {"pause"};
     private static final String[] DEC_VOLUME_COMMAND = {"mixer", "volume", "-5"};
     private static final String[] INC_VOLUME_COMMAND = {"mixer", "volume", "+5"};
+    private static final String[] POWER_COMMAND = {"power"};
     public static final String NOTIFICATION_CHANNEL_ID = "lms_control_service";
 
     private static boolean isRunning = false;
@@ -358,6 +361,8 @@ public class ControlService extends Service {
                     playbackStateBuilder.setState(PlaybackStateCompat.STATE_STOPPED, 0, 0)
                                         .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT);
                 }
+                playbackStateBuilder.addCustomAction(ACTION_POWER, getString(R.string.power), android.R.drawable.ic_lock_power_off)
+                        .addCustomAction(ACTION_QUIT, getString(R.string.quit), R.drawable.ic_action_quit);
                 playbackState = playbackStateBuilder.build();
                 mediaSession.setPlaybackState(playbackState);
                 if (mediaSessionCallback==null) {
@@ -393,6 +398,16 @@ public class ControlService extends Service {
                         @Override
                         public void onSeekTo(long pos) {
                             sendCommand(new String[]{"time", Double.toString(pos/1000.0)});
+                        }
+
+                        @Override
+                        public void onCustomAction(String action, Bundle extras) {
+                            if (ACTION_QUIT.equals(action)) {
+                                stopForegroundService();
+                                System.exit(0);
+                            } else if (ACTION_POWER.equals(action)) {
+                                sendCommand(POWER_COMMAND);
+                            }
                         }
                     };
                 }

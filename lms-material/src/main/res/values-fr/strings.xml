@@ -23,6 +23,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Annuler</string>
     <string name="quit">Quitter</string>
+    <string name="power">Mise sous tension</string>
     <string name="keep_screen_on">Garder l\'écran allumé</string>
     <string name="keep_screen_on_summary">Maintient l\'écran allumé pendant l\'utilisation.</string>
     <string name="oncall">Pendant un appel téléphonique</string>

@@ -21,6 +21,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Отмена</string>
     <string name="quit">Выйти</string>
+    <string name="power">Питание</string>
     <string name="keep_screen_on">Не отключать экран</string>
     <string name="keep_screen_on_summary">Не отключать экран во время использования.</string>
     <string name="oncall">Во время разговора</string>

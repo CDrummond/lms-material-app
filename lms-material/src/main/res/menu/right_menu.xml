@@ -5,6 +5,6 @@
         android:id="@+id/action_quit"
         android:orderInCategory="100"
         android:title="@string/quit"
-        android:icon="@android:drawable/ic_lock_power_off"
+        android:icon="@drawable/ic_action_quit"
         app:showAsAction="ifRoom" />
 </menu>
