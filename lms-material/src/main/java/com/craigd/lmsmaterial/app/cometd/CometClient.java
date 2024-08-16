@@ -439,9 +439,6 @@ public class CometClient {
         if (Utils.isEmpty(status.cover) && !Utils.isEmpty(coverid)) {
             status.cover = coverUrl("/music/"+coverid+"/cover"+IMAGE_SIZE);
         }
-        if (Utils.isEmpty(status.cover)) {
-            status.cover = coverUrl(DEFAULT_COVER);
-        }
         Utils.debug(status.toString());
         service.updatePlayerStatus(status);
     }

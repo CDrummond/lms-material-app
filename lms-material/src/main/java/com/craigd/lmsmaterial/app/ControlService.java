@@ -428,7 +428,9 @@ public class ControlService extends Service {
 
                     metaBuilder.putString(MediaMetadata.METADATA_KEY_TITLE, String.join(" • ", parts))
                             .putLong(MediaMetadata.METADATA_KEY_DURATION, lastStatus.duration);
-                    if (!Utils.isEmpty(lastStatus.cover)) {
+                    if (Utils.isEmpty(lastStatus.cover)) {
+                        metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, getFallback());
+                    } else {
                         if (lastStatus.cover.equals(currentCover)) {
                             metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, currentBitmap);
                         } else {
