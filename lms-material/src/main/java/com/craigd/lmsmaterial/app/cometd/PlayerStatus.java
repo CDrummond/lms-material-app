@@ -9,6 +9,11 @@ package com.craigd.lmsmaterial.app.cometd;
 
 import androidx.annotation.NonNull;
 
+import com.craigd.lmsmaterial.app.Utils;
+
+import java.util.LinkedList;
+import java.util.List;
+
 public class PlayerStatus {
     public long timestamp;
     public String id;
@@ -24,5 +29,19 @@ public class PlayerStatus {
     @Override
     public String toString() {
         return "id:"+id+", title:"+title+", artist:"+artist+", album:"+album+", cover:"+cover+", duration:"+duration+", time:"+time+", isPlaying:"+isPlaying;
+    }
+
+    public String display() {
+        List<String> parts = new LinkedList<>();
+        if (!Utils.isEmpty(title)) {
+            parts.add(title);
+        }
+        if (!Utils.isEmpty(artist)) {
+            parts.add(artist);
+        }
+        //if (!Utils.isEmpty(album)) {
+        //    parts.add(album);
+        //}
+        return String.join(" • ", parts);
     }
 }

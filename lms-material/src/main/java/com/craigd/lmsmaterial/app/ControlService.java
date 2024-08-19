@@ -292,13 +292,17 @@ public class ControlService extends Service {
     private PendingIntent getPendingIntent(@NonNull String action) {
         Intent intent = new Intent(this, ControlService.class);
         intent.setAction(action);
-        return PendingIntent.getService(this, 0, intent, Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
     }
 
     private MediaStyle getMediaStyle() {
         MediaStyle mediaStyle = new MediaStyle();
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            mediaStyle.setShowActionsInCompactView(1, 2, 3);
+            if (FULL_NOTIFICATION.equals(notificationType)) {
+                mediaStyle.setShowActionsInCompactView(0, 1, 2);
+            } else {
+                mediaStyle.setShowActionsInCompactView(1, 2, 3);
+            }
         } else {
             mediaStyle.setMediaSession(mediaSession.getSessionToken());
         }
@@ -323,6 +327,11 @@ public class ControlService extends Service {
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
             boolean statusValid = false;
+            if (null!=lastStatus && lastStatus.id.equals(MainActivity.activePlayer) && FULL_NOTIFICATION.equals(notificationType)) {
+                statusValid = true;
+            } else {
+                lastStatus = null;
+            }
             notificationBuilder
                     .setOngoing(true)
                     .setOnlyAlertOnce(true)
@@ -337,21 +346,21 @@ public class ControlService extends Service {
                     .setStyle(getMediaStyle())
                     .setChannelId(NOTIFICATION_CHANNEL_ID);
 
-            if (null!=lastStatus && lastStatus.id.equals(MainActivity.activePlayer) && FULL_NOTIFICATION.equals(notificationType)) {
-                statusValid = true;
-            } else {
-                lastStatus = null;
-            }
-
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                notificationBuilder.clearActions();
                 notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_prev, "Previous", getPendingIntent(PREV_TRACK)));
-                if (!statusValid || !lastStatus.isPlaying) {
+                if (!statusValid) {
+                    notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play", getPendingIntent(PLAY_TRACK)));
+                    if (!FULL_NOTIFICATION.equals(notificationType)) {
+                        notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_pause, "Pause", getPendingIntent(PAUSE_TRACK)));
+                    }
+                } else if (lastStatus.isPlaying) {
+                    notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_pause, "Pause", getPendingIntent(PAUSE_TRACK)));
+                } else {
                     notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play", getPendingIntent(PLAY_TRACK)));
                 }
-                if (!statusValid || lastStatus.isPlaying) {
-                    notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_pause, "Pause", getPendingIntent(PAUSE_TRACK)));
-                }
                 notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)));
+                notificationBuilder.setSubText(statusValid ? lastStatus.display() : getResources().getString(R.string.notification_meta_text));
             } else {
                 PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder();
                 if (statusValid) {
@@ -430,18 +439,7 @@ public class ControlService extends Service {
 
                 if (statusValid) {
                     Utils.debug("Full meta data - " + lastStatus.toString());
-                    List<String> parts = new LinkedList<>();
-                    if (!Utils.isEmpty(lastStatus.title)) {
-                        parts.add(lastStatus.title);
-                    }
-                    if (!Utils.isEmpty(lastStatus.artist)) {
-                        parts.add(lastStatus.artist);
-                    }
-                    //if (!Utils.isEmpty(lastStatus.album)) {
-                    //    parts.add(lastStatus.album);
-                    //}
-
-                    metaBuilder.putString(MediaMetadata.METADATA_KEY_TITLE, String.join(" • ", parts))
+                    metaBuilder.putString(MediaMetadata.METADATA_KEY_TITLE, lastStatus.display())
                             .putLong(MediaMetadata.METADATA_KEY_DURATION, lastStatus.duration);
                     if (Utils.isEmpty(lastStatus.cover)) {
                         metaBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, getFallback());
