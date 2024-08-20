@@ -103,7 +103,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.right_menu, menu);
+        getMenuInflater().inflate(MainActivity.isDark ? R.menu.right_menu : R.menu.right_menu_light, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
