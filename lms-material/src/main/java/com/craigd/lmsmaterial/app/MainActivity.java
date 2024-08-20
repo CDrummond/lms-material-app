@@ -25,6 +25,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -221,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if ("android.net.conn.CONNECTIVITY_CHANGE".equals(intent.getAction()) && null!=activity) {
+            if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction()) && null!=activity) {
                 activity.runOnUiThread(activity::checkNetworkConnection);
             }
         }
@@ -712,7 +713,7 @@ public class MainActivity extends AppCompatActivity {
             webView.setVisibility(View.GONE);
             progress.setVisibility(View.VISIBLE);
             connectionChangeListener = new ConnectionChangeListener(this);
-            registerReceiver(connectionChangeListener, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
+            registerReceiver(connectionChangeListener, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
     }
 

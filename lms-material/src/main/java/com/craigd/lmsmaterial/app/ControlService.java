@@ -25,6 +25,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.MediaMetadata;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -32,6 +33,8 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
+import android.os.NetworkOnMainThreadException;
+import android.os.PowerManager;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -150,11 +153,17 @@ public class ControlService extends Service {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if ("android.net.conn.CONNECTIVITY_CHANGE".equals(intent.getAction()) && null!=service) {
+            if (null==service) {
+                return;
+            }
+            if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
                 service.handler.post(service::networkConnectivityChanged);
+            } else if (PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED.equals(intent.getAction())) {
+                service.handler.post(service::idleModeChanged);
             }
         }
     }
+
     public ControlService() {
         handler = new Handler(Looper.getMainLooper());
     }
@@ -170,6 +179,18 @@ public class ControlService extends Service {
                 cometClient.disconnect();
             }
             updateNotification();
+        }
+    }
+
+    private void idleModeChanged() {
+        if (FULL_NOTIFICATION.equals(notificationType)) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (pm.isDeviceIdleMode()) {
+                Utils.debug("Doze mode enabled, disconnect from server");
+                lastStatus = null;
+                cometClient.disconnect();
+                updateNotification();
+            }
         }
     }
 
@@ -236,7 +257,8 @@ public class ControlService extends Service {
                 sendCommand(NEXT_COMMAND);
             }
         }
-        return super.onStartCommand(intent, flags, startId);
+        super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
     private void startForegroundService() {
@@ -267,7 +289,9 @@ public class ControlService extends Service {
             cometClient.connect();
             if (null==connectionChangeListener) {
                 connectionChangeListener = new ConnectionChangeListener(this);
-                registerReceiver(connectionChangeListener, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
+                IntentFilter filter =  new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+                filter.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
+                registerReceiver(connectionChangeListener, filter);
             }
         }
         notificationType = setting;
