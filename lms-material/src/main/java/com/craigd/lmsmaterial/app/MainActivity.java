@@ -283,6 +283,7 @@ public class MainActivity extends AppCompatActivity {
             }
             builder.appendQueryParameter("nativePlayer", "1");
             builder.appendQueryParameter("nativeTheme", "1");
+            builder.appendQueryParameter("nativeTextColor", "1");
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
                 builder.appendQueryParameter("nativePlayerPower", "1");
             }
@@ -762,22 +763,48 @@ public class MainActivity extends AppCompatActivity {
         return 0;
     }
 
+    private String lastTextColor = null;
+    @JavascriptInterface
+    public void updateTextColor(final String color) {
+        Utils.debug(color);
+        if (null == color || color.length() < 4 || color.equals(lastTextColor)) {
+            return;
+        }
+        lastTextColor = color;
+        int r, g, b;
+        try {
+            if (color.length() < 5) {
+                r = Integer.parseInt(""+color.charAt(1), 16);
+                g = Integer.parseInt(""+color.charAt(2), 16);
+                b = Integer.parseInt(""+color.charAt(3), 16);
+            } else {
+                r = Integer.parseInt(color.substring(1, 3), 16) / 8;
+                g = Integer.parseInt(color.substring(3, 5), 16) / 8;
+                b = Integer.parseInt(color.substring(5, 7), 16) / 8;
+            }
+            setAndroidColors(((r+g+b)/3)>4);
+        } catch (Exception ignored) {  }
+    }
+
     @JavascriptInterface
     public void updateTheme(final String theme) {
         if (null==theme || theme.length()<4) {
             return;
         }
         Utils.debug(theme);
+        boolean darkTheme = !theme.contains("light");
+        if (darkTheme!=isDark) {
+            isDark = darkTheme;
+            //setTheme();
+        }
+        setAndroidColors(isDark || theme.contains("-colored"));
+    }
+
+    private void setAndroidColors(boolean dark) {
         try {
             runOnUiThread(() -> {
                 try {
                     int flags = getWindow().getDecorView().getSystemUiVisibility();
-                    boolean darkTheme = !theme.contains("light");
-                    if (darkTheme!=isDark) {
-                        isDark = darkTheme;
-                        //setTheme();
-                    }
-                    boolean dark = isDark || theme.contains("-colored");
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR)) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR));
                     } else {
