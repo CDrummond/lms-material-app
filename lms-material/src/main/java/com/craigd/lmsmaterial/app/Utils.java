@@ -30,6 +30,7 @@ import androidx.core.app.NotificationManagerCompat;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Utils {
     public static final String LOG_TAG = "LMS";
@@ -128,6 +129,14 @@ public class Utils {
         } catch (UnsupportedEncodingException ignored)  {
         }
         return str;
+    }
+
+    public static String timeStr(long ms) {
+        return String.format("%02d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(ms) -
+                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(ms)),
+                TimeUnit.MILLISECONDS.toSeconds(ms) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(ms)));
     }
 
     private static String logPrefix() {

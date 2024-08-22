@@ -28,7 +28,7 @@ public class PlayerStatus {
     @NonNull
     @Override
     public String toString() {
-        return "id:"+id+", title:"+title+", artist:"+artist+", album:"+album+", cover:"+cover+", duration:"+duration+", time:"+time+", isPlaying:"+isPlaying;
+        return "id:"+id+", title:"+title+", artist:"+artist+", album:"+album+", cover:"+cover+", duration:"+Utils.timeStr(duration)+", time:"+Utils.timeStr(time)+", isPlaying:"+isPlaying;
     }
 
     public String display() {
