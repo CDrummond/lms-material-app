@@ -319,7 +319,7 @@ public class CometClient {
             params.add("status");
             params.add("-");
             params.add("1");
-            params.add("subscribe:0");
+            params.add("subscribe:30");
             params.add(PLAYER_STATUS_TAGS);
             req.add(id);
             req.add(params);
