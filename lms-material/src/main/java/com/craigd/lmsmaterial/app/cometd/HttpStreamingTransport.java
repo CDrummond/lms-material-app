@@ -422,6 +422,9 @@ public class HttpStreamingTransport extends HttpClientTransport implements Messa
         }
 
         public void connect(String host, int port) throws IOException {
+            if (_aborted) {
+                throw new IOException("Aborted");
+            }
             Socket session = new Socket();
 
             synchronized (this) {

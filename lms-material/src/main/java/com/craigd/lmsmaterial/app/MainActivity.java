@@ -111,19 +111,12 @@ public class MainActivity extends AppCompatActivity {
     public static String activePlayer = null;
     public static String activePlayerName = null;
     private static boolean isCurrentActivity = false;
-    private static Date pausedDate = null;
 
     /**
      * @return true if activity is active
      */
     public static boolean isActive() {
-        if (isCurrentActivity) {
-            return true;
-        }
-        if (null!=pausedDate) {
-            return (new Date().getTime() - pausedDate.getTime())<5000;
-        }
-        return false;
+        return isCurrentActivity;
     }
 
     private Messenger controlServiceMessenger;
@@ -285,6 +278,7 @@ public class MainActivity extends AppCompatActivity {
             builder.appendQueryParameter("nativePlayer", "1");
             builder.appendQueryParameter("nativeTheme", "1");
             builder.appendQueryParameter("nativeTextColor", "1");
+            builder.appendQueryParameter("nativeConnectionStatus", "1");
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
                 builder.appendQueryParameter("nativePlayerPower", "1");
             }
@@ -839,6 +833,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @JavascriptInterface
+    public void updateConnectionStatus(boolean connected) {
+        Utils.debug(""+connected);
+        if (ControlService.isActive() && connected) {
+            refreshControlService();
+        }
+    }
+
+    @JavascriptInterface
     public void cancelDownload(String str) {
         Utils.debug(str);
 
@@ -897,7 +899,6 @@ public class MainActivity extends AppCompatActivity {
         webView.pauseTimers();
         super.onPause();
         isCurrentActivity = false;
-        pausedDate = new Date();
     }
 
     private static boolean deleteDir(File path, Set<String> ignore) {

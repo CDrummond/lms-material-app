@@ -129,12 +129,21 @@ public class ControlService extends Service {
                 String[] vals = (String[])msg.obj;
                 Utils.debug("Set notification player name " + vals[1] + ", id:" + vals[0]);
                 srv.notificationBuilder.setContentTitle(vals[1]);
-                srv.cometClient.setPlayer(vals[0]);
+                if (FULL_NOTIFICATION.equals(srv.notificationType) && null!=srv.cometClient) {
+                    srv.cometClient.setPlayer(vals[0]);
+                    if (!srv.cometClient.isConnected()) {
+                        srv.cometClient.connect();
+                    }
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ActivityCompat.checkSelfPermission(srv.getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
                 srv.updateNotification();
             } else if (msg.what == PLAYER_REFRESH && null!=srv.notificationBuilder && null!=srv.notificationManager) {
+                if (FULL_NOTIFICATION.equals(srv.notificationType) && null!=srv.cometClient && !srv.cometClient.isConnected()) {
+                    Utils.debug("Connect comet client");
+                    srv.cometClient.connect();
+                }
                 srv.createNotification();
             } else if (msg.what == CHECK_COMET_CONNECTION && null!=srv.cometClient && FULL_NOTIFICATION.equals(srv.notificationType)) {
                 srv.cometClient.reconnectIfChanged();
@@ -436,8 +445,7 @@ public class ControlService extends Service {
                         @Override
                         public void onCustomAction(String action, Bundle extras) {
                             if (ACTION_QUIT.equals(action)) {
-                                stopForegroundService();
-                                System.exit(0);
+                                quit();
                             } else if (ACTION_POWER.equals(action)) {
                                 sendCommand(POWER_COMMAND);
                             }
@@ -492,6 +500,11 @@ public class ControlService extends Service {
             Utils.error("Failed to create control notification", e);
         }
         return null;
+    }
+
+    public void quit() {
+        stopForegroundService();
+        System.exit(0);
     }
 
     private void fetchCover(MediaMetadataCompat.Builder metaBuilder) {

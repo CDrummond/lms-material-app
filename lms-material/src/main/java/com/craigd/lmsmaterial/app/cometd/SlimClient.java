@@ -29,6 +29,10 @@ public class SlimClient extends BayeuxClient {
         this.connectionState = connectionState;
     }
 
+    public void stop() {
+        this.terminate();
+    }
+
     @Override
     public void onSending(List<? extends Message> messages) {
         super.onSending(messages);

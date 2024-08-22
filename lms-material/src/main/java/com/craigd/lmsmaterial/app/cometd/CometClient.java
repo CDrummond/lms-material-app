@@ -22,6 +22,7 @@ import androidx.preference.PreferenceManager;
 import com.android.volley.Response;
 import com.craigd.lmsmaterial.app.ControlService;
 import com.craigd.lmsmaterial.app.JsonRpc;
+import com.craigd.lmsmaterial.app.MainActivity;
 import com.craigd.lmsmaterial.app.ServerDiscovery;
 import com.craigd.lmsmaterial.app.SettingsActivity;
 import com.craigd.lmsmaterial.app.Utils;
@@ -61,7 +62,9 @@ public class CometClient {
     private ControlService service;
     private JsonRpc rpc;
     private Response.Listener<JSONObject> rpcResponse;
+    private int handShakeFailures = 0;
 
+    private static final int MAX_HANDSHAKE_FAILURES = 5;
     private static final String DEFAULT_RADIO_COVER = "/material/html/images/noradio.png";
     private static final String DEFAULT_COVER = "/material/html/images/nocover.png";
     private static final String DEFAULT_WORKS_COVER = "/material/html/images/nowork.png";
@@ -159,6 +162,10 @@ public class CometClient {
         }
     }
 
+    public synchronized boolean isConnected() {
+        return connectionState.isConnected() && null!=bayeuxClient;
+    }
+
     public synchronized void connect() {
         Utils.debug("");
         connectionState.setConnectionState(ConnectionState.State.CONNECTION_STARTED);
@@ -196,10 +203,32 @@ public class CometClient {
             bayeuxClient.addExtension(new BayeuxExtension());
             backgroundHandler.sendEmptyMessageDelayed(MSG_HANDSHAKE_TIMEOUT, HANDSHAKE_TIMEOUT);
             bayeuxClient.getChannel(Channel.META_HANDSHAKE).addListener((ClientSessionChannel.MessageListener) (channel, message) -> {
-                Utils.debug("Handshake OK? " + message.isSuccessful() + " , canRehandshake? " + connectionState.canRehandshake());
+                handShakeFailures = message.isSuccessful() ? 0 : (handShakeFailures+1);
+                Utils.debug("Handshake OK: " + message.isSuccessful() + ", canRehandshake: " + connectionState.canRehandshake() + ", failures:" +handShakeFailures);
                 if (message.isSuccessful()) {
                     onConnected();
+                } else if (handShakeFailures>=MAX_HANDSHAKE_FAILURES && Utils.isNetworkConnected(service)) {
+                    Utils.error("Too many handshake errors, aborting");
+                    handShakeFailures = 0;
+                    try {
+                        clientTransport.abort();
+                        try {
+                            httpClient.stop();
+                        } catch (Exception e) {
+                            Utils.error("Failed to stop HTTP client", e);
+                        }
+                        bayeuxClient.stop();
+                        bayeuxClient = null;
+                        if (!MainActivity.isActive() && !SettingsActivity.isVisible()) {
+                            Utils.debug("UI is not visible, so terminate");
+                            service.quit();
+                        }
+                    } catch (Exception e) {
+                        Utils.error("Aborting", e);
+                    }
+                    connectionState.setConnectionState(ConnectionState.State.DISCONNECTED);
                 } else if (!connectionState.canRehandshake()) {
+                    handShakeFailures = 0;
                     Map<String, Object> failure = getRecord(message, "failure");
                     Message failedMessage = (failure != null) ? (Message) failure.get("message") : message;
                     // Advices are handled internally by the bayeux protocol, so skip these here
@@ -256,8 +285,8 @@ public class CometClient {
     }
 
     private void disconnect(boolean andReconnect) {
-        Utils.debug("");
-        if (bayeuxClient != null) {
+        Utils.debug("connected:"+connectionState.isConnected());
+        if (bayeuxClient != null && connectionState.isConnected()) {
             backgroundHandler.sendEmptyMessage(andReconnect ? MSG_RECONNECT : MSG_DISCONNECT);
         }
         connectionState.setConnectionState(ConnectionState.State.DISCONNECTED);
@@ -266,7 +295,7 @@ public class CometClient {
     private synchronized void disconnectFromServer() {
         if (bayeuxClient != null) {
             String[] channels = new String[]{Channel.META_HANDSHAKE, Channel.META_CONNECT};
-            for (String channelId: channels) {
+            for (String channelId : channels) {
                 ClientSessionChannel channel = bayeuxClient.getChannel(channelId);
                 for (ClientSessionChannel.ClientSessionChannelListener listener : channel.getListeners()) {
                     channel.removeListener(listener);
