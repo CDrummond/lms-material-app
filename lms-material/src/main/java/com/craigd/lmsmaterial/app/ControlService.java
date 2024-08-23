@@ -243,7 +243,7 @@ public class ControlService extends Service {
     }
 
     private void sendCommand(String[] command) {
-        if (null == MainActivity.activePlayer) {
+        if (Utils.isEmpty(MainActivity.activePlayer)) {
             return;
         }
         if (null == rpc) {
