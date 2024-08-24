@@ -76,6 +76,11 @@
             app:iconSpaceReserved="false" />
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
+            app:key="aftercall"
+            app:summary="@string/aftercall_summary"
+            app:title="@string/aftercall" />
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
             app:key="show_over_lock_screen"
             app:summary="@string/show_over_lock_screen_summary"
             app:title="@string/show_over_lock_screen" />

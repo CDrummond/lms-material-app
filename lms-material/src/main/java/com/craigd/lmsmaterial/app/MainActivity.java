@@ -349,11 +349,14 @@ public class MainActivity extends AppCompatActivity {
             modified=true;
         }
         boolean haveNotifPerm = Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID);
-        if (!sharedPreferences.contains(SettingsActivity.ON_CALL_PREF_KEY) ||
-              (! PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING)) &&
+        if (! PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING)) &&
                 (!haveNotifPerm ||
-                  ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED)) ) {
+                  ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED)) {
             editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
+            modified=true;
+        }
+        if (!sharedPreferences.contains(SettingsActivity.AFTER_CALL_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.AFTER_CALL_PREF_KEY, true);
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.NOTIFCATIONS_PREF_KEY) ||

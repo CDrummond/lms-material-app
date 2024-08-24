@@ -69,17 +69,22 @@ public class PhoneStateHandler {
         }
         Utils.debug("Call state:" + state);
         if (state == TelephonyManager.CALL_STATE_RINGING || state == TelephonyManager.CALL_STATE_OFFHOOK) {
-            callStarted();
+            callStarted(action);
         } else {
             callEnded();
         }
     }
 
-    private void callStarted() {
+    private void callStarted(String action) {
         Utils.debug("Call started, activePlayers:"+activePlayers);
         if (MainActivity.isActive() || ControlService.isActive()) {
             inCall = true;
-            getActivePlayers();
+            if (MUTE_CURRENT.equals(action) || PAUSE_CURRENT.equals(action)) {
+                activePlayers.add(MainActivity.activePlayer);
+                controlPlayers();
+            } else {
+                getActivePlayers();
+            }
         } else {
             Utils.debug("App is not currently active");
         }
@@ -89,7 +94,9 @@ public class PhoneStateHandler {
         Utils.debug("Call ended, activePlayers:"+activePlayers);
         if (inCall) {
             inCall = false;
-            controlPlayers();
+            if (prefs.getBoolean(SettingsActivity.AFTER_CALL_PREF_KEY, true)) {
+                controlPlayers();
+            }
         }
         activePlayers.clear();
     }

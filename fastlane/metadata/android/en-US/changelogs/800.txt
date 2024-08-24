@@ -1,3 +1,7 @@
+Improved
+
+• Added option to control if player state should be resumed after call.
+
 Fixed
 
 • Reduce network usage by setting timout value to 0 for player status updates.

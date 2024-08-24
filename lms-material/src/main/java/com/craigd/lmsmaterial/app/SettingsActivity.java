@@ -51,6 +51,8 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String KEEP_SCREEN_ON_PREF_KEY = "keep_screen_on";
     public static final String ORIENTATION_PREF_KEY = "orientation";
     public static final String ON_CALL_PREF_KEY = "on_call";
+    public static final String AFTER_CALL_PREF_KEY = "after_call";
+
     public static final String NOTIFCATIONS_PREF_KEY = "notifs";
     public static final String SHOW_OVER_LOCK_SCREEN_PREF_KEY ="show_over_lock_screen";
     public static final String DEFAULT_PLAYER_PREF_KEY ="default_player";
@@ -405,7 +407,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             if (ON_CALL_PREF_KEY.equals(key)) {
                 updateListSummary(key);
-                if (! PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(key, PhoneStateHandler.DO_NOTHING))) {
+                if (PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(key, PhoneStateHandler.DO_NOTHING))) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         activity.checkOnCallAndNotifPermission();
                     } else {
