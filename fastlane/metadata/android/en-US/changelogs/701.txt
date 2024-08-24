@@ -1,0 +1,3 @@
+Fixed
+
+• Reduce network usage by setting timout value to 0 for player status updates.

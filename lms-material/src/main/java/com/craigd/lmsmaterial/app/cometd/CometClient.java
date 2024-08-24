@@ -122,6 +122,7 @@ public class CometClient {
                     disconnectFromServer();
                     break;
                 case MSG_DISCONNECT:
+                    removeCallbacksAndMessages(null);
                     disconnectFromServer();
                     break;
                 case MSG_RECONNECT:
@@ -133,7 +134,7 @@ public class CometClient {
                     break;
                 case MSG_PUBLISH: {
                     PublishMessage message = (PublishMessage) msg.obj;
-                    _publishMessage(message.request, message.channel, message.responseChannel, message.publishListener);
+                    doPublishMessage(message.request, message.channel, message.responseChannel, message.publishListener);
                     break;
                 }
                 default:
@@ -302,7 +303,6 @@ public class CometClient {
                 }
                 channel.unsubscribe();
             }
-            unsubscribePlayer(subscribedPlayer);
             bayeuxClient.disconnect();
             bayeuxClient = null;
         }
@@ -321,7 +321,7 @@ public class CometClient {
     private void publishMessage(Object request, final String channel, final String responseChannel, final PublishListener publishListener) {
         // Make sure all requests are done in the handler thread
         if (backgroundHandler.getLooper() == Looper.myLooper()) {
-            _publishMessage(request, channel, responseChannel, publishListener);
+            doPublishMessage(request, channel, responseChannel, publishListener);
         } else {
             PublishMessage publishMessage = new PublishMessage(request, channel, responseChannel, publishListener);
             android.os.Message message = backgroundHandler.obtainMessage(MSG_PUBLISH, publishMessage);
@@ -329,7 +329,7 @@ public class CometClient {
         }
     }
 
-    private void _publishMessage(Object request, String channel, String responseChannel, PublishListener publishListener) {
+    private void doPublishMessage(Object request, String channel, String responseChannel, PublishListener publishListener) {
         Map<String, Object> data = new HashMap<>();
         if (request != null) {
             data.put("request", request);
@@ -348,7 +348,7 @@ public class CometClient {
             params.add("status");
             params.add("-");
             params.add("1");
-            params.add("subscribe:30");
+            params.add("subscribe:0");
             params.add(PLAYER_STATUS_TAGS);
             req.add(id);
             req.add(params);
