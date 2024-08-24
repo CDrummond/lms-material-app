@@ -250,6 +250,9 @@ public class ControlService extends Service {
             rpc = new JsonRpc(getApplicationContext());
         }
         rpc.sendMessage(MainActivity.activePlayer, command);
+        if (FULL_NOTIFICATION.equals(notificationType) && null!=cometClient && !cometClient.isConnected()) {
+            cometClient.connect();
+        }
     }
 
     @Override
