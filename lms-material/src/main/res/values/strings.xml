@@ -28,7 +28,7 @@
     <string name="keep_screen_on_summary">Keep screen on whilst in use.</string>
     <string name="oncall">During phone call</string>
     <string name="aftercall">Resume after call</string>
-    <string name="aftercall_summary">Restorr player state after handling call.</string>
+    <string name="aftercall_summary">Restore player state after handling call.</string>
     <string name="orientation">Orientation</string>
     <string name="no_player">No player</string>
     <string name="notifications">Show notification</string>
