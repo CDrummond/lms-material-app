@@ -14,6 +14,8 @@
     <string name="no_new_server">Новий сервер не знайдено</string>
     <string name="discovering_server">Пошук сервера</string>
     <string name="ui">Інтерфейс</string>
+    <string name="fullscreen">Повноекранний режим</string>
+    <string name="fullscreen_summary">Приховати панелі стану та навігації.</string>
     <string name="scale">Маштаб</string>
     <string name="scale_summary">ПРИМІТКА: Можливо, вам доведеться перезапустити додаток, щоб зміни маштабу відображалися коректно.</string>
     <string name="waiting_for_network">Очікування мережі</string>
@@ -21,9 +23,12 @@
     <string name="ok">OK</string>
     <string name="cancel">Скасувати</string>
     <string name="quit">Вийти</string>
+    <string name="power">Живлення</string>
     <string name="keep_screen_on">Не вимикати екран</string>
     <string name="keep_screen_on_summary">Не вимикати екран під час використання.</string>
     <string name="oncall">Під час розмови</string>
+    <string name="aftercall">Відновити після дзвінка</string>
+    <string name="aftercall_summary">Відновити стан плеєра після дзвінка.</string>
     <string name="orientation">Орієнтація</string>
     <string name="no_player">Немає плеєра</string>
     <string name="notifications">Показувати сповіщення</string>
@@ -62,4 +67,7 @@
     <string name="failed_start_activity">Не вдалося розпочати дію</string>
     <string name="squeezelite_options_summary">Додаткові опції для Squeezelite</string>
     <string name="squeezelite_options">Опції Squeezelite (через Termux)</string>
+    <string name="main_notification">Головна</string>
+    <string name="download_notification">Завантаження</string>
+    <string name="notification_meta_text">Керування відтворенням</string>
 </resources>
