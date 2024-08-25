@@ -76,7 +76,7 @@
             app:iconSpaceReserved="false" />
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
-            app:key="aftercall"
+            app:key="after_call"
             app:summary="@string/aftercall_summary"
             app:title="@string/aftercall" />
         <SwitchPreferenceCompat

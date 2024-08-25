@@ -61,13 +61,14 @@ public class PhoneStateHandler {
             prefs = PreferenceManager.getDefaultSharedPreferences(context);
         }
         String action = prefs.getString(SettingsActivity.ON_CALL_PREF_KEY, DO_NOTHING);
+        Utils.debug("Call state:" + state + ", action: " + action);
+
         if (DO_NOTHING.equals(action)) {
             return;
         }
         if (null==rpc) {
             rpc = new JsonRpc(context);
         }
-        Utils.debug("Call state:" + state);
         if (state == TelephonyManager.CALL_STATE_RINGING || state == TelephonyManager.CALL_STATE_OFFHOOK) {
             callStarted(action);
         } else {
@@ -91,7 +92,8 @@ public class PhoneStateHandler {
     }
 
     private void callEnded() {
-        Utils.debug("Call ended, activePlayers:"+activePlayers);
+        boolean resume = prefs.getBoolean(SettingsActivity.AFTER_CALL_PREF_KEY, true);
+        Utils.debug("Call ended, activePlayers:"+activePlayers+", inCall:"+inCall+", resume:"+resume);
         if (inCall) {
             inCall = false;
             if (prefs.getBoolean(SettingsActivity.AFTER_CALL_PREF_KEY, true)) {

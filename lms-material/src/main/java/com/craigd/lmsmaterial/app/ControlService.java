@@ -598,12 +598,16 @@ public class ControlService extends Service {
             : null;
 
     private void registerCallStateListener() {
+        Utils.debug("callStateListenerRegistered:"+callStateListenerRegistered);
         if (!callStateListenerRegistered) {
             TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                    Utils.debug("calling registerTelephonyCallback");
+                    Utils.debug("Calling registerTelephonyCallback");
                     telephonyManager.registerTelephonyCallback(getMainExecutor(), callStateListener);
+                } else {
+                    Utils.error("Permission not granted");
+                    return;
                 }
             } else {
                 telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
@@ -613,6 +617,7 @@ public class ControlService extends Service {
     }
 
     private void unregisterCallStateListener() {
+        Utils.debug("callStateListenerRegistered:"+callStateListenerRegistered);
         if (callStateListenerRegistered) {
             TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
