@@ -204,6 +204,10 @@ public class ControlService extends Service {
     }
 
     public synchronized void updatePlayerStatus(PlayerStatus status) {
+        // Sometimes position on first song can be wrong?
+        if (null!=cometClient && cometClient.isConnected() && null!=status && (null==lastStatus || (status.id.equals(lastStatus.id) && !lastStatus.isPlaying && status.isPlaying))) {
+            cometClient.getPlayerStatus(status.id);
+        }
         lastStatus = status;
         handler.post(this::updateNotification);
     }

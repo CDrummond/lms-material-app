@@ -400,7 +400,7 @@ public class CometClient {
         rpc.sendMessage(id, command, rpcResponse);
     }
 
-    private void getPlayerStatus(String id) {
+    public void getPlayerStatus(String id) {
         sendMessage(id, new String[]{"status", "-", "1", PLAYER_STATUS_TAGS});
     }
 
