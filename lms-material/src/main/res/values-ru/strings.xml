@@ -14,6 +14,8 @@
     <string name="no_new_server">Новый сервер не найден</string>
     <string name="discovering_server">Поиск сервера</string>
     <string name="ui">Интерфейс</string>
+    <string name="fullscreen">Полноэкранный режим</string>
+    <string name="fullscreen_summary">Скрыть панели состояния и навигации.</string>
     <string name="scale">Масштаб</string>
     <string name="scale_summary">ПРИМЕЧАНИЕ: Возможно, вам придется перезапустить приложение, чтобы изменения масштаба отображались корректно.</string>
     <string name="waiting_for_network">Ожидание сети</string>
@@ -25,6 +27,8 @@
     <string name="keep_screen_on">Не отключать экран</string>
     <string name="keep_screen_on_summary">Не отключать экран во время использования.</string>
     <string name="oncall">Во время разговора</string>
+    <string name="aftercall">Возобновить после звонка</string>
+    <string name="aftercall_summary">Возобновить состояние плеера после звонка.</string>
     <string name="orientation">Ориентация</string>
     <string name="no_player">Нет плеера</string>
     <string name="notifications">Показывать уведомление</string>
@@ -63,4 +67,7 @@
     <string name="failed_start_activity">Не удалось начать действие</string>
     <string name="squeezelite_options_summary">Дополнительные опции для Squeezelite</string>
     <string name="squeezelite_options">Опции Squeezelite (через Termux)</string>
+    <string name="main_notification">Главная</string>
+    <string name="download_notification">Загрузки</string>
+    <string name="notification_meta_text">Управление воспроизведением</string>
 </resources>
