@@ -407,7 +407,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             if (ON_CALL_PREF_KEY.equals(key)) {
                 updateListSummary(key);
-                if (PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(key, PhoneStateHandler.DO_NOTHING))) {
+                if (!PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(key, PhoneStateHandler.DO_NOTHING))) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         activity.checkOnCallAndNotifPermission();
                     } else {
