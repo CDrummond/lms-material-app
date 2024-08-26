@@ -4,4 +4,4 @@ Improved
 
 Fixed
 
-• Reduce network usage by setting timout value to 0 for player status updates.
+• Reduce network usage by setting timeout value to 0 for player status updates.
