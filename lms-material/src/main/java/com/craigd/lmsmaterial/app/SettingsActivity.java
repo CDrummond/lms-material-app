@@ -12,7 +12,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -39,6 +38,7 @@ import androidx.preference.PreferenceManager;
 import androidx.preference.SwitchPreferenceCompat;
 
 import java.util.List;
+import java.util.Objects;
 
 import io.github.muddz.styleabletoast.StyleableToast;
 
@@ -395,6 +395,7 @@ public class SettingsActivity extends AppCompatActivity {
             updateListSummary(NOTIFCATIONS_PREF_KEY);
             updateListSummary(ORIENTATION_PREF_KEY);
             updateListSummary(ON_CALL_PREF_KEY);
+            setAfterCallState();
             updateListSummary(PLAYER_APP_PREF_KEY);
             PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
         }
@@ -407,6 +408,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             if (ON_CALL_PREF_KEY.equals(key)) {
                 updateListSummary(key);
+                setAfterCallState();
                 if (!PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(key, PhoneStateHandler.DO_NOTHING))) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         activity.checkOnCallAndNotifPermission();
@@ -460,6 +462,7 @@ public class SettingsActivity extends AppCompatActivity {
                     pref.setValue(PhoneStateHandler.DO_NOTHING);
                 }
                 updateListSummary(ON_CALL_PREF_KEY);
+                setAfterCallState();
             }
         }
 
@@ -498,6 +501,14 @@ public class SettingsActivity extends AppCompatActivity {
 
             if (ControlService.NO_NOTIFICATION.equals(val)) {
                 resetOnCall();
+            }
+        }
+
+        private void setAfterCallState() {
+            SwitchPreferenceCompat afterCall = getPreferenceManager().findPreference(AFTER_CALL_PREF_KEY);
+            if (afterCall!=null) {
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+                afterCall.setEnabled(!PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING)));
             }
         }
     }
