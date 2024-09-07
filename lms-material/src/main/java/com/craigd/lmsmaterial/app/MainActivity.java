@@ -29,6 +29,7 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -36,6 +37,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -87,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String LMS_PASSWORD_KEY = "lms-password";
     private static final String CURRENT_PLAYER_ID_KEY = "current_player_id";
     private static final int PAGE_TIMEOUT = 5000;
+    private static final int STORAGE_ACCESS_REQUEST_CODE = 123;
 
     private SharedPreferences sharedPreferences;
     private WebView webView;
@@ -877,15 +880,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void doDownload(JSONArray data) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU &&
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Environment.isExternalStorageManager()) {
+            Utils.debug("Request manage permission");
+            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:" + BuildConfig.APPLICATION_ID));
+            startActivityForResult(intent, STORAGE_ACCESS_REQUEST_CODE);
+            downloadData = data;
+        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
                 ( checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
                   checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) ) {
-            Utils.debug("Request permissions");
+            Utils.debug("Request r/w permissions");
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
             downloadData = data;
         } else {
             startDownload(data);
         }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // If MANAGE_EXTERNAL_STORAGE permission is rejected then we can still download, just not cover-art
+        startDownload(downloadData);
     }
 
     @Override

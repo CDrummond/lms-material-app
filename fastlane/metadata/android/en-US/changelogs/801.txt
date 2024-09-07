@@ -1,3 +1,4 @@
 Fixed
 
 • Update download code for newer SDK target.
+• Ask for MANAGE_EXTERNAL_STORAGE permission on Android 13+ when downloading files so that cover-art can also be downloaded. If this permission is not granted music is still downloaded, but cover-art will not be.
