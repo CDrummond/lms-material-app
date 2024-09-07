@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 registerReceiver(downloadStatusReceiver, new IntentFilter(DownloadService.STATUS), RECEIVER_NOT_EXPORTED);
             } else {
                 registerReceiver(downloadStatusReceiver, new IntentFilter(DownloadService.STATUS));
