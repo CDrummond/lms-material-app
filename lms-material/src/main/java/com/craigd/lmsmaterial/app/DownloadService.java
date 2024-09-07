@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DownloadService extends Service {
+    private static final String COVER_ART = "cover.jpg";
     public static final String STATUS = DownloadService.class.getCanonicalName() + ".STATUS";
     public static final String STATUS_BODY = "body";
     public static final String STATUS_LEN = "len";
@@ -129,7 +130,7 @@ public class DownloadService extends Service {
             this.albumId = albumId;
             this.artist = artist;
             this.album = album;
-            this.filename = "albumart.jpg";
+            this.filename = COVER_ART;
         }
 
         JSONObject toObject(boolean downloading) throws JSONException {
@@ -482,7 +483,8 @@ public class DownloadService extends Service {
             while ((bytesRead = inputStream.read(b)) > 0) {
                 outputStream.write(b, 0, bytesRead);
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            Utils.error("Failed to copy " + sourceFile.getAbsolutePath() + " to " + destFile.getAbsolutePath(), e);
         }
         try {
             if (!sourceFile.delete()) {
