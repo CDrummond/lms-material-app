@@ -88,7 +88,7 @@ public class DownloadService extends Service {
     }
 
     static String fixEmpty(String str) {
-        return str.isEmpty() ? "Unknown" : str;
+        return Utils.isEmpty(str) ? "Unknown" : str;
     }
 
     static class DownloadItem {
@@ -104,23 +104,20 @@ public class DownloadService extends Service {
             albumId = getInt(obj, "album_id");
             isTrack = true;
 
-            if (filename!=null) {
-                if (filename.isEmpty()) {
-                    if (disc > 0) {
-                        filename += disc;
-                    }
-                    if (tracknum > 0) {
-                        filename += (!filename.isEmpty() ? "." : "") + (tracknum < 10 ? "0" : "") + tracknum + " ";
-                    } else if (!filename.isEmpty()) {
-                        filename += " ";
-                    }
-                    filename += title + "." + (transcode ? "mp3" : ext);
-                } else if (transcode) {
-                    int pos = filename.lastIndexOf('.');
-                    if (pos > 0) {
-                        filename = filename.substring(0, pos) + ".mp3";
-                    }
+            if (Utils.isEmpty(filename)) {
+                filename = "";
+                if (disc > 0) {
+                    filename += disc;
                 }
+                if (tracknum > 0) {
+                    filename += (!filename.isEmpty() ? "." : "") + (tracknum < 10 ? "0" : "") + tracknum + " ";
+                } else if (!filename.isEmpty()) {
+                    filename += " ";
+                }
+                filename += fixEmpty(title) + "." + (transcode ? "mp3" : ext);
+            } else if (transcode) {
+                int pos = filename.lastIndexOf('.');
+                filename = (pos > 0 ? filename.substring(0, pos) : filename) + ".mp3";
             }
         }
 
@@ -464,7 +461,7 @@ public class DownloadService extends Service {
 
     void addToMediaStorage(DownloadItem item) {
         File destDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), item.getFolder());
-        File destFile = new File(destDir, item.filename);
+        File destFile = new File(destDir, fatSafe(item.filename));
         File sourceFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), item.getDownloadFileName());
         try {
             if (!destDir.exists() && !destDir.mkdir()) {
