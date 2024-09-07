@@ -28,8 +28,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        tools:targetApi="m">
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
             android:name=".SettingsActivity"
             android:icon="@mipmap/ic_launcher"

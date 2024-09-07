@@ -246,6 +246,7 @@ public class DownloadService extends Service {
     @SuppressLint("MissingPermission")
     private void createNotification() {
         if (!Utils.notificationAllowed(this, NOTIFICATION_CHANNEL_ID)) {
+            Utils.error("Permission not granted");
             return;
         }
         Intent intent = new Intent(this, MainActivity.class);
@@ -420,7 +421,7 @@ public class DownloadService extends Service {
                 .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, item.getDownloadFileName());
 
         item.downloadId = downloadManager.enqueue(request);
-        Utils.debug("Download url: " + url + " id: " + item.downloadId);
+        Utils.debug("Download url: " + url + " id: " + item.downloadId + " filename: " + item.getDownloadFileName());
         queuedItems.add(item);
     }
 

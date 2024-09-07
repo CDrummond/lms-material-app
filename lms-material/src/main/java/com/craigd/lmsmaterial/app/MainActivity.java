@@ -165,7 +165,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
 
-            registerReceiver(downloadStatusReceiver, new IntentFilter(DownloadService.STATUS));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                registerReceiver(downloadStatusReceiver, new IntentFilter(DownloadService.STATUS), RECEIVER_NOT_EXPORTED);
+            } else {
+                registerReceiver(downloadStatusReceiver, new IntentFilter(DownloadService.STATUS));
+            }
             if (null != downloadData) {
                 startDownload(downloadData);
             }
@@ -873,8 +877,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void doDownload(JSONArray data) {
-        if (( checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-              checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) ) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU &&
+                ( checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                  checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) ) {
+            Utils.debug("Request permissions");
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
             downloadData = data;
         } else {
@@ -887,6 +893,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == 1) {
             for (int result : grantResults) {
                 if (PackageManager.PERMISSION_GRANTED != result) {
+                    Utils.debug("Read/write external storage permission not granted");
                     return;
                 }
             }
