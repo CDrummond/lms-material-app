@@ -27,6 +27,8 @@
     <string name="keep_screen_on">Garder l\'écran allumé</string>
     <string name="keep_screen_on_summary">Maintient l\'écran allumé pendant l\'utilisation.</string>
     <string name="oncall">Pendant un appel téléphonique</string>
+    <string name="aftercall">Après un appel téléphonique</string>
+    <string name="aftercall_summary">Restaurer l\'état de la platine.</string>
     <string name="orientation">Orientation</string>
     <string name="no_player">Aucune platine</string>
     <string name="notifications">Afficher les notifications</string>
