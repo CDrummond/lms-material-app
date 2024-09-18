@@ -19,6 +19,7 @@
 
     <queries>
         <package android:name="com.termux" />
+        <package android:name="de.bluegaspode.squeezeplayer" />
     </queries>
 
     <application
