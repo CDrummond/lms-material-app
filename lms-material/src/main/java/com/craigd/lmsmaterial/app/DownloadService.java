@@ -50,7 +50,8 @@ import java.util.List;
 import java.util.Set;
 
 public class DownloadService extends Service {
-    private static final String COVER_ART = "cover.jpg";
+    private static final String COVER_ART_SRC = "cover.jpg";
+    private static final String COVER_ART_DEST = "albumart.jpg";
     public static final String STATUS = DownloadService.class.getCanonicalName() + ".STATUS";
     public static final String STATUS_BODY = "body";
     public static final String STATUS_LEN = "len";
@@ -127,7 +128,7 @@ public class DownloadService extends Service {
             this.albumId = albumId;
             this.artist = artist;
             this.album = album;
-            this.filename = COVER_ART;
+            this.filename = COVER_ART_DEST;
         }
 
         JSONObject toObject(boolean downloading) throws JSONException {
@@ -412,7 +413,7 @@ public class DownloadService extends Service {
         ServerDiscovery.Server server = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
         boolean transcode = sharedPreferences.getBoolean("transcode", false);
         Uri url = item.isTrack ? Uri.parse("http://" + server.ip + ":" + server.port + "/music/" + item.id + "/download" + (transcode ? ".mp3" : ""))
-                               : Uri.parse("http://" + server.ip + ":" + server.port + "/music/" + (item.id*-1) + "/cover.jpg");
+                               : Uri.parse("http://" + server.ip + ":" + server.port + "/music/" + (item.id*-1) + "/" + COVER_ART_SRC);
         DownloadManager.Request request = new DownloadManager.Request(url)
                 .setTitle(item.title)
                 .setVisibleInDownloadsUi(false)

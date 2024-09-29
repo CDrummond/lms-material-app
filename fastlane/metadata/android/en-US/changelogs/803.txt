@@ -1,0 +1,3 @@
+Fixed
+
+• Save dowloaded cover-art as 'albumart.jpg'
