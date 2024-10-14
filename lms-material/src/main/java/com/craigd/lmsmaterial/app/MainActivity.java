@@ -286,6 +286,7 @@ public class MainActivity extends AppCompatActivity {
             builder.appendQueryParameter("nativeTheme", "1");
             builder.appendQueryParameter("nativeTextColor", "1");
             builder.appendQueryParameter("nativeConnectionStatus", "1");
+            builder.appendQueryParameter("dontTrapBack", "1");
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
                 builder.appendQueryParameter("nativePlayerPower", "1");
             }
