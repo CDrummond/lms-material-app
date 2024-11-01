@@ -19,6 +19,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -650,6 +651,15 @@ public class MainActivity extends AppCompatActivity {
                 String path = uri.getPath();
                 if (null!=path && path.toLowerCase().endsWith(".pdf")) {
                     intent.setDataAndType(uri, "application/pdf");
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    PackageManager pm = getPackageManager();
+                    List<ResolveInfo> activities = pm.queryIntentActivities(intent, PackageManager.MATCH_ALL);
+                    if (activities.isEmpty()) {
+                        StyleableToast.makeText(getApplicationContext(),
+                                getApplicationContext().getResources().getString(R.string.no_pdf_handler),
+                                Toast.LENGTH_SHORT, R.style.toast).show();
+                        return true;
+                    }
                 }
                 try {
                     startActivity(intent);
