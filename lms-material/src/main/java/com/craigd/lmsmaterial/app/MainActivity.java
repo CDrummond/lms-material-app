@@ -654,8 +654,9 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     startActivity(intent);
                 } catch (Exception e) {
+                    Utils.error("Can't open PDF", e);
                     StyleableToast.makeText(getApplicationContext(),
-                            getApplicationContext().getResources().getString(R.string.no_termux_run_perms),
+                            getApplicationContext().getResources().getString(R.string.failed_start_activity),
                             Toast.LENGTH_SHORT, R.style.toast).show();
                 }
                 return true;
