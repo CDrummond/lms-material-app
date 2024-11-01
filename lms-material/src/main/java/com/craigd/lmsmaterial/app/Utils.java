@@ -80,13 +80,14 @@ public class Utils {
     }
 
     static int getBottomPadding(Activity activity) {
-        int def = usingGestureNavigation(activity) ? 14 : 40;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowInsets wi = activity.getWindowManager().getCurrentWindowMetrics().getWindowInsets();
             Insets i = wi.getInsets(WindowInsets.Type.navigationBars());
-            return Math.max((int)Math.ceil(convertPixelsToDp(i.bottom, activity)), def);
+            int val = (int)Math.ceil(convertPixelsToDp(i.bottom, activity));
+            Utils.debug("inset:" + val);
+            return Math.max(val, 14);
         }
-        return def;
+        return usingGestureNavigation(activity) ? 14 : 40;
     }
 
     static public boolean notificationAllowed(Context context, String channelId) {
