@@ -85,7 +85,7 @@ public class Utils {
             Insets i = wi.getInsets(WindowInsets.Type.navigationBars());
             int val = (int)Math.ceil(convertPixelsToDp(i.bottom, activity));
             Utils.debug("inset:" + val);
-            return Math.max(val, 14);
+            return val>8 ? Math.max(val, 14) : val;
         }
         return usingGestureNavigation(activity) ? 14 : 40;
     }
