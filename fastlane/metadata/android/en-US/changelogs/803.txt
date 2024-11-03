@@ -1,6 +1,7 @@
 Impoved
 
 • When opening PDFs check for an installed handler and show appropriate error if none found.
+• Remove 'Quit' menu option.
 
 Fixed
 

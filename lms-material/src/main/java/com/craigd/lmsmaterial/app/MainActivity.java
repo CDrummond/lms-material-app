@@ -84,7 +84,7 @@ import io.github.muddz.styleabletoast.StyleableToast;
 
 public class MainActivity extends AppCompatActivity {
     private static final String SETTINGS_URL = "mska://settings";
-    private static final String QUIT_URL = "mska://quit";
+    //private static final String QUIT_URL = "mska://quit";
     private static final String STARTPLAYER_URL = "mska://startplayer";
     public static final String LMS_USERNAME_KEY = "lms-username";
     public static final String LMS_PASSWORD_KEY = "lms-password";
@@ -313,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" +
                     "&appSettings="+SETTINGS_URL+
-                    "&appQuit="+QUIT_URL+
+                    //"&appQuit="+QUIT_URL+
                     (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)
                         ? ("&appLaunchPlayer="+STARTPLAYER_URL) : "") +
                     "&dontEmbed=pdf";
@@ -623,12 +623,14 @@ public class MainActivity extends AppCompatActivity {
                     case SETTINGS_URL:
                         navigateToSettingsActivity();
                         return true;
+                    /*
                     case QUIT_URL:
                         stopControlService();
                         finishAffinity();
                         localPlayer.autoStop();
                         System.exit(0);
                         return true;
+                    */
                     case STARTPLAYER_URL:
                         localPlayer.start();
                         return true;
