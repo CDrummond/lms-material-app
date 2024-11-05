@@ -65,6 +65,7 @@
     <string name="stopping_player">Зупинення локального плеєра</string>
     <string name="no_termux_run_perms">Ви не маєте дозволу на запуск команд Termux</string>
     <string name="failed_start_activity">Не вдалося розпочати дію</string>
+    <string name="no_pdf_handler">Обробник PDF не знайдено</string>
     <string name="squeezelite_options_summary">Додаткові опції для Squeezelite</string>
     <string name="squeezelite_options">Опції Squeezelite (через Termux)</string>
     <string name="main_notification">Головна</string>
