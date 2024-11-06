@@ -1,9 +1,9 @@
-Impoved
+Improved
 
 • When opening PDFs check for an installed handler and show appropriate error if none found.
 • Remove 'Quit' menu option.
 
 Fixed
 
-• Save dowloaded cover-art as 'albumart.jpg'
+• Save downloaded cover-art as 'albumart.jpg'
 • Fix bottom inset height calculation.
