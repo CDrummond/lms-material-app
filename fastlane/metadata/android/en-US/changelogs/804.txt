@@ -1,0 +1,3 @@
+Improved
+
+• Add 'Quit' action to pre-Android 13 notifications.

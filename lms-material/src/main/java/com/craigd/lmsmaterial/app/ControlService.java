@@ -71,6 +71,7 @@ public class ControlService extends Service {
     private static final String PREV_TRACK = ControlService.class.getCanonicalName() + ".PREV_TRACK";
     private static final String PLAY_TRACK = ControlService.class.getCanonicalName() + ".PLAY_TRACK";
     private static final String PAUSE_TRACK = ControlService.class.getCanonicalName() + ".PAUSE_TRACK";
+    private static final String QUIT_APP = ControlService.class.getCanonicalName() + ".QUIT";
     public static final int ACTIVE_PLAYER = 1;
     public static final int PLAYER_REFRESH = 2;
     public static final int CHECK_COMET_CONNECTION = 3;
@@ -271,6 +272,8 @@ public class ControlService extends Service {
                 sendCommand(PAUSE_COMMAND);
             } else if (NEXT_TRACK.equals(action)) {
                 sendCommand(NEXT_COMMAND);
+            } else if (QUIT_APP.equals(action)) {
+                quit();
             }
         }
         super.onStartCommand(intent, flags, startId);
@@ -363,11 +366,12 @@ public class ControlService extends Service {
             return null;
         }
         try {
+            boolean isFull = FULL_NOTIFICATION.equals(notificationType);
             Intent intent = new Intent(this, MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
             boolean statusValid = false;
-            if (null!=lastStatus && lastStatus.id.equals(MainActivity.activePlayer) && FULL_NOTIFICATION.equals(notificationType)) {
+            if (null!=lastStatus && lastStatus.id.equals(MainActivity.activePlayer) && isFull) {
                 statusValid = true;
             } else {
                 lastStatus = null;
@@ -391,7 +395,7 @@ public class ControlService extends Service {
                 notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_prev, "Previous", getPendingIntent(PREV_TRACK)));
                 if (!statusValid) {
                     notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play", getPendingIntent(PLAY_TRACK)));
-                    if (!FULL_NOTIFICATION.equals(notificationType)) {
+                    if (!isFull) {
                         notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_pause, "Pause", getPendingIntent(PAUSE_TRACK)));
                     }
                 } else if (lastStatus.isPlaying) {
@@ -400,6 +404,7 @@ public class ControlService extends Service {
                     notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_play, "Play", getPendingIntent(PLAY_TRACK)));
                 }
                 notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_next, "Next", getPendingIntent(NEXT_TRACK)));
+                notificationBuilder.addAction(new NotificationCompat.Action(R.drawable.ic_action_quit, getString(R.string.quit), getPendingIntent(QUIT_APP)));
                 notificationBuilder.setSubText(statusValid ? lastStatus.display() : getResources().getString(R.string.notification_meta_text));
             } else {
                 PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder();
@@ -419,7 +424,7 @@ public class ControlService extends Service {
                         @Override
                         public void onPlay() {
                             Utils.debug("");
-                            if (null!=lastStatus && lastStatus.id.equals(MainActivity.activePlayer) && FULL_NOTIFICATION.equals(notificationType)) {
+                            if (null!=lastStatus && lastStatus.id.equals(MainActivity.activePlayer) && isFull) {
                                 sendCommand(PLAY_COMMAND);
                             } else {
                                 mediaSession.setPlaybackState(null);
