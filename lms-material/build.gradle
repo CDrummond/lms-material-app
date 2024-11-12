@@ -7,8 +7,8 @@ android {
         minSdkVersion 23
         targetSdkVersion 34
         buildToolsVersion = "34.0.0"
-        versionCode  803
-        versionName "0.8.3"
+        versionCode  804
+        versionName "0.8.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

@@ -511,6 +511,7 @@ public class ControlService extends Service {
 
     public void quit() {
         stopForegroundService();
+        LocalPlayer.instance().autoStop();
         System.exit(0);
     }
 

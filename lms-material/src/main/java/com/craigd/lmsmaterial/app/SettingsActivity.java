@@ -118,11 +118,11 @@ public class SettingsActivity extends AppCompatActivity {
         } else if (item.getItemId() == R.id.action_quit) {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             if (sharedPreferences.getBoolean(STOP_APP_ON_QUIT_PREF_KEY, false)) {
-                LocalPlayer localPlayer = new LocalPlayer(sharedPreferences, getApplicationContext());
-                localPlayer.stop();
+                LocalPlayer.instance().stop();
             }
             stopService(new Intent(this, ControlService.class));
             finishAffinity();
+            LocalPlayer.instance().autoStop();
             System.exit(0);
             return true;
         }
@@ -339,9 +339,8 @@ public class SettingsActivity extends AppCompatActivity {
             if (stopAppButton != null) {
                 stopAppButton.setOnPreferenceClickListener(arg0 -> {
                     if (getContext()!=null) {
-                        LocalPlayer localPlayer = new LocalPlayer(PreferenceManager.getDefaultSharedPreferences(getContext()), getContext());
                         StyleableToast.makeText(getContext(), getResources().getString(R.string.stopping_player), Toast.LENGTH_SHORT, R.style.toast).show();
-                        localPlayer.stop();
+                        LocalPlayer.instance().stop();
                     }
                     return true;
                 });

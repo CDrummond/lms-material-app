@@ -107,7 +107,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean showOverLockscreen = false;
     private UrlHandler urlHander;
     private JSONArray downloadData = null;
-    private LocalPlayer localPlayer = null;
     public static boolean isDark = true;
     private boolean pageLoaded = false;
     private long recreateTime = 0;
@@ -529,8 +528,8 @@ public class MainActivity extends AppCompatActivity {
             getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorBackground));
         }
 
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        localPlayer = new LocalPlayer(sharedPreferences, this);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        LocalPlayer.instance().init(sharedPreferences, getApplicationContext());
         setTheme();
         setDefaults();
         if (sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false)) {
@@ -586,7 +585,7 @@ public class MainActivity extends AppCompatActivity {
                     pageLoadHandler.removeCallbacks(pageLoadTimeout);
                     firstAuthReq=true;
                 }
-                localPlayer.autoStart(false);
+                LocalPlayer.instance().autoStart(false);
                 pageLoaded = true;
                 webView.setVisibility(View.VISIBLE);
                 sendMessageToService(ControlService.CHECK_COMET_CONNECTION, null);
@@ -627,12 +626,12 @@ public class MainActivity extends AppCompatActivity {
                     case QUIT_URL:
                         stopControlService();
                         finishAffinity();
-                        localPlayer.autoStop();
+                        LocalPlayer.instance().autoStop();
                         System.exit(0);
                         return true;
                     */
                     case STARTPLAYER_URL:
-                        localPlayer.start();
+                        LocalPlayer.instance().start();
                         return true;
                 }
 
@@ -776,7 +775,7 @@ public class MainActivity extends AppCompatActivity {
         String[] parts = ipAddress.split(":");
         Utils.debug("Player Power, ID: "+playerId+", IP:"+parts[0]+", State: "+state);
         if (0==state && parts[0].compareTo(getLocalIpAddress())==0) {
-            localPlayer.stopPlayer(playerId);
+            LocalPlayer.instance().stopPlayer(playerId);
             return 1;
         }
         return 0;
@@ -972,7 +971,7 @@ public class MainActivity extends AppCompatActivity {
         if (!settingsShown) {
             updateDownloadStatus();
             if (pageLoaded) {
-                localPlayer.autoStart(true);
+                LocalPlayer.instance().autoStart(true);
             }
             if (!ControlService.NO_NOTIFICATION.equals(sharedPreferences.getString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION)) && Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID)) {
                 if (!ControlService.isActive()) {
