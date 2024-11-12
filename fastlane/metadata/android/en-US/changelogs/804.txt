@@ -1,3 +1,7 @@
+Improved
+
+• Add 'Quit' action to pre-Android 13 notifications.
+
 Fixed
 
 • Stop local player when quit via settings dialog or notification, if option enabled.
