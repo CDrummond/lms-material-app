@@ -71,6 +71,6 @@
     <string name="main_notification">Main</string>
     <string name="download_notification">Downloads</string>
     <string name="notification_meta_text">Playback controls</string>
-    <string name="quitmenu">\'Quit\' menu entry.</string>
-    <string name="quitmenu_summary">Add a \'Quit\' entry to main menu.</string>
+    <string name="quitmenu">Add \'Quit\' menu entry</string>
+    <string name="quitmenu_summary">Show a \'Quit\' entry in the main menu.</string>
 </resources>
