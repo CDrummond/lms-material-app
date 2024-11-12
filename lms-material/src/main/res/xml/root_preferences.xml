@@ -41,6 +41,11 @@
         app:title="@string/ui">
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
+            app:key="quitmenu"
+            app:summary="@string/quitmenu_summary"
+            app:title="@string/quitmenu" />
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
             app:key="fullscreen"
             app:summary="@string/fullscreen_summary"
             app:title="@string/fullscreen" />

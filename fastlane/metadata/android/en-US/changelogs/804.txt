@@ -1,6 +1,7 @@
 Improved
 
 • Add 'Quit' action to pre-Android 13 notifications.
+• Add option to show 'Quit' in main menu.
 
 Fixed
 
