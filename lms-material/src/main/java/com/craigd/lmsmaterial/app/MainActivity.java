@@ -79,6 +79,10 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import io.github.muddz.styleabletoast.StyleableToast;
 
@@ -89,7 +93,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String LMS_USERNAME_KEY = "lms-username";
     public static final String LMS_PASSWORD_KEY = "lms-password";
     private static final String CURRENT_PLAYER_ID_KEY = "current_player_id";
-    private static final int PAGE_TIMEOUT = 5000;
+    private static final int PAGE_TIMEOUT = 5000; // ms
+    private static final int DISCONNECT_TIMEOUT = 5; // seconds
     private static final int STORAGE_ACCESS_REQUEST_CODE = 123;
 
     private SharedPreferences sharedPreferences;
@@ -262,6 +267,7 @@ public class MainActivity extends AppCompatActivity {
     private void navigateToSettingsActivity() {
         Utils.debug("Navigate to settings");
         if (!SettingsActivity.isVisible()) {
+            stopDisconnectTimer();
             settingsShown = true;
             startActivity(new Intent(this, SettingsActivity.class));
         }
@@ -497,8 +503,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void discoverServer(boolean force) {
+        Utils.debug("force:"+force);
         if (force || sharedPreferences.getBoolean(SettingsActivity.AUTODISCOVER_PREF_KEY, true)) {
-            StyleableToast.makeText(getBaseContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT, R.style.toast).show();
+            Utils.debug("Start discovery");
+            runOnUiThread(() -> {
+                StyleableToast.makeText(getBaseContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT, R.style.toast).show();
+            });
             Discovery discovery = new Discovery(getApplicationContext());
             discovery.discover();
         } else {
@@ -856,11 +866,36 @@ public class MainActivity extends AppCompatActivity {
     @JavascriptInterface
     public void updateConnectionStatus(boolean connected) {
         Utils.debug(""+connected);
-        if (ControlService.isActive() && connected) {
-            refreshControlService();
+        if (connected) {
+            stopDisconnectTimer();
+            if (ControlService.isActive()) {
+                refreshControlService();
+            }
+        } else {
+            startDisconnectTimer();
         }
     }
 
+    ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    ScheduledFuture<?> disconnectHandler;
+    private void startDisconnectTimer() {
+        Utils.debug("");
+        stopDisconnectTimer();
+        disconnectHandler = executorService.schedule(new Runnable() {
+            @Override
+            public void run() {
+                Utils.debug("Disconnected delay timer invoked");
+                discoverServer(false);
+            }
+        }, DISCONNECT_TIMEOUT, TimeUnit.SECONDS);
+    }
+
+    private void stopDisconnectTimer() {
+        Utils.debug("");
+        if (null!=disconnectHandler) {
+            disconnectHandler = null;
+        }
+    }
     @JavascriptInterface
     public void cancelDownload(String str) {
         Utils.debug(str);
