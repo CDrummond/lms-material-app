@@ -428,16 +428,6 @@ public class MainActivity extends AppCompatActivity {
         return (int)Math.round(initialWebViewScale *(100+(10*(pref-5))));
     }
 
-    private boolean gestureNavigationEnabled() {
-        try {
-            Resources resources = getResources();
-            @SuppressLint("DiscouragedApi") int resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
-            return resources.getInteger(resourceId) == 2; // 2 = Android Q gesture nav?
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
