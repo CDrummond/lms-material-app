@@ -92,7 +92,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String LMS_PASSWORD_KEY = "lms-password";
     private static final String CURRENT_PLAYER_ID_KEY = "current_player_id";
     private static final int PAGE_TIMEOUT = 5000; // ms
-    private static final int DISCONNECT_TIMEOUT = 5; // seconds
+    private static final int DISCONNECT_TIMEOUT = 6; // seconds
+    private static final int DISCONNECT_TIMEOUT_WITHOUT_NETWORK = 10; // seconds
     private static final int STORAGE_ACCESS_REQUEST_CODE = 123;
 
     private SharedPreferences sharedPreferences;
@@ -491,6 +492,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void discoverServer(boolean force) {
+        discoverServer(force, true);
+    }
+
+    private void discoverServer(boolean force, boolean canOpenSettings) {
         Utils.debug("force:"+force);
         if (force || sharedPreferences.getBoolean(SettingsActivity.AUTODISCOVER_PREF_KEY, true)) {
             Utils.debug("Start discovery");
@@ -499,7 +504,7 @@ public class MainActivity extends AppCompatActivity {
             });
             Discovery discovery = new Discovery(getApplicationContext());
             discovery.discover();
-        } else {
+        } else if (canOpenSettings) {
             navigateToSettingsActivity();
         }
     }
@@ -869,13 +874,10 @@ public class MainActivity extends AppCompatActivity {
     private void startDisconnectTimer() {
         Utils.debug("");
         stopDisconnectTimer();
-        disconnectHandler = executorService.schedule(new Runnable() {
-            @Override
-            public void run() {
-                Utils.debug("Disconnected delay timer invoked");
-                discoverServer(false);
-            }
-        }, DISCONNECT_TIMEOUT, TimeUnit.SECONDS);
+        disconnectHandler = executorService.schedule(() -> {
+            Utils.debug("Disconnected delay timer invoked");
+            discoverServer(false, false);
+        }, Utils.isNetworkConnected(this) ? DISCONNECT_TIMEOUT : DISCONNECT_TIMEOUT_WITHOUT_NETWORK, TimeUnit.SECONDS);
     }
 
     private void stopDisconnectTimer() {
