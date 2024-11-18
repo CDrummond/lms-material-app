@@ -12,8 +12,6 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.preference.PreferenceManager;
-
 public class TermuxResultsService extends IntentService {
     public static final String EXTRA_EXECUTION_ID = "execution_id";
     private static int EXECUTION_ID = 1000;

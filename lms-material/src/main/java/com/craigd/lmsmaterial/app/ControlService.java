@@ -58,8 +58,6 @@ import com.craigd.lmsmaterial.app.cometd.PlayerStatus;
 
 import java.lang.ref.WeakReference;
 import java.net.URL;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 

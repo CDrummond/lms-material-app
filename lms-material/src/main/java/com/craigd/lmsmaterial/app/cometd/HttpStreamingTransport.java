@@ -8,8 +8,6 @@
 
 package com.craigd.lmsmaterial.app.cometd;
 
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
 import com.craigd.lmsmaterial.app.Utils;

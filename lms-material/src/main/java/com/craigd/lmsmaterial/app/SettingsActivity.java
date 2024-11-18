@@ -38,7 +38,6 @@ import androidx.preference.PreferenceManager;
 import androidx.preference.SwitchPreferenceCompat;
 
 import java.util.List;
-import java.util.Objects;
 
 import io.github.muddz.styleabletoast.StyleableToast;
 
