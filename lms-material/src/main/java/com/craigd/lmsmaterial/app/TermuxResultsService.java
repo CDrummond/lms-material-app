@@ -12,6 +12,8 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.preference.PreferenceManager;
+
 public class TermuxResultsService extends IntentService {
     public static final String EXTRA_EXECUTION_ID = "execution_id";
     private static int EXECUTION_ID = 1000;
@@ -45,7 +47,7 @@ public class TermuxResultsService extends IntentService {
         if (stdout.contains("/data/data/com.termux/files/usr/bin/squeezelite")) {
             Utils.debug("Squeezelite is already running");
         } else {
-            LocalPlayer.instance().startTermuxSqueezeLite();
+            new LocalPlayer(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()), getApplicationContext()).startTermuxSqueezeLite();
         }
     }
 }

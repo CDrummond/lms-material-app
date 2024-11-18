@@ -34,8 +34,8 @@ public class LocalPlayer {
     public static final String TERMUX_PLAYER = "termux";
     public static final String TERMUX_MAC_PREF = "termux_mac";
 
-    private SharedPreferences sharedPreferences;
-    private Context context;
+    private final SharedPreferences sharedPreferences;
+    private final Context context;
     private JsonRpc rpc = null;
 
     private enum State {
@@ -45,14 +45,7 @@ public class LocalPlayer {
     }
     private static State state = State.INITIAL;
 
-    private static class LazyLoader {
-        private static final LocalPlayer instance = new LocalPlayer();
-    }
-
-    public static LocalPlayer instance() {
-        return LazyLoader.instance;
-    }
-    public void init(SharedPreferences sharedPreferences, Context context) {
+    public LocalPlayer(SharedPreferences sharedPreferences, Context context) {
         this.sharedPreferences = sharedPreferences;
         this.context = context;
     }
@@ -71,16 +64,13 @@ public class LocalPlayer {
     }
 
     public void autoStop() {
-        if (null!=sharedPreferences && sharedPreferences.getBoolean(SettingsActivity.STOP_APP_ON_QUIT_PREF_KEY, false)) {
+        if (sharedPreferences.getBoolean(SettingsActivity.STOP_APP_ON_QUIT_PREF_KEY, false)) {
             stop();
         }
     }
 
     @SuppressLint("SdCardPath")
     public void start() {
-        if (null==sharedPreferences) {
-            return;
-        }
         String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
         Utils.debug("Start player: " + playerApp);
         if (SB_PLAYER.equals(playerApp)) {
@@ -99,9 +89,6 @@ public class LocalPlayer {
 
     @SuppressLint("SdCardPath")
     public void startTermuxSqueezeLite() {
-        if (null==sharedPreferences) {
-            return;
-        }
         ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
         state = State.INITIAL;
         String opts = sharedPreferences.getString(SettingsActivity.SQUEEZELITE_OPTIONS_KEY, "");
@@ -137,9 +124,6 @@ public class LocalPlayer {
     }
 
     public void stopPlayer(String playerId) {
-        if (null==context) {
-            return;
-        }
         // If stopping player via skin's 'power' button, then we need to ask LMS to forget
         // the client first, and then do the actual stop.
         if (null==rpc) {
@@ -150,9 +134,6 @@ public class LocalPlayer {
 
     @SuppressLint("SdCardPath")
     public void stop() {
-        if (null==sharedPreferences) {
-            return;
-        }
         String playerApp = sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, null);
         Utils.debug("Stop player: " + playerApp);
         if (SB_PLAYER.equals(playerApp)) {
@@ -171,9 +152,6 @@ public class LocalPlayer {
     }
 
     private String getTermuxMac() {
-        if (null==sharedPreferences) {
-            return null;
-        }
         String mac = sharedPreferences.getString(TERMUX_MAC_PREF, null);
         if (null!=mac) {
             return mac;
@@ -193,9 +171,6 @@ public class LocalPlayer {
     }
 
     private boolean sendSbPlayerIntent(boolean start) {
-        if (null==context) {
-            return false;
-        }
         Intent intent = new Intent();
         intent.setClassName("com.angrygoat.android.sbplayer", "com.angrygoat.android.sbplayer.SBPlayerReceiver");
         intent.setAction("com.angrygoat.android.sbplayer." + (start ? "LAUNCH" : "EXIT"));
@@ -210,9 +185,6 @@ public class LocalPlayer {
     }
 
     private boolean controlSqueezePlayer(boolean start) {
-        if (null==sharedPreferences) {
-            return false;
-        }
         Intent intent = new Intent();
         intent.setClassName("de.bluegaspode.squeezeplayer", "de.bluegaspode.squeezeplayer.playback.service.PlaybackService");
 
@@ -245,9 +217,6 @@ public class LocalPlayer {
     }
 
     private boolean runTermuxCommand(String app, String[] args, boolean handleResp) {
-        if (null==sharedPreferences) {
-            return false;
-        }
         if (ContextCompat.checkSelfPermission(context, SettingsActivity.TERMUX_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
             StyleableToast.makeText(context, context.getResources().getString(R.string.no_termux_run_perms), Toast.LENGTH_SHORT, R.style.toast).show();
             return false;
