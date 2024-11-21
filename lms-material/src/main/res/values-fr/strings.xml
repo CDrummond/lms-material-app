@@ -71,6 +71,8 @@
     <string name="main_notification">Principal</string>
     <string name="download_notification">Téléchargements</string>
     <string name="notification_meta_text">Commandes de lecture</string>
+    <!--
     <string name="quitmenu">Menu pour quitter</string>
     <string name="quitmenu_summary">Affiche une ligne \"Quitter\" dans le menu principal pour fermer l\'application Lyrion.</string>
+    -->
 </resources>

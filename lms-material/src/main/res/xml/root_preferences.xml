@@ -39,11 +39,13 @@
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:title="@string/ui">
+        <!--
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="quitmenu"
             app:summary="@string/quitmenu_summary"
             app:title="@string/quitmenu" />
+        -->
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="fullscreen"

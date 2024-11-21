@@ -1,7 +1,6 @@
 Improved
 
 • Add 'Quit' action to pre-Android 13 notifications.
-• Add option to show 'Quit' in main menu.
 • If skin indicates its lost connection then after 5 seconds start discovery (if enabled) or show settings.
 
 Fixed
