@@ -46,7 +46,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String AUTODISCOVER_PREF_KEY = "autodiscover";
     public static final String CLEAR_CACHE_PREF_KEY = "clear_cache";
     public static final String SCALE_PREF_KEY = "zoomscale";
-    //public static final String QUITMENU_PREF_KEY = "quitmenu";
+    public static final String QUITMENU_PREF_KEY = "quitmenu";
     public static final String FULLSCREEN_PREF_KEY = "fullscreen";
     public static final String KEEP_SCREEN_ON_PREF_KEY = "keep_screen_on";
     public static final String ORIENTATION_PREF_KEY = "orientation";
