@@ -71,4 +71,6 @@
     <string name="main_notification">Главная</string>
     <string name="download_notification">Загрузки</string>
     <string name="notification_meta_text">Управление воспроизведением</string>
+    <string name="quitmenu">Добавить пункт меню «Выход»</string>
+    <string name="quitmenu_summary">Показывать пункт «Выход» в главном меню.</string>
 </resources>
