@@ -46,4 +46,14 @@
 	    <item>squeezeplayer</item>
 	    <item>termux</item>
     </string-array>
+    <string-array name="notifs">
+        <item>Нет</item>
+        <item>Основное (только управление, без состояния)</item>
+        <item>Полное</item>
+    </string-array>
+    <string-array name="notifsAlias">
+        <item>none</item>
+        <item>basic</item>
+        <item>full</item>
+    </string-array>
 </resources>
