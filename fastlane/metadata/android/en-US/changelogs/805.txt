@@ -1,0 +1,3 @@
+Fixed
+
+• When server discovered, only load if different to current.

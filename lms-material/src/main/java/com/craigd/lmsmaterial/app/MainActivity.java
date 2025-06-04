@@ -207,12 +207,14 @@ public class MainActivity extends AppCompatActivity {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString(SettingsActivity.SERVER_PREF_KEY, servers.get(0).encode());
                 editor.apply();
-                StyleableToast.makeText(context, getResources().getString(R.string.server_discovered)+"\n\n"+servers.get(0).describe(), Toast.LENGTH_SHORT, R.style.toast).show();
-
+                String prevUrl = url;
                 url = getConfiguredUrl();
-                Utils.info("URL:"+url);
-                pageError = false;
-                loadUrl(url);
+                if (!url.equals(prevUrl)) {
+                    StyleableToast.makeText(context, getResources().getString(R.string.server_discovered) + "\n\n" + servers.get(0).describe(), Toast.LENGTH_SHORT, R.style.toast).show();
+                    Utils.info("URL:" + url);
+                    pageError = false;
+                    loadUrl(url);
+                }
             }
         }
     }
