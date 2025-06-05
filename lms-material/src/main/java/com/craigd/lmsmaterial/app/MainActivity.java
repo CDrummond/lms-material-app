@@ -495,16 +495,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void discoverServer(boolean force) {
-        discoverServer(force, true);
+        discoverServer(force, true, true);
     }
 
-    private void discoverServer(boolean force, boolean canOpenSettings) {
+    private void discoverServer(boolean force, boolean canOpenSettings, boolean showToast) {
         Utils.debug("force:"+force);
         if (force || sharedPreferences.getBoolean(SettingsActivity.AUTODISCOVER_PREF_KEY, true)) {
             Utils.debug("Start discovery");
-            runOnUiThread(() -> {
-                StyleableToast.makeText(getBaseContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT, R.style.toast).show();
-            });
+            if (showToast) {
+                runOnUiThread(() -> {
+                    StyleableToast.makeText(getBaseContext(), getResources().getString(R.string.discovering_server), Toast.LENGTH_SHORT, R.style.toast).show();
+                });
+            }
             Discovery discovery = new Discovery(getApplicationContext());
             discovery.discover();
         } else if (canOpenSettings) {
@@ -879,7 +881,7 @@ public class MainActivity extends AppCompatActivity {
         stopDisconnectTimer();
         disconnectHandler = executorService.schedule(() -> {
             Utils.debug("Disconnected delay timer invoked");
-            discoverServer(false, false);
+            discoverServer(false, false, false);
         }, Utils.isNetworkConnected(this) ? DISCONNECT_TIMEOUT : DISCONNECT_TIMEOUT_WITHOUT_NETWORK, TimeUnit.SECONDS);
     }
 
