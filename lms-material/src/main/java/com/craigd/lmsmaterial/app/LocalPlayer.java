@@ -9,6 +9,7 @@ package com.craigd.lmsmaterial.app;
 
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,6 +32,7 @@ public class LocalPlayer {
     public static final String NO_PLAYER = "none";
     public static final String SB_PLAYER = "sbplayer";
     public static final String SQUEEZE_PLAYER = "squeezeplayer";
+    public static final String SQUEEZELITE = "squeezelite";
     public static final String TERMUX_PLAYER = "termux";
     public static final String TERMUX_MAC_PREF = "termux_mac";
 
@@ -79,6 +81,10 @@ public class LocalPlayer {
             }
         } else if (SQUEEZE_PLAYER.equals(playerApp)) {
             if (controlSqueezePlayer(true)) {
+                state = State.STARTED;
+            }
+        } else if (SQUEEZELITE.equals(playerApp)) {
+            if (controlSqueezelite(true)) {
                 state = State.STARTED;
             }
         } else if (TERMUX_PLAYER.equals(playerApp)) {
@@ -142,6 +148,10 @@ public class LocalPlayer {
             }
         } else if (SQUEEZE_PLAYER.equals(playerApp)) {
             if (controlSqueezePlayer(false)) {
+                state = State.STOPPED;
+            }
+        } else if (SQUEEZELITE.equals(playerApp)) {
+            if (controlSqueezelite(false)) {
                 state = State.STOPPED;
             }
         } else if (TERMUX_PLAYER.equals(playerApp)) {
@@ -212,6 +222,25 @@ public class LocalPlayer {
             return true;
         } catch (Exception e) {
             Utils.error("Failed to control SqueezePlayer - " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean controlSqueezelite(boolean start) {
+        try {
+            if (start) {
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.setComponent(new ComponentName("org.lyrion.squeezelite","org.lyrion.squeezelite.MainActivity"));
+                context.startActivity(intent);
+            } else {
+                Intent intent = new Intent();
+                intent.setClassName("org.lyrion.squeezelite", "org.lyrion.squeezelite.CommandReceiver");
+                intent.setAction("org.lyrion.squeezelite.STOP");
+                context.sendBroadcast(intent);
+            }
+            return true;
+        } catch (Exception e) {
+            Utils.error("Failed to control Squeezelite - " + e.getMessage());
             return false;
         }
     }

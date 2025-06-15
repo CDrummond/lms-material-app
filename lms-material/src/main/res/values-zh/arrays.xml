@@ -6,9 +6,9 @@
         <item>隐藏</item>
     </string-array>
     <string-array name="statusbarAlias">
-        <item>可见</item>
-        <item>融合</item>
-        <item>隐藏</item>
+        <item>visible</item>
+        <item>blend</item>
+        <item>hidden</item>
     </string-array>
     <string-array name="orientation">
         <item>自动</item>
@@ -16,9 +16,9 @@
         <item>横屏</item>
     </string-array>
     <string-array name="orientationAlias">
-        <item>自动</item>
-        <item>竖屏</item>
-        <item>横屏</item>
+        <item>auto</item>
+        <item>portrait</item>
+        <item>landscape</item>
     </string-array>
     <string-array name="oncall">
         <item>不做任何操作</item>
@@ -28,23 +28,25 @@
         <item>暂停当前播放器</item>
     </string-array>
     <string-array name="oncallAlias">
-        <item>无操作</item>
-        <item>全部静音</item>
-        <item>当前静音</item>
-        <item>全部暂停</item>
-        <item>当前暂停</item>
+        <item>nothing</item>
+        <item>muteall</item>
+        <item>muteecurrent</item>
+        <item>pauseall</item>
+        <item>pausecurrent</item>
     </string-array>
     <string-array name="playerapps">
         <item>无</item>
         <item>SB 播放器</item>
         <item>SqueezePlayer</item>
+        <item>Squeezelite</item>
         <item>Squeezelite（通过 Termux）</item>
     </string-array>
     <string-array name="playerappsAlias">
-        <item>无</item>
-        <item>SB 播放器</item>
-        <item>SqueezePlayer</item>
-        <item>Termux</item>
+        <item>none</item>
+        <item>sbplayer</item>
+        <item>squeezeplayer</item>
+        <item>squeezelite</item>
+        <item>termux</item>
     </string-array>
     <string-array name="notifs">
         <item>无</item>
@@ -52,8 +54,8 @@
         <item>完整</item>
     </string-array>
     <string-array name="notifsAlias">
-        <item>无</item>
-        <item>基本</item>
-        <item>完整</item>
+        <item>none</item>
+        <item>basic</item>
+        <item>full</item>
     </string-array>
 </resources>

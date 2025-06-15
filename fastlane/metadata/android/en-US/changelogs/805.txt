@@ -1,6 +1,7 @@
 Improved
 
 • Only show 'Discovering server' toast if not due to connection issues.
+• Add 'Squeezelite' (native, not via Termux) to list if player apps.
 
 Fixed
 

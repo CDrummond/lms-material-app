@@ -37,14 +37,16 @@
     <string-array name="playerapps">
         <item>None</item>
         <item>SB Player</item>
-	    <item>SqueezePlayer</item>
-	    <item>Squeezelite (via Termux)</item>
+        <item>SqueezePlayer</item>
+        <item>Squeezelite</item>
+        <item>Squeezelite (via Termux)</item>
     </string-array>
     <string-array name="playerappsAlias">
         <item>none</item>
         <item>sbplayer</item>
-	    <item>squeezeplayer</item>
-	    <item>termux</item>
+        <item>squeezeplayer</item>
+        <item>squeezelite</item>
+        <item>termux</item>
     </string-array>
     <string-array name="notifs">
         <item>None</item>
