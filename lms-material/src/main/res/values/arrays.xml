@@ -15,7 +15,7 @@
         <item>Portrait</item>
         <item>Landscape</item>
     </string-array>
-    <string-array name="orientationAlias">
+    <string-array name="orientationAlias" translatable="false">
         <item>auto</item>
         <item>portrait</item>
         <item>landscape</item>
@@ -27,7 +27,7 @@
         <item>Pause all active players</item>
         <item>Pause current player</item>
     </string-array>
-    <string-array name="oncallAlias">
+    <string-array name="oncallAlias" translatable="false">
         <item>nothing</item>
         <item>muteall</item>
         <item>muteecurrent</item>
@@ -41,7 +41,7 @@
         <item>Squeezelite</item>
         <item>Squeezelite (via Termux)</item>
     </string-array>
-    <string-array name="playerappsAlias">
+    <string-array name="playerappsAlias" translatable="false">
         <item>none</item>
         <item>sbplayer</item>
         <item>squeezeplayer</item>
@@ -53,7 +53,7 @@
         <item>Basic (controls only, no state)</item>
         <item>Full</item>
     </string-array>
-    <string-array name="notifsAlias">
+    <string-array name="notifsAlias" translatable="false">
         <item>none</item>
         <item>basic</item>
         <item>full</item>
