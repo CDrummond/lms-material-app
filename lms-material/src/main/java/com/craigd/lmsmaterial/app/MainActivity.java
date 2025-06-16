@@ -77,6 +77,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -762,32 +763,31 @@ public class MainActivity extends AppCompatActivity {
 
     @JavascriptInterface
     public void updatePlayer(String playerId, String playerName, String ip) {
-        Utils.debug("Active player: "+playerId+", name: "+playerName);
+        Utils.debug("Active player: "+playerId+", name: "+playerName+", ip:" + ip);
         activePlayer = playerId;
         activePlayerName = playerName;
 
         interceptVolume = !sharedPreferences.getBoolean(SettingsActivity.HARDWARE_VOLUME_PREF_KEY, true) || !isLocalPlayer(ip);
+        Utils.debug("interceptVolume:"+interceptVolume);
         sendMessageToService(ControlService.ACTIVE_PLAYER, new String[]{activePlayer, activePlayerName});
     }
 
-    public static String getLocalIpAddress() {
+    public static Set<String> getLocalIpAddresses() {
+        Set<String> addresses = new TreeSet<>();
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
                 NetworkInterface intf = en.nextElement();
                 for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-                    InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
-                        return inetAddress.getHostAddress();
-                    }
+                    addresses.add(enumIpAddr.nextElement().getHostAddress());
                 }
             }
         } catch (SocketException ignored) {
         }
-        return null;
+        return addresses;
     }
 
     private boolean isLocalPlayer(String ipAddress) {
-        return ipAddress.split(":")[0].equals(getLocalIpAddress());
+        return getLocalIpAddresses().contains(ipAddress.split(":")[0]);
     }
 
     @JavascriptInterface
