@@ -58,6 +58,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String DEFAULT_PLAYER_PREF_KEY ="default_player";
     public static final String SINGLE_PLAYER_PREF_KEY ="single_player";
     public static final String PLAYER_APP_PREF_KEY = "player_app";
+    public static final String HARDWARE_VOLUME_PREF_KEY = "hardware_volume";
     public static final String STOP_APP_PREF_KEY = "stop_app";
     public static final String AUTO_START_PLAYER_APP_PREF_KEY = "auto_start_player";
     public static final String PLAYER_START_MENU_ITEM_PREF_KEY = "menu_start_player";

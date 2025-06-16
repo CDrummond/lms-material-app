@@ -124,6 +124,11 @@
             app:title="@string/squeezelite_options" />
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
+            app:key="hardware_volume"
+            app:summary="@string/hardware_volume_summary"
+            app:title="@string/hardware_volume" />
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
             app:key="auto_start_player"
             app:summary="@string/auto_start_player_summary"
             app:title="@string/auto_start_player" />

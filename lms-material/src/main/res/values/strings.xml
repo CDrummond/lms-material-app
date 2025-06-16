@@ -73,4 +73,6 @@
     <string name="notification_meta_text">Playback controls</string>
     <string name="quitmenu">Add \'Quit\' menu entry</string>
     <string name="quitmenu_summary">Show a \'Quit\' entry in the main menu.</string>
+    <string name="hardware_volume">Change device volume</string>
+    <string name="hardware_volume_summary">When changing volume via device\'s volume keys then change the volume of the device, not the software player.</string>
 </resources>

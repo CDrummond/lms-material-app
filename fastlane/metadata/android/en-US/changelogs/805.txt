@@ -2,6 +2,7 @@ Improved
 
 • Only show 'Discovering server' toast if not due to connection issues.
 • Add 'Squeezelite' (native, not via Termux) to list if player apps.
+• Add option to control device volume, not software player, for local players.
 
 Fixed
 

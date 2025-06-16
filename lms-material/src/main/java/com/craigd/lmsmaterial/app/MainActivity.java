@@ -115,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean pageLoaded = false;
     private long recreateTime = 0;
     private LocalPlayer localPlayer;
+    private boolean interceptVolume = true;
 
     public static String activePlayer = null;
     public static String activePlayerName = null;
@@ -394,6 +395,10 @@ public class MainActivity extends AppCompatActivity {
             editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
             modified=true;
         }
+        if (!sharedPreferences.contains(SettingsActivity.HARDWARE_VOLUME_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.HARDWARE_VOLUME_PREF_KEY, true);
+            modified=true;
+        }
         if (!sharedPreferences.contains(SettingsActivity.AUTO_START_PLAYER_APP_PREF_KEY)) {
             editor.putBoolean(SettingsActivity.AUTO_START_PLAYER_APP_PREF_KEY, false);
             modified=true;
@@ -432,28 +437,31 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_VOLUME_UP:
-                if (0==(event.getRepeatCount()%2)) {
-                    webView.evaluateJavascript("incrementVolume()", null);
-                }
-                return true;
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-                if (0==(event.getRepeatCount()%2)) {
-                    webView.evaluateJavascript("decrementVolume()", null);
-                }
-                return true;
+        if (interceptVolume) {
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_VOLUME_UP:
+                    if (0 == (event.getRepeatCount() % 2)) {
+                        webView.evaluateJavascript("incrementVolume()", null);
+                    }
+                    return true;
+                case KeyEvent.KEYCODE_VOLUME_DOWN:
+                    if (0 == (event.getRepeatCount() % 2)) {
+                        webView.evaluateJavascript("decrementVolume()", null);
+                    }
+                    return true;
+            }
         }
-
         return super.onKeyDown(keyCode, event);
     }
 
     @Override
     public boolean onKeyUp(int keyCode, @NonNull KeyEvent event) {
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_VOLUME_UP:
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-                return true;
+        if (interceptVolume) {
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_VOLUME_UP:
+                case KeyEvent.KEYCODE_VOLUME_DOWN:
+                    return true;
+            }
         }
 
         return super.onKeyUp(keyCode, event);
@@ -753,10 +761,12 @@ public class MainActivity extends AppCompatActivity {
     */
 
     @JavascriptInterface
-    public void updatePlayer(String playerId, String playerName) {
+    public void updatePlayer(String playerId, String playerName, String ip) {
         Utils.debug("Active player: "+playerId+", name: "+playerName);
         activePlayer = playerId;
         activePlayerName = playerName;
+
+        interceptVolume = !sharedPreferences.getBoolean(SettingsActivity.HARDWARE_VOLUME_PREF_KEY, true) || !isLocalPlayer(ip);
         sendMessageToService(ControlService.ACTIVE_PLAYER, new String[]{activePlayer, activePlayerName});
     }
 
@@ -776,11 +786,14 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
+    private boolean isLocalPlayer(String ipAddress) {
+        return ipAddress.split(":")[0].equals(getLocalIpAddress());
+    }
+
     @JavascriptInterface
     public int controlLocalPlayerPower(String playerId, String ipAddress, int state) {
-        String[] parts = ipAddress.split(":");
-        Utils.debug("Player Power, ID: "+playerId+", IP:"+parts[0]+", State: "+state);
-        if (0==state && parts[0].compareTo(getLocalIpAddress())==0) {
+        Utils.debug("Player Power, ID: "+playerId+", IP:"+ipAddress+", State: "+state);
+        if (0==state && isLocalPlayer(ipAddress)) {
             localPlayer.stopPlayer(playerId);
             return 1;
         }
