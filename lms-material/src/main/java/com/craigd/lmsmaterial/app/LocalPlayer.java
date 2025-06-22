@@ -230,6 +230,7 @@ public class LocalPlayer {
         try {
             if (start) {
                 Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.putExtra("start-player", true);
                 intent.setComponent(new ComponentName("org.lyrion.squeezelite","org.lyrion.squeezelite.MainActivity"));
                 context.startActivity(intent);
             } else {
