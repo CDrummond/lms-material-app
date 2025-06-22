@@ -390,10 +390,13 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false);
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.PLAYER_APP_PREF_KEY) ||
-             ( LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER)) &&
-               ContextCompat.checkSelfPermission(this, SettingsActivity.TERMUX_PERMISSION) != PackageManager.PERMISSION_GRANTED) ) {
-            editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
+        if (!sharedPreferences.contains(SettingsActivity.PLAYER_APP_PREF_KEY)) {
+            if ( LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER)) &&
+                 ContextCompat.checkSelfPermission(this, SettingsActivity.TERMUX_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
+                editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
+            } else {
+                editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.SQUEEZELITE);
+            }
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.HARDWARE_VOLUME_PREF_KEY)) {
