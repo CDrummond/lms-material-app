@@ -11,13 +11,23 @@ android {
         versionName "0.8.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    dependenciesInfo {
+        // Disables dependency metadata when building APKs (for IzzyOnDroid/F-Droid)
+        includeInApk = false
+        // Disables dependency metadata when building Android App Bundles (for Google Play)
+        includeInBundle = false
+    }
+
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     namespace 'com.craigd.lmsmaterial.app'
+
     lint {
         checkReleaseBuilds false
     }
