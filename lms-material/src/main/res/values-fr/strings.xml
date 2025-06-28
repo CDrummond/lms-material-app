@@ -73,4 +73,6 @@
     <string name="notification_meta_text">Commandes de lecture</string>
     <string name="quitmenu">Menu pour quitter</string>
     <string name="quitmenu_summary">Affiche une ligne \"Quitter\" dans le menu principal pour fermer l\'application Lyrion.</string>
+    <string name="hardware_volume">Modifier le volume de l\'appareil</string>
+    <string name="hardware_volume_summary">Modifier le volume via les touches de l\'appareil change le volume de l\'appareil, pas celui du lecteur logiciel.</string>
 </resources>
