@@ -166,8 +166,6 @@ public class ControlService extends Service {
             }
             if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
                 service.handler.post(service::networkConnectivityChanged);
-            } else if (PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED.equals(intent.getAction())) {
-                service.handler.post(service::idleModeChanged);
             }
         }
     }
@@ -187,18 +185,6 @@ public class ControlService extends Service {
                 cometClient.disconnect();
             }
             updateNotification();
-        }
-    }
-
-    private void idleModeChanged() {
-        if (FULL_NOTIFICATION.equals(notificationType)) {
-            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-            if (pm.isDeviceIdleMode()) {
-                Utils.debug("Doze mode enabled, disconnect from server");
-                lastStatus = null;
-                cometClient.disconnect();
-                updateNotification();
-            }
         }
     }
 
@@ -307,7 +293,6 @@ public class ControlService extends Service {
             if (null==connectionChangeListener) {
                 connectionChangeListener = new ConnectionChangeListener(this);
                 IntentFilter filter =  new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-                filter.addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
                 registerReceiver(connectionChangeListener, filter);
             }
         }

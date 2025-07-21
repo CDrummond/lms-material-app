@@ -1,0 +1,3 @@
+Fixed
+
+• Don't disconnect when entering doze mode.
