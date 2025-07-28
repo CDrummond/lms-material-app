@@ -67,7 +67,6 @@ import androidx.preference.PreferenceManager;
 import org.json.JSONArray;
 
 import java.io.File;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
@@ -99,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
     private SharedPreferences sharedPreferences;
     private WebView webView;
+    private WebViewCache webViewCache = null;
     private String url;
     private boolean reloadUrlAfterSettings = false; // Should URL be reloaded after settings closed, regardless if changed?
     private boolean pageError = false;
@@ -569,6 +569,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         init5497Workaround();
         manageShowOverLockscreen();
+        webViewCache = new WebViewCache(this);
         webView = findViewById(R.id.webview);
         webView.setVisibility(View.GONE);
         webView.setBackgroundColor(Color.TRANSPARENT);
@@ -707,6 +708,19 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Utils.info("Prompt for auth details");
                 promptForUserNameAndPassword(httpAuthHandler);
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                // Check if we should cache this path
+                if (webViewCache.shouldIntercept(request)) {
+                    WebResourceResponse resourceResponse = webViewCache.get(request);
+                    if (resourceResponse != null) {
+                        return resourceResponse;
+                    }
+                }
+
+                return super.shouldInterceptRequest(view, request);
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
@@ -1150,6 +1164,7 @@ public class MainActivity extends AppCompatActivity {
         Utils.info("");
         webView.destroy();
         webView = null;
+        webViewCache.stop();
         stopControlService();
         if (null!=activePlayer && !activePlayer.equals(sharedPreferences.getString(CURRENT_PLAYER_ID_KEY, null))) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
