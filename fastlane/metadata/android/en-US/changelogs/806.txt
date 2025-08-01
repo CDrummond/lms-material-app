@@ -1,3 +1,7 @@
 Improved
 
 • Use service intent to start Sqeezelite, not activity.
+
+Fixed
+
+• Don't disconnect when entering doze mode.
