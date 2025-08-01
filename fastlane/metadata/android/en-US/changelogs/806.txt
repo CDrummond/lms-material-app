@@ -1,0 +1,3 @@
+Improved
+
+• Use service intent to start Sqeezelite, not activity.

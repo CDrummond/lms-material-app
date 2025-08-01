@@ -19,6 +19,7 @@
     <queries>
         <package android:name="com.termux" />
         <package android:name="de.bluegaspode.squeezeplayer" />
+        <package android:name="org.lyrion.squeezelite" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:mimeType="application/pdf" />

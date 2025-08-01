@@ -228,16 +228,16 @@ public class LocalPlayer {
 
     private boolean controlSqueezelite(boolean start) {
         try {
+            Intent intent = new Intent();
+            intent.setClassName("org.lyrion.squeezelite", "org.lyrion.squeezelite.PlayerService");
             if (start) {
-                Intent intent = new Intent(Intent.ACTION_MAIN);
-                intent.putExtra("start-player", true);
-                intent.setComponent(new ComponentName("org.lyrion.squeezelite","org.lyrion.squeezelite.MainActivity"));
-                context.startActivity(intent);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent);
+                } else {
+                    context.startService(intent);
+                }
             } else {
-                Intent intent = new Intent();
-                intent.setClassName("org.lyrion.squeezelite", "org.lyrion.squeezelite.CommandReceiver");
-                intent.setAction("org.lyrion.squeezelite.STOP");
-                context.sendBroadcast(intent);
+                context.stopService(intent);
             }
             return true;
         } catch (Exception e) {
