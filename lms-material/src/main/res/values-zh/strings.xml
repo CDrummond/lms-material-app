@@ -63,11 +63,8 @@
     <string name="menu_start_player">添加启动播放器选项</string>
     <string name="menu_start_player_summary">在主菜单中显示启动所选播放器应用选项</string>
     <string name="stopping_player">正在停止本地播放器</string>
-    <string name="no_termux_run_perms">没有权限运行 Termux 命令</string>
     <string name="failed_start_activity">启动界面失败</string>
     <string name="no_pdf_handler">未找到 PDF 处理程序</string>
-    <string name="squeezelite_options_summary">传递给 Squeezelite 的额外选项</string>
-    <string name="squeezelite_options">Squeezelite（通过 Termux）选项</string>
     <string name="main_notification">主要通知</string>
     <string name="download_notification">下载通知</string>
     <string name="notification_meta_text">播放控制</string>

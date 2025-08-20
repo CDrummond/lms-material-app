@@ -1,7 +1,3 @@
-Improved
-
 • Use service intent to start Sqeezelite, not activity.
-
-Fixed
-
 • Don't disconnect when entering doze mode.
+• Remove option to start Squeezelite via Termux, as Android native Squeezelite exists.

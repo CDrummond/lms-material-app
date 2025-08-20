@@ -67,7 +67,6 @@ import androidx.preference.PreferenceManager;
 import org.json.JSONArray;
 
 import java.io.File;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
@@ -391,13 +390,11 @@ public class MainActivity extends AppCompatActivity {
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.PLAYER_APP_PREF_KEY)) {
-            if ( LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER)) &&
-                 ContextCompat.checkSelfPermission(this, SettingsActivity.TERMUX_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-                editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
-            } else {
-                editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.SQUEEZELITE);
-            }
+            editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.SQUEEZELITE);
             modified=true;
+        } else if ("termux".equals(sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER))) {
+            editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
+            modified = true;
         }
         if (!sharedPreferences.contains(SettingsActivity.HARDWARE_VOLUME_PREF_KEY)) {
             editor.putBoolean(SettingsActivity.HARDWARE_VOLUME_PREF_KEY, true);

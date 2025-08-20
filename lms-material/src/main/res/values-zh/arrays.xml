@@ -22,7 +22,6 @@
         <item>SB 播放器</item>
         <item>SqueezePlayer</item>
         <item>Squeezelite</item>
-        <item>Squeezelite（通过 Termux）</item>
     </string-array>
     <string-array name="notifs">
         <item>无</item>

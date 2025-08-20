@@ -63,13 +63,9 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String AUTO_START_PLAYER_APP_PREF_KEY = "auto_start_player";
     public static final String PLAYER_START_MENU_ITEM_PREF_KEY = "menu_start_player";
     public static final String STOP_APP_ON_QUIT_PREF_KEY = "stop_app_on_quit";
-    public static final String SQUEEZELITE_OPTIONS_KEY = "squeezelite_options";
-
-    public static final String TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND";
     public static final int PERMISSION_READ_PHONE_STATE = 1;
-    public static final int PERMISSION_RUN_TERMUX_COMMAND = 2;
-    public static final int PERMISSION_POST_NOTIFICATIONS = 3;
-    public static final int PERMISSION_NOTIFS_AND_READ_PHONE_STATE = 4;
+    public static final int PERMISSION_POST_NOTIFICATIONS = 2;
+    public static final int PERMISSION_NOTIFS_AND_READ_PHONE_STATE = 3;
 
     private static boolean visible = false;
     public static boolean isVisible() {
@@ -348,44 +344,6 @@ public class SettingsActivity extends AppCompatActivity {
                 });
             }
 
-            final Preference squeezeliteOptionsButton = getPreferenceManager().findPreference(SQUEEZELITE_OPTIONS_KEY);
-            if (squeezeliteOptionsButton != null) {
-                squeezeliteOptionsButton.setSummary(sharedPreferences.getString(SQUEEZELITE_OPTIONS_KEY,""));
-                squeezeliteOptionsButton.setOnPreferenceClickListener(arg0 -> {
-                    if (getContext()!=null) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                        builder.setTitle(R.string.squeezelite_options);
-                        SharedPreferences sharedPreferences14 = PreferenceManager.getDefaultSharedPreferences(getContext());
-
-                        int padding = getResources().getDimensionPixelOffset(R.dimen.dlg_padding);
-                        TextView text = new TextView(getContext());
-                        final EditText input = new EditText(getContext());
-                        input.setInputType(InputType.TYPE_CLASS_TEXT);
-                        input.setText(sharedPreferences14.getString(SQUEEZELITE_OPTIONS_KEY, null));
-                        text.setText(R.string.squeezelite_options_summary);
-                        LinearLayout layout = new LinearLayout(getContext());
-                        layout.setOrientation(LinearLayout.VERTICAL);
-                        layout.setPadding(padding, padding, padding, padding / 2);
-                        layout.addView(text);
-                        layout.addView(input);
-                        builder.setView(layout);
-
-                        builder.setPositiveButton(R.string.ok, (dialog, which) -> {
-                            String str = input.getText().toString();
-                            SharedPreferences sharedPreferences141 = PreferenceManager.getDefaultSharedPreferences(getContext());
-                            SharedPreferences.Editor editor = sharedPreferences141.edit();
-                            editor.putString(SQUEEZELITE_OPTIONS_KEY, str);
-                            editor.apply();
-                            squeezeliteOptionsButton.setSummary(str);
-                        });
-                        builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.cancel());
-
-                        builder.show();
-                    }
-                    return true;
-                });
-            }
-
             if (Utils.cutoutTopLeft(activity)) {
                 SwitchPreferenceCompat fullscreenPref = getPreferenceManager().findPreference(FULLSCREEN_PREF_KEY);
                 if (null != fullscreenPref) {
@@ -420,9 +378,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
             if (PLAYER_APP_PREF_KEY.equals(key)) {
                 updateListSummary(key);
-                if (LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(key, null))) {
-                    activity.checkTermuxPermission();
-                }
             }
             if (NOTIFCATIONS_PREF_KEY.equals(key)) {
                 updateListSummary(key);
@@ -544,12 +499,6 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    public void checkTermuxPermission() {
-        if (ContextCompat.checkSelfPermission(this, TERMUX_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{TERMUX_PERMISSION}, PERMISSION_RUN_TERMUX_COMMAND);
-        }
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -558,12 +507,6 @@ public class SettingsActivity extends AppCompatActivity {
                     fragment.resetOnCall();
                 } else {
                     fragment.setNotifications(ControlService.FULL_NOTIFICATION);
-                }
-                return;
-            }
-            case PERMISSION_RUN_TERMUX_COMMAND: {
-                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    fragment.resetStartPlayer();
                 }
                 return;
             }

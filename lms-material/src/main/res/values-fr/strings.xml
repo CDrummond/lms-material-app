@@ -63,11 +63,8 @@
     <string name="menu_start_player">Menu pour démarrer la platine</string>
     <string name="menu_start_player_summary">Affiche une ligne dans le menu principal pour démarrer l\'application \"platine\" choisie.</string>
     <string name="stopping_player">Arrêt de la platine locale</string>
-    <string name="no_termux_run_perms">Aucune permission pour exécuter des commandes Termux</string>
     <string name="failed_start_activity">Échec du démarrage de l\'activité</string>
     <string name="no_pdf_handler">Aucun lecteur PDF trouvé</string>
-    <string name="squeezelite_options_summary">Options supplémentaires à transmettre à Squeezelite.</string>
-    <string name="squeezelite_options">Options Squeezelite (via Termux)</string>
     <string name="main_notification">Principal</string>
     <string name="download_notification">Téléchargements</string>
     <string name="notification_meta_text">Commandes de lecture</string>
