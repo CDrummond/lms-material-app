@@ -422,21 +422,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
 
-        public void resetStartPlayer() {
-            if (getContext()==null) {
-                return;
-            }
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString(PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
-            editor.apply();
-            ListPreference pref = getPreferenceManager().findPreference("start_player");
-            if (pref != null) {
-                pref.setValue(LocalPlayer.NO_PLAYER);
-            }
-            updateListSummary(PLAYER_APP_PREF_KEY);
-        }
-
         public void setNotifications(String val) {
             if (getContext()==null) {
                 return;
@@ -512,6 +497,8 @@ public class SettingsActivity extends AppCompatActivity {
             }
             case PERMISSION_POST_NOTIFICATIONS: {
                 if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    fragment.setNotifications(ControlService.NO_NOTIFICATION);
+                } else {
                     fragment.setNotifications(ControlService.FULL_NOTIFICATION);
                 }
                 return;
