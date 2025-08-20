@@ -389,12 +389,10 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false);
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.PLAYER_APP_PREF_KEY)) {
-            editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.SQUEEZELITE);
-            modified=true;
-        } else if ("termux".equals(sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER))) {
+        if (!sharedPreferences.contains(SettingsActivity.PLAYER_APP_PREF_KEY) ||
+                "termux".equals(sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER))) {
             editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
-            modified = true;
+            modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.HARDWARE_VOLUME_PREF_KEY)) {
             editor.putBoolean(SettingsActivity.HARDWARE_VOLUME_PREF_KEY, true);
