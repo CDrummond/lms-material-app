@@ -86,10 +86,6 @@
             android:enabled="true"
             android:foregroundServiceType="shortService"/>
 
-        <service
-            android:name=".TermuxResultsService"
-            android:enabled="true" />
-
         <receiver
             android:exported="false"
             android:name="androidx.media.session.MediaButtonReceiver">
