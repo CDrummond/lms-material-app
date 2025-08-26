@@ -377,7 +377,14 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
             if (PLAYER_APP_PREF_KEY.equals(key)) {
-                updateListSummary(key);
+                String val = sharedPreferences.getString(key, null);
+                if ( (LocalPlayer.SB_PLAYER.equals(val) && !Utils.isInstalled(activity, LocalPlayer.SB_PLAYER_PKG, "SB Player")) ||
+                     (LocalPlayer.SQUEEZE_PLAYER.equals(val) && !Utils.isInstalled(activity, LocalPlayer.SQUEEZE_PLAYER_PKG, "SqueezePlayer")) ||
+                     (LocalPlayer.SQUEEZELITE.equals(val) && !Utils.isInstalled(activity, LocalPlayer.SQUEEZELITE_PKG, "Squeezelite"))) {
+                    resetLocalPlayer();
+                } else {
+                    updateListSummary(key);
+                }
             }
             if (NOTIFCATIONS_PREF_KEY.equals(key)) {
                 updateListSummary(key);
@@ -419,6 +426,23 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 updateListSummary(ON_CALL_PREF_KEY);
                 setAfterCallState();
+            }
+        }
+
+        public void resetLocalPlayer() {
+            if (getContext()==null) {
+                return;
+            }
+            ListPreference pref = getPreferenceManager().findPreference(PLAYER_APP_PREF_KEY);
+            if (pref==null || !LocalPlayer.NO_PLAYER.equals(pref.getValue())) {
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString(PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
+                editor.apply();
+                if (pref != null) {
+                    pref.setValue(LocalPlayer.NO_PLAYER);
+                }
+                updateListSummary(PLAYER_APP_PREF_KEY);
             }
         }
 

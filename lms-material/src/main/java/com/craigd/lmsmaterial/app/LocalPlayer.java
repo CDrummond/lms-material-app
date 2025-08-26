@@ -23,6 +23,9 @@ public class LocalPlayer {
     public static final String SQUEEZE_PLAYER = "squeezeplayer";
     public static final String SQUEEZELITE = "squeezelite";
 
+    public static final String SB_PLAYER_PKG = "com.angrygoat.android.sbplayer";
+    public static final String SQUEEZE_PLAYER_PKG = "de.bluegaspode.squeezeplayer";
+    public static final String SQUEEZELITE_PKG = "org.lyrion.squeezelite";
     private final SharedPreferences sharedPreferences;
     private final Context context;
     private JsonRpc rpc = null;
@@ -105,25 +108,13 @@ public class LocalPlayer {
         }
     }
 
-    private boolean isInstalled(String pkg, String name) {
-        final PackageManager packageManager = context.getPackageManager();
-        Intent intent = packageManager.getLaunchIntentForPackage(pkg);
-        if (intent != null) {
-            return true;
-        } else {
-            String text = context.getApplicationContext().getResources().getString(R.string.player_control_failed).replace("%1", name);
-            StyleableToast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT, R.style.toast).show();
-            return false;
-        }
-    }
-
     private boolean sendSbPlayerIntent(boolean start) {
-        if (!isInstalled("com.angrygoat.android.sbplayer", "SB Player")) {
+        if (!Utils.isInstalled(context, SB_PLAYER_PKG, "SB Player")) {
             return false;
         }
         Intent intent = new Intent();
-        intent.setClassName("com.angrygoat.android.sbplayer", "com.angrygoat.android.sbplayer.SBPlayerReceiver");
-        intent.setAction("com.angrygoat.android.sbplayer." + (start ? "LAUNCH" : "EXIT"));
+        intent.setClassName(SB_PLAYER_PKG, SB_PLAYER_PKG+".SBPlayerReceiver");
+        intent.setAction(SB_PLAYER_PKG+"." + (start ? "LAUNCH" : "EXIT"));
         intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
         try {
             context.sendBroadcast(intent);
@@ -135,11 +126,11 @@ public class LocalPlayer {
     }
 
     private boolean controlSqueezePlayer(boolean start) {
-        if (!isInstalled("de.bluegaspode.squeezeplayer", "SqueezePlayer")) {
+        if (!Utils.isInstalled(context, SQUEEZE_PLAYER_PKG, "SqueezePlayer")) {
             return false;
         }
         Intent intent = new Intent();
-        intent.setClassName("de.bluegaspode.squeezeplayer", "de.bluegaspode.squeezeplayer.playback.service.PlaybackService");
+        intent.setClassName(SQUEEZE_PLAYER_PKG, SQUEEZE_PLAYER_PKG+".playback.service.PlaybackService");
 
         ServerDiscovery.Server current = new ServerDiscovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY, null));
         intent.putExtra("forceSettingsFromIntent", true);
@@ -170,12 +161,12 @@ public class LocalPlayer {
     }
 
     private boolean controlSqueezelite(boolean start) {
-        if (!isInstalled("org.lyrion.squeezelite", "Squeezelite")) {
+        if (!Utils.isInstalled(context, SQUEEZELITE_PKG, "Squeezelite")) {
             return false;
         }
         try {
             Intent intent = new Intent();
-            intent.setClassName("org.lyrion.squeezelite", "org.lyrion.squeezelite.PlayerService");
+            intent.setClassName(SQUEEZELITE_PKG, SQUEEZELITE_PKG+".PlayerService");
             if (start) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     context.startForegroundService(intent);
