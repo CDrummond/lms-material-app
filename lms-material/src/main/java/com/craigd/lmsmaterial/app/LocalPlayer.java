@@ -11,7 +11,11 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Build;
+import android.widget.Toast;
+
+import io.github.muddz.styleabletoast.StyleableToast;
 
 public class LocalPlayer {
     public static final String NO_PLAYER = "none";
@@ -101,7 +105,22 @@ public class LocalPlayer {
         }
     }
 
+    private boolean isInstalled(String pkg, String name) {
+        final PackageManager packageManager = context.getPackageManager();
+        Intent intent = packageManager.getLaunchIntentForPackage(pkg);
+        if (intent != null) {
+            return true;
+        } else {
+            String text = context.getApplicationContext().getResources().getString(R.string.player_control_failed).replace("%1", name);
+            StyleableToast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT, R.style.toast).show();
+            return false;
+        }
+    }
+
     private boolean sendSbPlayerIntent(boolean start) {
+        if (!isInstalled("com.angrygoat.android.sbplayer", "SB Player")) {
+            return false;
+        }
         Intent intent = new Intent();
         intent.setClassName("com.angrygoat.android.sbplayer", "com.angrygoat.android.sbplayer.SBPlayerReceiver");
         intent.setAction("com.angrygoat.android.sbplayer." + (start ? "LAUNCH" : "EXIT"));
@@ -116,6 +135,9 @@ public class LocalPlayer {
     }
 
     private boolean controlSqueezePlayer(boolean start) {
+        if (!isInstalled("de.bluegaspode.squeezeplayer", "SqueezePlayer")) {
+            return false;
+        }
         Intent intent = new Intent();
         intent.setClassName("de.bluegaspode.squeezeplayer", "de.bluegaspode.squeezeplayer.playback.service.PlaybackService");
 
@@ -148,6 +170,9 @@ public class LocalPlayer {
     }
 
     private boolean controlSqueezelite(boolean start) {
+        if (!isInstalled("org.lyrion.squeezelite", "Squeezelite")) {
+            return false;
+        }
         try {
             Intent intent = new Intent();
             intent.setClassName("org.lyrion.squeezelite", "org.lyrion.squeezelite.PlayerService");
