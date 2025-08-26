@@ -1,0 +1,3 @@
+• Only apply adjustResize work-around if full screen (see https://issuetracker.google.com/issues/36911528)
+• Show error if try to control a player app that is not installed.
+• Check player app is installed when selected in settings.
