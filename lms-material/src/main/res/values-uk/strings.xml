@@ -70,4 +70,7 @@
     <string name="notification_meta_text">Керування відтворенням</string>
     <string name="quitmenu">Додати пункт меню «Вихід»</string>
     <string name="quitmenu_summary">Показувати пункт «Вихід» у головному меню.</string>
+    <string name="hardware_volume">Змінити гучність пристрою</string>
+    <string name="hardware_volume_summary">При зміні гучності за допомогою клавіш пристрою змінювати гучність пристрою, а не програмного програвача.</string>
+    <string name="player_control_failed">\'%1\' не встановлено!</string>
 </resources>
