@@ -70,4 +70,7 @@
     <string name="notification_meta_text">Управление воспроизведением</string>
     <string name="quitmenu">Добавить пункт меню «Выход»</string>
     <string name="quitmenu_summary">Показывать пункт «Выход» в главном меню.</string>
+    <string name="hardware_volume">Изменить громкость устройства</string>
+    <string name="hardware_volume_summary">При изменении громкости с помощью клавиш устройства изменять громкость устройства, а не программного проигрывателя.</string>
+    <string name="player_control_failed">\'%1\' не установлен!</string>
 </resources>
