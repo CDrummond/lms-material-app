@@ -316,13 +316,17 @@ public class MainActivity extends AppCompatActivity {
                     builder.appendQueryParameter("dlgPad", ""+(int)Math.ceil(48*adjust));
                 }
             }
+            boolean addStartPlayer = sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false);
+            if (addStartPlayer) {
+                builder.appendQueryParameter("ipAddresses", String.join(",", getLocalIpAddresses()));
+            }
             return builder.build().toString()+
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" +
                     "&appSettings="+SETTINGS_URL+
                     (sharedPreferences.getBoolean(SettingsActivity.QUITMENU_PREF_KEY, false)
                         ? ("&appQuit="+QUIT_URL) : "") +
-                    (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)
+                    (addStartPlayer
                         ? ("&appLaunchPlayer="+STARTPLAYER_URL) : "") +
                     "&dontEmbed=pdf";
         } catch (Exception e) {
@@ -779,7 +783,10 @@ public class MainActivity extends AppCompatActivity {
             for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
                 NetworkInterface intf = en.nextElement();
                 for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-                    addresses.add(enumIpAddr.nextElement().getHostAddress());
+                    String addr = enumIpAddr.nextElement().getHostAddress();
+                    if (null!=addr && !"127.0.0.1".equals(addr) && addr.split("\\.").length==4) {
+                        addresses.add(addr);
+                    }
                 }
             }
         } catch (SocketException ignored) {
