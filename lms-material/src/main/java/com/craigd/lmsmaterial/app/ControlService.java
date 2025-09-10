@@ -39,6 +39,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
+import android.view.KeyEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -442,6 +443,39 @@ public class ControlService extends Service {
                             } else if (ACTION_POWER.equals(action)) {
                                 sendCommand(POWER_COMMAND);
                             }
+                        }
+
+                        public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
+                            Utils.debug("");
+                            KeyEvent event = mediaButtonEvent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+                            if (event!=null && 1==event.getAction()) {
+                                Utils.debug("KeyCode:" + event.getKeyCode());
+                                switch (event.getKeyCode()) {
+                                    case KeyEvent.KEYCODE_MEDIA_PLAY:
+                                        Utils.debug("Play");
+                                        sendCommand(PLAY_COMMAND);
+                                        return true;
+                                    case KeyEvent.KEYCODE_MEDIA_PAUSE:
+                                        Utils.debug("Pause");
+                                        sendCommand(PAUSE_COMMAND);
+                                        return true;
+                                    case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+                                        Utils.debug("Play/pause");
+                                        sendCommand(TOGGLE_PLAY_PAUSE_COMMAND);
+                                        return true;
+                                    case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+                                        Utils.debug("Prev");
+                                        sendCommand(PREV_COMMAND);
+                                        return true;
+                                    case KeyEvent.KEYCODE_MEDIA_NEXT:
+                                        Utils.debug("Next");
+                                        sendCommand(NEXT_COMMAND);
+                                        return true;
+                                    default:
+                                        break;
+                                }
+                            }
+                            return super.onMediaButtonEvent(mediaButtonEvent);
                         }
                     };
                 }

@@ -2,3 +2,4 @@
 • Show error if try to control a player app that is not installed.
 • Check player app is installed when selected in settings.
 • Inform skin of local IP addresses so that it can hide 'Start player' when player started.
+• Intercept media button events, if using full notification.
