@@ -7,7 +7,8 @@ This app is based upon https://github.com/andreasbehnke/lms-material-app
  
  [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/com.craigd.lmsmaterial.app/)
+     height="80">](https://f-droid.org/packages/com.craigd.lmsmaterial.app/) 
+[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="80" alt="Get it at IzzyOnDroid">](https://apt.izzysoft.de/packages/com.craigd.lmsmaterial.app)
  
 # Building and signing the app
 
