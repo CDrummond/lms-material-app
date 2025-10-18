@@ -1,0 +1,1 @@
+• Fix auth header not being sent in JSONRPC - thanks to ndkean.
