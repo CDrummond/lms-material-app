@@ -1,1 +1,2 @@
 • Fix auth header not being sent in JSONRPC - thanks to ndkean.
+• Use hardware volume preference for MediaSession - thanks to ndkean.
