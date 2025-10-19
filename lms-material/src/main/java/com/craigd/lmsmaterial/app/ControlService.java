@@ -24,6 +24,7 @@ import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.media.MediaMetadata;
 import android.net.ConnectivityManager;
 import android.os.Build;
@@ -447,17 +448,22 @@ public class ControlService extends Service {
                 }
                 mediaSession.setCallback(mediaSessionCallback);
 
-                mediaSession.setPlaybackToRemote(new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 50, 1) {
-                    @Override
-                    public void onAdjustVolume(int direction) {
-                        Utils.debug(""+direction);
-                        if (direction > 0) {
-                            sendCommand(INC_VOLUME_COMMAND);
-                        } else if (direction < 0) {
-                            sendCommand(DEC_VOLUME_COMMAND);
+                if (prefs.getBoolean(SettingsActivity.HARDWARE_VOLUME_PREF_KEY, true)) {
+                    mediaSession.setPlaybackToLocal(AudioManager.STREAM_MUSIC);
+                } else {
+                    mediaSession.setPlaybackToRemote(new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 50, 1) {
+                        @Override
+                        public void onAdjustVolume(int direction) {
+                            Utils.debug(""+direction);
+                            if (direction > 0) {
+                                sendCommand(INC_VOLUME_COMMAND);
+                            } else if (direction < 0) {
+                                sendCommand(DEC_VOLUME_COMMAND);
+                            }
                         }
-                    }
-                });
+                    });
+                }
+
                 String title = MainActivity.activePlayerName == null || MainActivity.activePlayerName.isEmpty() ? getResources().getString(R.string.no_player) : MainActivity.activePlayerName;
                 MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder();
                 metaBuilder.putString(MediaMetadata.METADATA_KEY_ARTIST, title);
