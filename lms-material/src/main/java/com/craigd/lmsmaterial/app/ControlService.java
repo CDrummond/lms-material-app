@@ -7,6 +7,9 @@
 
 package com.craigd.lmsmaterial.app;
 
+import static com.craigd.lmsmaterial.app.MainActivity.LMS_PASSWORD_KEY;
+import static com.craigd.lmsmaterial.app.MainActivity.LMS_USERNAME_KEY;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -55,8 +58,11 @@ import androidx.preference.PreferenceManager;
 import com.craigd.lmsmaterial.app.cometd.CometClient;
 import com.craigd.lmsmaterial.app.cometd.PlayerStatus;
 
+import org.eclipse.jetty.util.B64Code;
+
 import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -515,7 +521,15 @@ public class ControlService extends Service {
         }
         executor.execute(() -> {
             try {
-                currentBitmap = BitmapFactory.decodeStream(new URL(lastStatus.cover).openStream());
+                URL url = new URL(lastStatus.cover);
+                URLConnection con = url.openConnection();
+                String user = prefs.getString(LMS_USERNAME_KEY, "");
+                String pass = prefs.getString(LMS_PASSWORD_KEY, "");
+                if (!user.isEmpty() && !pass.isEmpty()) {
+                    con.setRequestProperty("Authorization", "Basic " + B64Code.encode(user + ":" + pass));
+                }
+
+                currentBitmap = BitmapFactory.decodeStream(con.getInputStream());
                 if (null!=currentBitmap) {
                     currentCover = lastStatus.cover;
                 }
