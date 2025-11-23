@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="statusbar">
+        <item>Viditelný (standardní)</item>
+        <item>Viditelný (prolnutý)</item>
+        <item>Skrytý</item>
+    </string-array>
+    <string-array name="orientation">
+        <item>Automaticky</item>
+        <item>Na výšku</item>
+        <item>Na šířku</item>
+    </string-array>
+    <string-array name="oncall">
+        <item>Nedělat nic</item>
+        <item>Ztlumit všechny aktivní přehrávače</item>
+        <item>Ztlumit aktuální přehrávač</item>
+        <item>Pozastavit všechny aktivní přehrávače</item>
+        <item>Pozastavit aktuální přehrávač</item>
+    </string-array>
+    <string-array name="playerapps">
+        <item>Žádný</item>
+        <item>SB Player</item>
+        <item>SqueezePlayer</item>
+        <item>Squeezelite</item>
+    </string-array>
+    <string-array name="notifs">
+        <item>Žádné</item>
+        <item>Základní (pouze ovládání, žádný stav)</item>
+        <item>Plné</item>
+    </string-array>
+</resources>
