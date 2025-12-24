@@ -53,6 +53,7 @@ import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 import androidx.media.VolumeProviderCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
+import androidx.media.session.MediaButtonReceiver;
 import androidx.preference.PreferenceManager;
 
 import com.craigd.lmsmaterial.app.cometd.CometClient;
@@ -265,6 +266,9 @@ public class ControlService extends Service {
                 quit();
             }
         }
+        if (null!=mediaSession) {
+            MediaButtonReceiver.handleIntent(mediaSession, intent);
+        }
         super.onStartCommand(intent, flags, startId);
         return START_STICKY;
     }
@@ -452,6 +456,7 @@ public class ControlService extends Service {
                         }
                     };
                 }
+                mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
                 mediaSession.setCallback(mediaSessionCallback);
 
                 if (prefs.getBoolean(SettingsActivity.HARDWARE_VOLUME_PREF_KEY, true)) {
