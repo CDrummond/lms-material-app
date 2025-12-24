@@ -11,11 +11,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Build;
-import android.widget.Toast;
 
-import io.github.muddz.styleabletoast.StyleableToast;
 
 public class LocalPlayer {
     public static final String NO_PLAYER = "none";

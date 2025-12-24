@@ -21,7 +21,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -73,7 +72,6 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private SettingsFragment fragment;
-    private SettingsActivity activity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +84,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         visible = true;
         setContentView(R.layout.settings_activity);
-        activity = this;
         fragment = new SettingsFragment();
         fragment.setActivity(this);
         getSupportFragmentManager()
