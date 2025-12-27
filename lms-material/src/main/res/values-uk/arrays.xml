@@ -22,7 +22,6 @@
         <item>SB Player</item>
 	    <item>SqueezePlayer</item>
         <item>Squeezelite</item>
-        <item>Squeezelite (через Termux)</item>
     </string-array>
     <string-array name="notifs">
         <item>Ні</item>

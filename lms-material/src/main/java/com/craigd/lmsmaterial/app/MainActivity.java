@@ -317,13 +317,17 @@ public class MainActivity extends AppCompatActivity {
                     builder.appendQueryParameter("dlgPad", ""+(int)Math.ceil(48*adjust));
                 }
             }
+            boolean addStartPlayer = sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false);
+            if (addStartPlayer) {
+                builder.appendQueryParameter("ipAddresses", String.join(",", getLocalIpAddresses()));
+            }
             return builder.build().toString()+
                     // Can't use Uri.Builder for the following as MaterialSkin expects that values to *not* be URL encoded!
                     "&hide=notif,scale" +
                     "&appSettings="+SETTINGS_URL+
                     (sharedPreferences.getBoolean(SettingsActivity.QUITMENU_PREF_KEY, false)
                         ? ("&appQuit="+QUIT_URL) : "") +
-                    (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)
+                    (addStartPlayer
                         ? ("&appLaunchPlayer="+STARTPLAYER_URL) : "") +
                     "&dontEmbed=pdf";
         } catch (Exception e) {
@@ -390,13 +394,9 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false);
             modified=true;
         }
-        if (!sharedPreferences.contains(SettingsActivity.PLAYER_APP_PREF_KEY)) {
-            if ( LocalPlayer.TERMUX_PLAYER.equals(sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER)) &&
-                 ContextCompat.checkSelfPermission(this, SettingsActivity.TERMUX_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-                editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
-            } else {
-                editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.SQUEEZELITE);
-            }
+        if (!sharedPreferences.contains(SettingsActivity.PLAYER_APP_PREF_KEY) ||
+                "termux".equals(sharedPreferences.getString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER))) {
+            editor.putString(SettingsActivity.PLAYER_APP_PREF_KEY, LocalPlayer.NO_PLAYER);
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.HARDWARE_VOLUME_PREF_KEY)) {
@@ -590,6 +590,9 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setUseWideViewPort(false);
         webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         webSettings.setTextZoom(100);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            webSettings.setAlgorithmicDarkeningAllowed(false);
+        }
         initialWebViewScale = getResources().getDisplayMetrics().density;
         currentScale = getScale();
         webView.setInitialScale(currentScale);
@@ -795,7 +798,10 @@ public class MainActivity extends AppCompatActivity {
             for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
                 NetworkInterface intf = en.nextElement();
                 for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-                    addresses.add(enumIpAddr.nextElement().getHostAddress());
+                    String addr = enumIpAddr.nextElement().getHostAddress();
+                    if (null!=addr && !"127.0.0.1".equals(addr) && addr.split("\\.").length==4) {
+                        addresses.add(addr);
+                    }
                 }
             }
         } catch (SocketException ignored) {
@@ -1302,6 +1308,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void possiblyResizeChildOfContent() {
+        if (!isFullScreen) {
+            return;
+        }
         int usableHeightNow = computeUsableHeight();
         if (usableHeightNow != usableHeightPrevious) {
             int usableHeightSansKeyboard = childOfContent.getRootView().getHeight();

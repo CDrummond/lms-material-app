@@ -14,10 +14,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" android:minSdkVersion="33" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <uses-permission android:name="com.termux.permission.RUN_COMMAND"/>
 
     <queries>
-        <package android:name="com.termux" />
+        <package android:name="com.angrygoat.android.sbplayer" />
         <package android:name="de.bluegaspode.squeezeplayer" />
         <package android:name="org.lyrion.squeezelite" />
         <intent>
@@ -87,10 +86,6 @@
             android:name=".DownloadService"
             android:enabled="true"
             android:foregroundServiceType="shortService"/>
-
-        <service
-            android:name=".TermuxResultsService"
-            android:enabled="true" />
 
         <receiver
             android:exported="false"

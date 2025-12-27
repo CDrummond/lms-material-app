@@ -12,6 +12,7 @@ import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Insets;
@@ -23,6 +24,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.DisplayCutout;
 import android.view.WindowInsets;
+import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -31,6 +33,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import io.github.muddz.styleabletoast.StyleableToast;
 
 public class Utils {
     public static final String LOG_TAG = "LMS";
@@ -188,6 +192,18 @@ public class Utils {
     public static void error(String message, Throwable t) {
         if (BuildConfig.DEBUG) {
             Log.e(LOG_TAG, logPrefix() + message, t);
+        }
+    }
+
+    public static boolean isInstalled(Context context, String pkg, String name) {
+        final PackageManager packageManager = context.getPackageManager();
+        Intent intent = packageManager.getLaunchIntentForPackage(pkg);
+        if (intent != null) {
+            return true;
+        } else {
+            String text = context.getApplicationContext().getResources().getString(R.string.player_control_failed).replace("%1", name);
+            StyleableToast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT, R.style.toast).show();
+            return false;
         }
     }
 }

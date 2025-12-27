@@ -63,14 +63,14 @@
     <string name="menu_start_player">Додати пункт меню для запуску плеєра</string>
     <string name="menu_start_player_summary">Показувати пункт у головному меню, що дає змогу запустити обраний плеєр.</string>
     <string name="stopping_player">Зупинення локального плеєра</string>
-    <string name="no_termux_run_perms">Ви не маєте дозволу на запуск команд Termux</string>
     <string name="failed_start_activity">Не вдалося розпочати дію</string>
     <string name="no_pdf_handler">Обробник PDF не знайдено</string>
-    <string name="squeezelite_options_summary">Додаткові опції для Squeezelite</string>
-    <string name="squeezelite_options">Опції Squeezelite (через Termux)</string>
     <string name="main_notification">Головна</string>
     <string name="download_notification">Завантаження</string>
     <string name="notification_meta_text">Керування відтворенням</string>
     <string name="quitmenu">Додати пункт меню «Вихід»</string>
     <string name="quitmenu_summary">Показувати пункт «Вихід» у головному меню.</string>
+    <string name="hardware_volume">Змінити гучність пристрою</string>
+    <string name="hardware_volume_summary">При зміні гучності за допомогою клавіш пристрою змінювати гучність пристрою, а не програмного програвача.</string>
+    <string name="player_control_failed">\'%1\' не встановлено!</string>
 </resources>

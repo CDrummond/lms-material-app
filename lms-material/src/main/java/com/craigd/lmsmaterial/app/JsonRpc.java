@@ -47,11 +47,8 @@ public class JsonRpc {
                 return  super.getHeaders();
             }
 
-            Map<String, String> headers = super.getHeaders();
-            if (null==headers) {
-                headers = new HashMap<>();
-                headers.put("Authorization", "Basic " + B64Code.encode(user + ":" + pass));
-            }
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Authorization", "Basic " + B64Code.encode(user + ":" + pass));
             return headers;
         }
     };

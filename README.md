@@ -7,7 +7,8 @@ This app is based upon https://github.com/andreasbehnke/lms-material-app
  
  [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/com.craigd.lmsmaterial.app/)
+     height="80">](https://f-droid.org/packages/com.craigd.lmsmaterial.app/) 
+[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="80" alt="Get it at IzzyOnDroid">](https://apt.izzysoft.de/packages/com.craigd.lmsmaterial.app)
  
 # Building and signing the app
 
@@ -45,3 +46,9 @@ chmod 600 keystore.properties
 I develop this skin purely for fun, so no donations are required. However, seeing as I have been asked about this a few times, here is a link...
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=2X2CTDUH27V9L&source=url)
+
+# Licenses
+
+This app is provided under the [MIT License](LICENSE).
+
+The metadata in the `fastlane/metadata/android` directory is used by F-Droid but stored in this repository for convenience.  Much of it was taken from F-Droid, and it is hence provided under the [GNU Affero General Public License](fastlane/metadata/android/LICENSE).

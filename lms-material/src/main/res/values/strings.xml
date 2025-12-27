@@ -63,11 +63,8 @@
     <string name="menu_start_player">Add menu entry to start player</string>
     <string name="menu_start_player_summary">Show an entry in the main menu to start chosen player app.</string>
     <string name="stopping_player">Stopping local player</string>
-    <string name="no_termux_run_perms">Do not have permission to run Termux commands</string>
     <string name="failed_start_activity">Failed to start activity</string>
     <string name="no_pdf_handler">No PDF handler found</string>
-    <string name="squeezelite_options_summary">Extra options to pass to Squeezelite</string>
-    <string name="squeezelite_options">Squeezelite (via Termux) options</string>
     <string name="main_notification">Main</string>
     <string name="download_notification">Downloads</string>
     <string name="notification_meta_text">Playback controls</string>
@@ -75,4 +72,5 @@
     <string name="quitmenu_summary">Show a \'Quit\' entry in the main menu.</string>
     <string name="hardware_volume">Change device volume</string>
     <string name="hardware_volume_summary">When changing volume via device\'s volume keys then change the volume of the device, not the software player.</string>
+    <string name="player_control_failed">\'%1\' is not installed!</string>
 </resources>

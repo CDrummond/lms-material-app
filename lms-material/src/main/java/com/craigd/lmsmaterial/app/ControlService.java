@@ -7,6 +7,9 @@
 
 package com.craigd.lmsmaterial.app;
 
+import static com.craigd.lmsmaterial.app.MainActivity.LMS_PASSWORD_KEY;
+import static com.craigd.lmsmaterial.app.MainActivity.LMS_USERNAME_KEY;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -24,6 +27,7 @@ import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.media.MediaMetadata;
 import android.net.ConnectivityManager;
 import android.os.Build;
@@ -33,8 +37,6 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
-import android.os.NetworkOnMainThreadException;
-import android.os.PowerManager;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -51,13 +53,17 @@ import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 import androidx.media.VolumeProviderCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
+import androidx.media.session.MediaButtonReceiver;
 import androidx.preference.PreferenceManager;
 
 import com.craigd.lmsmaterial.app.cometd.CometClient;
 import com.craigd.lmsmaterial.app.cometd.PlayerStatus;
 
+import org.eclipse.jetty.util.B64Code;
+
 import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -260,6 +266,9 @@ public class ControlService extends Service {
                 quit();
             }
         }
+        if (null!=mediaSession) {
+            MediaButtonReceiver.handleIntent(mediaSession, intent);
+        }
         super.onStartCommand(intent, flags, startId);
         return START_STICKY;
     }
@@ -447,19 +456,25 @@ public class ControlService extends Service {
                         }
                     };
                 }
+                mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
                 mediaSession.setCallback(mediaSessionCallback);
 
-                mediaSession.setPlaybackToRemote(new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 50, 1) {
-                    @Override
-                    public void onAdjustVolume(int direction) {
-                        Utils.debug(""+direction);
-                        if (direction > 0) {
-                            sendCommand(INC_VOLUME_COMMAND);
-                        } else if (direction < 0) {
-                            sendCommand(DEC_VOLUME_COMMAND);
+                if (prefs.getBoolean(SettingsActivity.HARDWARE_VOLUME_PREF_KEY, true)) {
+                    mediaSession.setPlaybackToLocal(AudioManager.STREAM_MUSIC);
+                } else {
+                    mediaSession.setPlaybackToRemote(new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 50, 1) {
+                        @Override
+                        public void onAdjustVolume(int direction) {
+                            Utils.debug(""+direction);
+                            if (direction > 0) {
+                                sendCommand(INC_VOLUME_COMMAND);
+                            } else if (direction < 0) {
+                                sendCommand(DEC_VOLUME_COMMAND);
+                            }
                         }
-                    }
-                });
+                    });
+                }
+
                 String title = MainActivity.activePlayerName == null || MainActivity.activePlayerName.isEmpty() ? getResources().getString(R.string.no_player) : MainActivity.activePlayerName;
                 MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder();
                 metaBuilder.putString(MediaMetadata.METADATA_KEY_ARTIST, title);
@@ -511,7 +526,15 @@ public class ControlService extends Service {
         }
         executor.execute(() -> {
             try {
-                currentBitmap = BitmapFactory.decodeStream(new URL(lastStatus.cover).openStream());
+                URL url = new URL(lastStatus.cover);
+                URLConnection con = url.openConnection();
+                String user = prefs.getString(LMS_USERNAME_KEY, "");
+                String pass = prefs.getString(LMS_PASSWORD_KEY, "");
+                if (!user.isEmpty() && !pass.isEmpty()) {
+                    con.setRequestProperty("Authorization", "Basic " + B64Code.encode(user + ":" + pass));
+                }
+
+                currentBitmap = BitmapFactory.decodeStream(con.getInputStream());
                 if (null!=currentBitmap) {
                     currentCover = lastStatus.cover;
                 }
