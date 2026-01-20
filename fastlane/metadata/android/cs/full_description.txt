@@ -1,0 +1,1 @@
+Poskytuje wrapper webového zobrazení pro přístup k instanci Lyrion Music Serveru používajícího MaterialSkin. Vyžaduje, aby byl na vaší instanci LMS nainstalován zásuvný modul MaterialSkin.
