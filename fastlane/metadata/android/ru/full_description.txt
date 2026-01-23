@@ -1,0 +1,1 @@
+Предоставляет оболочку WebView для доступа к экземпляру Lyrion Music Server с использованием MaterialSkin. Требуется установленный плагин MaterialSkin на вашем экземпляре LMS.
