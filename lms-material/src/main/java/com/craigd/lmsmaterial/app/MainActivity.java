@@ -1059,6 +1059,7 @@ public class MainActivity extends AppCompatActivity {
         if (clearCache()) {
             Utils.info("Clear cache");
             webView.clearCache(true);
+            webViewCache.clear();
             try {
                 Set<String> ignore = new HashSet<>();
                 ignore.add("lib");

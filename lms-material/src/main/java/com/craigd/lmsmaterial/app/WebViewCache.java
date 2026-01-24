@@ -52,6 +52,7 @@ public class WebViewCache {
         public String key;
         public String version;
     }
+
     public WebViewCache(Context context) {
         this.context = context;
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -62,6 +63,26 @@ public class WebViewCache {
                 Utils.debug(entry.getKey() + " -> " + entry.getValue());
                 versions.put(entry.getKey(), (String) entry.getValue());
             }
+        }
+    }
+
+    public void clear() {
+        Map<String,?> keys = prefs.getAll();
+        boolean changed = false;
+        SharedPreferences.Editor edit = prefs.edit();
+
+        for (Map.Entry<String, ?> entry : keys.entrySet()) {
+            if (entry.getKey().startsWith(KEY_PREFIX)) {
+
+                File file = new File(context.getFilesDir(), entry.getKey());
+                if (file.exists() && file.delete()) {
+                    edit.remove(entry.getKey());
+                    changed = true;
+                }
+            }
+        }
+        if (changed) {
+            edit.apply();
         }
     }
 
@@ -105,7 +126,7 @@ public class WebViewCache {
     public synchronized WebResourceResponse get(WebResourceRequest request) {
         String url = request.getUrl().toString();
         String version = getVersion(url);
-        String key = KEY_PREFIX + Objects.requireNonNull(request.getUrl().getPath()).substring(MATERIAL_PREFIX.length()).replaceAll("[\\.\\/\\-?=&]", "_");
+        String key = KEY_PREFIX + Objects.requireNonNull(request.getUrl().getPath()).substring(MATERIAL_PREFIX.length()).replaceAll("[./\\-?=&]", "_");
         String mimetype = key.endsWith("css")
                 ? "text/css"
                 : key.endsWith("js")
@@ -119,7 +140,7 @@ public class WebViewCache {
             if (start>0) {
                 int end = url.indexOf("&", start);
                 if (end>start) {
-                    key += "_"+url.substring(start+1, end).replaceAll("[\\.\\/\\-?=&]", "_");
+                    key += "_"+url.substring(start+1, end).replaceAll("[./\\-?=&]", "_");
                 }
             }
         }
