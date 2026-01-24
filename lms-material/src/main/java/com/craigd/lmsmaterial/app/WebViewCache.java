@@ -1,7 +1,7 @@
 /**
  * LMS-Material-App
  *
- * Copyright (c) 2020-2025 Craig Drummond <craig.p.drummond@gmail.com>
+ * Copyright (c) 2020-2026 Craig Drummond <craig.p.drummond@gmail.com>
  * MIT license.
  */
 
@@ -56,14 +56,14 @@ public class WebViewCache {
     public WebViewCache(Context context) {
         this.context = context;
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        Map<String,?> keys = prefs.getAll();
+        //Map<String,?> keys = prefs.getAll();
 
-        for (Map.Entry<String, ?> entry : keys.entrySet()) {
-            if (entry.getKey().startsWith(KEY_PREFIX)) {
-                Utils.debug(entry.getKey() + " -> " + entry.getValue());
-                versions.put(entry.getKey(), (String) entry.getValue());
-            }
-        }
+        //for (Map.Entry<String, ?> entry : keys.entrySet()) {
+        //    if (entry.getKey().startsWith(KEY_PREFIX)) {
+        //        Utils.debug(entry.getKey() + " -> " + entry.getValue());
+        //        versions.put(entry.getKey(), (String) entry.getValue());
+        //    }
+        //}
     }
 
     public void clear() {
