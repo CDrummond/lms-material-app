@@ -17,6 +17,9 @@ import androidx.preference.PreferenceManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -25,6 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class WebViewCache {
     private static final String KEY_PREFIX = "cache_";
@@ -56,14 +61,16 @@ public class WebViewCache {
     public WebViewCache(Context context) {
         this.context = context;
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        //Map<String,?> keys = prefs.getAll();
 
-        //for (Map.Entry<String, ?> entry : keys.entrySet()) {
-        //    if (entry.getKey().startsWith(KEY_PREFIX)) {
-        //        Utils.debug(entry.getKey() + " -> " + entry.getValue());
-        //        versions.put(entry.getKey(), (String) entry.getValue());
-        //    }
-        //}
+        // Restore known versions (if any)
+        Map<String,?> keys = prefs.getAll();
+        for (Map.Entry<String, ?> entry : keys.entrySet()) {
+            if (entry.getKey().startsWith(KEY_PREFIX)) {
+                try {
+                    versions.put(entry.getKey(), (String) entry.getValue());
+                } catch (Exception ignored) {}
+            }
+        }
     }
 
     public void clear() {
@@ -73,10 +80,19 @@ public class WebViewCache {
 
         for (Map.Entry<String, ?> entry : keys.entrySet()) {
             if (entry.getKey().startsWith(KEY_PREFIX)) {
-
+                // Delete both plain and gz versions to be safe
                 File file = new File(context.getFilesDir(), entry.getKey());
+                File gz = new File(context.getFilesDir(), entry.getKey() + ".gz");
+                boolean deletedAny = false;
                 if (file.exists() && file.delete()) {
+                    deletedAny = true;
+                }
+                if (gz.exists() && gz.delete()) {
+                    deletedAny = true;
+                }
+                if (deletedAny) {
                     edit.remove(entry.getKey());
+                    versions.remove(entry.getKey());
                     changed = true;
                 }
             }
@@ -146,17 +162,38 @@ public class WebViewCache {
         }
         String cacheVer = versions.get(key);
         Utils.debug("url:" + url +", version: " + version + ", key:" + key + " cacheVer:" + (null==cacheVer ? "<null>" : cacheVer));
+
+        // Prefer gzipped cached file (key + ".gz") if version matches
         if (version!=null && version.equals(cacheVer)) {
-            try {
-                File file = new File(context.getFilesDir(), key);
-                WebResourceResponse resp = new WebResourceResponse(mimetype, "utf-8", 200, "OK", null, new FileInputStream(file));
-                Utils.debug("...read from cache");
-                return resp;
-            } catch (Exception e) {
-                Utils.error("Failed to read " + key, e);
+            File gzFile = new File(context.getFilesDir(), key + ".gz");
+            if (gzFile.exists()) {
+                try {
+                    // Decompress on the app side for maximum compatibility (some WebViews don't honor Content-Encoding)
+                    InputStream fis = new FileInputStream(gzFile);
+                    InputStream decompressed = new GZIPInputStream(fis);
+                    WebResourceResponse resp = new WebResourceResponse(mimetype, "utf-8", decompressed);
+                    Utils.debug("...read gz from cache (decompressed by app)");
+                    return resp;
+                } catch (Exception e) {
+                    Utils.error("Failed to read gz " + key, e);
+                    // fall through to attempt uncompressed file or download
+                }
+            }
+
+            // Fallback: maybe an old uncompressed file exists (backwards compat)
+            File file = new File(context.getFilesDir(), key);
+            if (file.exists()) {
+                try {
+                    WebResourceResponse resp = new WebResourceResponse(mimetype, "utf-8",  new FileInputStream(file));
+                    Utils.debug("...read plain from cache");
+                    return resp;
+                } catch (Exception e) {
+                    Utils.error("Failed to read " + key, e);
+                }
             }
         }
 
+        // Not present or version mismatched -> schedule download and return null so normal network fetch proceeds
         download(url, key, version);
         return null;
     }
@@ -183,51 +220,95 @@ public class WebViewCache {
                     try {
                         while (continueDownloadThread) {
                             Item item = downloadQueue.take();
-                            FileOutputStream fos = null;
+                            // Use HttpURLConnection so we can inspect headers (e.g. Content-Encoding)
+                            HttpURLConnection conn = null;
+                            InputStream is = null;
+                            File tmpFile = null;
                             try {
-                                Utils.debug("Download " + item.key);
-                                ReadableByteChannel rbc = Channels.newChannel(new URL(item.url).openStream());
-                                File tmpFile = new File(context.getFilesDir(), item.key + ".tmp");
+                                Utils.debug("Download " + item.key + " from " + item.url);
+                                URL u = new URL(item.url);
+                                conn = (HttpURLConnection) u.openConnection();
+                                conn.setInstanceFollowRedirects(true);
+                                conn.setConnectTimeout(15000);
+                                conn.setReadTimeout(15000);
+                                // Do not add Accept-Encoding header — let the server decide. We'll check Content-Encoding.
+                                conn.connect();
+
+                                String contentEncoding = conn.getHeaderField("Content-Encoding"); // may be "gzip" or null
+                                is = conn.getInputStream();
+
+                                tmpFile = new File(context.getFilesDir(), item.key + ".tmp");
                                 if (tmpFile.exists()) {
                                     tmpFile.delete();
                                 }
-                                fos = new FileOutputStream(tmpFile);
-                                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                                fos.close();
-                                fos = null;
-                                downloaded(item, tmpFile);
-                            } catch (Exception e) {
-                                Utils.error("Failed to download " + key, e);
-                            } finally {
-                                if (null!=fos) {
-                                    try {
-                                        fos.close();
-                                    } catch (Exception ignored) {
+
+                                FileOutputStream fos = new FileOutputStream(tmpFile);
+                                File destGz = new File(context.getFilesDir(), item.key + ".gz");
+
+                                if (contentEncoding != null && contentEncoding.equalsIgnoreCase("gzip")) {
+                                    // Server already sent gzip; save bytes as-is to tmp then rename to .gz
+                                    copyStream(is, fos);
+                                    fos.close();
+                                    // atomic rename
+                                    if (destGz.exists()) {
+                                        destGz.delete();
                                     }
+                                    if (!tmpFile.renameTo(destGz)) {
+                                        Utils.error("Failed to rename tmp to dest gz for " + item.key);
+                                        tmpFile.delete();
+                                        continue;
+                                    }
+                                } else {
+                                    // Server sent uncompressed; compress on the fly into destGz
+                                    GZIPOutputStream gos = new GZIPOutputStream(fos);
+                                    copyStream(is, gos);
+                                    gos.finish();
+                                    gos.close();
+                                    // atomic rename from tmp -> destGz
+                                    if (destGz.exists()) {
+                                        destGz.delete();
+                                    }
+                                    if (!tmpFile.renameTo(destGz)) {
+                                        Utils.error("Failed to rename tmp to dest gz for " + item.key);
+                                        tmpFile.delete();
+                                        continue;
+                                    }
+                                }
+
+                                // success: store version metadata
+                                Utils.debug("store gz version:" + item.version);
+                                versions.put(item.key, item.version);
+                                SharedPreferences.Editor editor = prefs.edit();
+                                editor.putString(item.key, item.version);
+                                editor.apply();
+                            } catch (Exception e) {
+                                Utils.error("Failed to download " + item.key, e);
+                                if (tmpFile != null && tmpFile.exists()) {
+                                    tmpFile.delete();
+                                }
+                            } finally {
+                                try {
+                                    if (is != null) {
+                                        is.close();
+                                    }
+                                } catch (Exception ignored) { }
+                                if (conn != null) {
+                                    conn.disconnect();
                                 }
                             }
                         }
-                    } catch (InterruptedException ignored) {
-                    }
+                    } catch (InterruptedException ignored) { }
                 }
             };
             downloadThread.start();
         }
     }
 
-    private synchronized void downloaded(Item item, File tmpFile) {
-        if (!continueDownloadThread) {
-            tmpFile.delete();
-            return;
-        }
-        Utils.debug(item.key);
-        File dest = new File(context.getFilesDir(), item.key);
-        if ((!dest.exists() || dest.delete()) && tmpFile.renameTo(dest)) {
-            Utils.debug("store version:" + item.version);
-            versions.put(item.key, item.version);
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString(item.key, item.version);
-            editor.apply();
+    private static void copyStream(InputStream in, OutputStream out) throws java.io.IOException {
+        byte[] buf = new byte[8192];
+        int len;
+        while ((len = in.read(buf)) != -1) {
+            out.write(buf, 0, len);
         }
     }
 }
