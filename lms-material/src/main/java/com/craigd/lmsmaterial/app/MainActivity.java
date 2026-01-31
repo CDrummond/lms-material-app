@@ -1292,9 +1292,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void possiblyResizeChildOfContent() {
-        if (!isFullScreen) {
-            return;
-        }
         int usableHeightNow = computeUsableHeight();
         if (usableHeightNow != usableHeightPrevious) {
             int usableHeightSansKeyboard = childOfContent.getRootView().getHeight();
