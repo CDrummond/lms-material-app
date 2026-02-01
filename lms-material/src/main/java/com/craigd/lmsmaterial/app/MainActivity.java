@@ -24,7 +24,6 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
@@ -52,16 +51,19 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -303,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
                 builder.appendQueryParameter("download", "native");
             }
             if (!sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false) &&
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 int scale = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
                 double adjust = 1.0;
                 if (scale<5) {
@@ -357,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.FULLSCREEN_PREF_KEY) ||
-            (sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false) && Utils.cutoutTopLeft(this))) {
+                (sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false) && Utils.cutoutTopLeft(this))) {
             editor.putBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false);
             modified=true;
         }
@@ -372,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
         boolean haveNotifPerm = Utils.notificationAllowed(this, ControlService.NOTIFICATION_CHANNEL_ID);
         if (! PhoneStateHandler.DO_NOTHING.equals(sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING)) &&
                 (!haveNotifPerm ||
-                  ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED)) {
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED)) {
             editor.putString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
             modified=true;
         }
@@ -381,7 +383,7 @@ public class MainActivity extends AppCompatActivity {
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.NOTIFCATIONS_PREF_KEY) ||
-              (!haveNotifPerm && !ControlService.NO_NOTIFICATION.equals(sharedPreferences.getString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION)))) {
+                (!haveNotifPerm && !ControlService.NO_NOTIFICATION.equals(sharedPreferences.getString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION)))) {
             editor.putString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION);
             modified=true;
         }
@@ -566,14 +568,13 @@ public class MainActivity extends AppCompatActivity {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         setContentView(R.layout.activity_main);
-        init5497Workaround();
+
         manageShowOverLockscreen();
         webView = findViewById(R.id.webview);
         webView.setVisibility(View.GONE);
         webView.setBackgroundColor(Color.TRANSPARENT);
         webView.addJavascriptInterface(this, "NativeReceiver");
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        webView.setVerticalScrollBarEnabled(false);
         if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
@@ -597,6 +598,8 @@ public class MainActivity extends AppCompatActivity {
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setHorizontalScrollBarEnabled(false);
         webView.setVerticalScrollBarEnabled(false);
+
+        initVirtualKeyboardHandling();
 
         webView.setWebViewClient(new WebViewClient() {
             private boolean firstAuthReq = true;
@@ -851,7 +854,9 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     int flags = getWindow().getDecorView().getSystemUiVisibility();
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR)) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR));
+                        getWindow().getDecorView().setSystemUiVisibility(dark
+                                ? (flags & ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR))
+                                : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR));
                     } else {
                         getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
                     }
@@ -949,7 +954,7 @@ public class MainActivity extends AppCompatActivity {
             downloadData = data;
         } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
                 ( checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                  checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) ) {
+                        checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) ) {
             Utils.debug("Request r/w permissions");
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
             downloadData = data;
@@ -1277,41 +1282,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /*
-    Work-around for android bug 5497 - https://issuetracker.google.com/issues/36911528
+    /**
+     * Adjust layout padding when virtual keyboard is shown.
      */
-    private View childOfContent;
-    private int usableHeightPrevious;
-    private FrameLayout.LayoutParams frameLayoutParams;
+    private void initVirtualKeyboardHandling() {
+        EdgeToEdge.enable(this);
 
-    private void init5497Workaround() {
-        FrameLayout content = findViewById(android.R.id.content);
-        childOfContent = content.getChildAt(0);
-        childOfContent.getViewTreeObserver().addOnGlobalLayoutListener(this::possiblyResizeChildOfContent);
-        frameLayoutParams = (FrameLayout.LayoutParams) childOfContent.getLayoutParams();
-    }
-
-    private void possiblyResizeChildOfContent() {
-        int usableHeightNow = computeUsableHeight();
-        if (usableHeightNow != usableHeightPrevious) {
-            int usableHeightSansKeyboard = childOfContent.getRootView().getHeight();
-            int heightDifference = usableHeightSansKeyboard - usableHeightNow;
-            if (heightDifference > (usableHeightSansKeyboard/4)) {
-                // keyboard probably just became visible
-                frameLayoutParams.height = usableHeightSansKeyboard - heightDifference;
-            } else {
-                // keyboard probably just became hidden
-                frameLayoutParams.height = usableHeightSansKeyboard;
-            }
-            childOfContent.requestLayout();
-            usableHeightPrevious = usableHeightNow;
-        }
-    }
-
-    private int computeUsableHeight() {
-        Rect r = new Rect();
-        childOfContent.getWindowVisibleDisplayFrame(r);
-        return (r.bottom - r.top);
+        ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), (v, windowInsets) -> {
+            Insets imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
+            boolean keyboardVisible = windowInsets.isVisible(WindowInsetsCompat.Type.ime());
+            v.setPadding(0, 0, 0, keyboardVisible ? imeInsets.bottom : 0);
+            return windowInsets;
+        });
     }
 
     private void setFullScreen(boolean on, boolean isStartup) {
@@ -1341,9 +1323,6 @@ public class MainActivity extends AppCompatActivity {
                 getWindow().getAttributes().layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
             }
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-            }
             if (!isStartup) {
                 recreate();
                 recreateTime = SystemClock.elapsedRealtime();
