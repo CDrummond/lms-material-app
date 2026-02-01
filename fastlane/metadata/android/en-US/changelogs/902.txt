@@ -2,4 +2,4 @@
 • Use hardware volume preference for MediaSession - thanks to ndkean.
 • Add SB Player to list of packages that can be queried.
 • Fix handling of media keys.
-• Fix adjusting WebView size when virtual ketyboard shown.
+• Fix adjusting WebView size when virtual keyboard shown.
