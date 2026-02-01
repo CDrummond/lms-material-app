@@ -64,6 +64,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -843,7 +844,7 @@ public class MainActivity extends AppCompatActivity {
         boolean darkTheme = !theme.contains("light");
         if (darkTheme!=isDark) {
             isDark = darkTheme;
-            //setTheme();
+            setTheme();
         }
         setAndroidColors(isDark || theme.contains("-colored"));
     }
@@ -852,14 +853,16 @@ public class MainActivity extends AppCompatActivity {
         try {
             runOnUiThread(() -> {
                 try {
-                    int flags = getWindow().getDecorView().getSystemUiVisibility();
+                    Window window = getWindow();
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        getWindow().getDecorView().setSystemUiVisibility(dark
-                                ? (flags & ~(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR))
-                                : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR));
+                        WindowInsetsControllerCompat wic = new WindowInsetsControllerCompat(window, window.getDecorView());
+                        wic.setAppearanceLightStatusBars(!dark);
+                        wic.setAppearanceLightNavigationBars(!dark);
                     } else {
-                        getWindow().getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
+                        int flags = window.getDecorView().getSystemUiVisibility();
+                        window.getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
                     }
+
                 } catch (Exception ignored) {
                 }
             });
@@ -867,24 +870,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /*
-    @JavascriptInterface
-    public void updateTheme(String theme) {
-        Utils.debug("updateTheme: " + theme);
-        String ltheme = theme.toLowerCase(Locale.ROOT);
-        boolean dark = ltheme.contains("dark") || ltheme.contains("black");
-        if (dark!=isDark) {
-            isDark = dark;
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean(SettingsActivity.IS_DARK_PREF_KEY, isDark);
-            editor.apply();
-            setTheme();
-        }
-    }
-    */
-
     private void setTheme() {
-        setTheme(/*isDark ?*/ R.style.AppTheme /*: R.style.AppTheme_Light*/);
+        setTheme(isDark ? R.style.AppTheme : R.style.AppTheme_Light);
     }
 
     @JavascriptInterface

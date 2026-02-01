@@ -15,6 +15,7 @@
         <item name="preferenceTheme">@style/AppPreferenceOverlay</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <style name="AppPreferenceOverlay" parent="PreferenceThemeOverlay">
@@ -51,6 +52,9 @@
         <item name="android:dividerHeight">0dp</item>
         <item name="dialogCornerRadius">24dp</item>
         <item name="preferenceTheme">@style/AppPreferenceOverlay.Light</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <style name="AppPreferenceOverlay.Light" parent="PreferenceThemeOverlay">
