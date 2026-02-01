@@ -854,15 +854,9 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 try {
                     Window window = getWindow();
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        WindowInsetsControllerCompat wic = new WindowInsetsControllerCompat(window, window.getDecorView());
-                        wic.setAppearanceLightStatusBars(!dark);
-                        wic.setAppearanceLightNavigationBars(!dark);
-                    } else {
-                        int flags = window.getDecorView().getSystemUiVisibility();
-                        window.getDecorView().setSystemUiVisibility(dark ? (flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) : (flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR));
-                    }
-
+                    WindowInsetsControllerCompat wic = new WindowInsetsControllerCompat(window, window.getDecorView());
+                    wic.setAppearanceLightStatusBars(!dark);
+                    wic.setAppearanceLightNavigationBars(!dark);
                 } catch (Exception ignored) {
                 }
             });
