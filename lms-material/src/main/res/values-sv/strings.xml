@@ -17,7 +17,7 @@
     <string name="fullscreen">Helskärm</string>
     <string name="fullscreen_summary">Dölj status- och navigationsfält.</string>
     <string name="scale">Skala</string>
-    <string name="scale_summary">Ställ in zoomnivån.\n\nObservera: Du kan behöva att starta om appen för att zoomändringarna skall bli korrekta.</string>
+    <string name="scale_summary">Ställ in zoomnivån.\n\nObservera: Du kan behöva starta om appen för att zoomändringarna skall bli korrekta.</string>
     <string name="waiting_for_network">Väntar på nätverksförbindelse</string>
     <string name="server_address">Server IP-adress eller värdnamn</string>
     <string name="ok">OK</string>
@@ -61,7 +61,7 @@
     <string name="stop_app">Tryck här för att stoppa spelaren</string>
     <string name="stop_app_summary">Stoppa den valda lokala spelarappen.</string>
     <string name="menu_start_player">Lägg till en menypunkt för att starta spelaren.</string>
-    <string name="menu_start_player_summary">Lägg till en menypunkt i huvudmeny för att starta den valda lokala spelarappen.</string>
+    <string name="menu_start_player_summary">Lägg till ett menyval i huvudmenyn för att starta den valda lokala spelarappen.</string>
     <string name="stopping_player">Stoppar lokal spelare</string>
     <string name="failed_start_activity">Det gick inte att starta aktiviteten</string>
     <string name="no_pdf_handler">Fann ingen PDF app</string>
