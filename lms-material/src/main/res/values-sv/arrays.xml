@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="statusbar">
+        <item>Synlig (standard)</item>
+        <item>Synlig (transparent)</item>
+        <item>Dold</item>
+    </string-array>
+    <string-array name="statusbarAlias">
+        <item>synlig</item>
+        <item>transparant</item>
+        <item>dold</item>
+    </string-array>
+    <string-array name="orientation">
+        <item>Automatiskt</item>
+        <item>Porträtt</item>
+        <item>Landskap</item>
+    </string-array>
+    <string-array name="orientationAlias" translatable="false">
+        <item>auto</item>
+        <item>portrait</item>
+        <item>landscape</item>
+    </string-array>
+    <string-array name="oncall">
+        <item>Gör inget</item>
+        <item>Stäng av ljudet på alla aktiva spelare</item>
+        <item>Stäng av ljudet på den valda spelaren</item>
+        <item>Pausa alla aktiva spelare</item>
+        <item>Pausa den valda spelaren</item>
+    </string-array>
+    <string-array name="oncallAlias" translatable="false">
+        <item>nothing</item>
+        <item>muteall</item>
+        <item>muteecurrent</item>
+        <item>pauseall</item>
+        <item>pausecurrent</item>
+    </string-array>
+    <string-array name="playerapps">
+        <item>Ingen</item>
+        <item>SB Player</item>
+        <item>SqueezePlayer</item>
+        <item>Squeezelite</item>
+    </string-array>
+    <string-array name="playerappsAlias" translatable="false">
+        <item>none</item>
+        <item>sbplayer</item>
+        <item>squeezeplayer</item>
+        <item>squeezelite</item>
+    </string-array>
+    <string-array name="notifs">
+        <item>Ingen</item>
+        <item>Enkel (bara kontroller, ingen status)</item>
+        <item>Komplett</item>
+    </string-array>
+    <string-array name="notifsAlias" translatable="false">
+        <item>none</item>
+        <item>basic</item>
+        <item>full</item>
+    </string-array>
+</resources>
