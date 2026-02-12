@@ -2,7 +2,7 @@
 <resources>
     <string-array name="statusbar">
         <item>Synlig (standard)</item>
-        <item>Synlig (transparant)</item>
+        <item>Synlig (transparent)</item>
         <item>Dold</item>
     </string-array>
     <string-array name="statusbarAlias">
@@ -24,7 +24,7 @@
         <item>Gör inget</item>
         <item>Stäng av ljudet på alla aktiva spelare</item>
         <item>Stäng av ljudet på den valda spelaren</item>
-        <item>Pausa all aktiva spelare</item>
+        <item>Pausa alla aktiva spelare</item>
         <item>Pausa den valda spelaren</item>
     </string-array>
     <string-array name="oncallAlias" translatable="false">
