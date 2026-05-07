@@ -1,0 +1,1 @@
+• Only handle PDFs served via http or https.

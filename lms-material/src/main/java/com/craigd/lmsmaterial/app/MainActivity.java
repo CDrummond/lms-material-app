@@ -672,6 +672,13 @@ public class MainActivity extends AppCompatActivity {
                 */
 
                 // Nope, so launch an intent to handle the URL...
+
+                // ...only allow http/https...
+                String scheme = uri.getScheme();
+                if (scheme == null || (!scheme.equals("http") && !scheme.equals("https"))) {
+                    return true; // block and ignore
+                }
+
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 String path = uri.getPath();
                 if (null!=path && path.toLowerCase().endsWith(".pdf")) {
