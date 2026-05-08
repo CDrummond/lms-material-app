@@ -11,15 +11,21 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Insets;
 import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.DisplayCutout;
@@ -29,6 +35,10 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
@@ -204,6 +214,131 @@ public class Utils {
             String text = context.getApplicationContext().getResources().getString(R.string.player_control_failed).replace("%1", name);
             StyleableToast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT, R.style.toast).show();
             return false;
+        }
+    }
+
+    public static boolean existsInDownloads(Context context, String fileName) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            File file = new File(downloadsDir, fileName);
+            return file.exists();
+        } else {
+            ContentResolver resolver = context.getContentResolver();
+            String[] projection = { MediaStore.Downloads._ID };
+            String selection = MediaStore.Downloads.DISPLAY_NAME + " = ?";
+            String[] selectionArgs = new String[] { fileName };
+
+            try (Cursor cursor = resolver.query(
+                    MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null)) {
+                // If the cursor has rows, the file exists in the MediaStore
+                return cursor != null && cursor.getCount() > 0;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    public static void saveToDownloads(Context context, String fileName, byte[] data) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            try {
+                File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                File file = new File(downloadDir, fileName);
+
+                // Write bytes to file
+                try (FileOutputStream fos = new FileOutputStream(file)) {
+                    fos.write(data);
+                    fos.flush();
+                }
+            } catch (IOException e) {
+                Utils.error("Failed to save file", e);
+            }
+        } else {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
+            values.put(MediaStore.Downloads.MIME_TYPE, "image/png");
+            values.put(MediaStore.Downloads.IS_PENDING, true);
+
+            Uri uri = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+            Uri itemUri = context.getContentResolver().insert(uri, values);
+
+            if (itemUri != null) {
+                try (OutputStream os = context.getContentResolver().openOutputStream(itemUri)) {
+                    if (null==os) {
+                        Utils.error("Failed to save file - no stream?");
+                        return;
+                    }
+                    os.write(data);
+                    os.flush();
+                    values.clear();
+                    values.put(MediaStore.Downloads.IS_PENDING, false);
+                    context.getContentResolver().update(itemUri, values, null, null);
+                } catch (Exception e) {
+                    Utils.error("Failed to save file", e);
+                }
+            }
+        }
+    }
+
+    public static File saveToCache(Context context, String dirname, String name, byte[] data) {
+        Utils.debug("dir:"+dirname+" name:"+name);
+        try {
+            File cacheDir = context.getExternalCacheDir();
+            if (cacheDir == null) {
+                cacheDir = context.getCacheDir();
+            }
+            File dir = new File(cacheDir, dirname);
+            Utils.debug("dir path:" + dir.getAbsolutePath() + " exists:" + dir.exists());
+            if (!dir.exists() && !dir.mkdirs()) {
+                Utils.error("Failed to create: " + dir.getAbsolutePath());
+                return null;
+            }
+            File file = new File(dir, name);
+            if (file.exists()) {
+                return file;
+            }
+            Utils.debug("Save to:" + file.getAbsolutePath());
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(data);
+                fos.flush();
+            }
+            return file;
+        } catch (IOException e) {
+            Utils.error("Failed to save temp file", e);
+        }
+        return null;
+    }
+
+    public static void trimCache(Context context, String sub) {
+        try {
+            File dir = new File(context.getCacheDir(), sub);
+            if (dir.exists() && dir.isDirectory()) {
+                deleteDir(dir);
+            }
+
+            dir = new File(context.getExternalCacheDir(), sub);
+            if (dir.exists() && dir.isDirectory()) {
+                deleteDir(dir);
+            }
+        } catch (Exception e) {
+            error("Failed to clear cache dir:" + sub, e);
+        }
+    }
+
+    public static void deleteDir(File path) {
+        if (path != null) {
+            if (path.isDirectory()) {
+                String[] children = path.list();
+                if (children != null) {
+                    for (String child : children) {
+                        deleteDir(new File(path, child));
+                    }
+                }
+            }
+            path.delete();
         }
     }
 }

@@ -11,6 +11,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -37,6 +39,7 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.provider.Settings;
+import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -60,6 +63,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -88,6 +92,8 @@ import java.util.concurrent.TimeUnit;
 import io.github.muddz.styleabletoast.StyleableToast;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String PNG_DATA_PREFIX = "data:image/png;base64,";
+    private static final String NP_SHARE_DIR = "now-playing";
     private static final String SETTINGS_URL = "mska://settings";
     private static final String QUIT_URL = "mska://quit";
     private static final String STARTPLAYER_URL = "mska://startplayer";
@@ -123,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
     public static String activePlayer = null;
     public static String activePlayerName = null;
     private static boolean isCurrentActivity = false;
+
+    private Thread shareCleanThread = null;
 
     /**
      * @return true if activity is active
@@ -298,6 +306,9 @@ public class MainActivity extends AppCompatActivity {
             builder.appendQueryParameter("nativeTheme", "1");
             builder.appendQueryParameter("nativeTextColor", "1");
             builder.appendQueryParameter("nativeConnectionStatus", "1");
+            builder.appendQueryParameter("nativeNpShareS", "1");
+            builder.appendQueryParameter("nativeNpShareC", "1");
+            builder.appendQueryParameter("nativeNpShareD", "1");
             builder.appendQueryParameter("dontTrapBack", "1");
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
                 builder.appendQueryParameter("nativePlayerPower", "1");
@@ -727,6 +738,7 @@ public class MainActivity extends AppCompatActivity {
 
         checkNetworkConnection();
         handleIntent(getIntent());
+        clearShared();
     }
 
     private void checkNetworkConnection() {
@@ -951,6 +963,86 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void showMessage(String msg, boolean error) {
+        runOnUiThread(() -> {
+            String js = "bus.$emit('show" + (error ? "Error',undefined,'" : "Message','") + msg + "')";
+            Utils.debug(js);
+            webView.evaluateJavascript(js, null);
+        });
+    }
+    @JavascriptInterface
+    public void npShare(String src, String filename, String action) {
+        Utils.debug("len:" + (null==src ? -1 : src.length())+" fn:"+filename+" act:"+action);
+        if (Utils.isEmpty(src) || src.length()<=PNG_DATA_PREFIX.length() || !src.startsWith(PNG_DATA_PREFIX) ||
+            Utils.isEmpty(filename) || Utils.isEmpty(action) || (!"C".equals(action) && !"D".equals(action) && !"S".equals(action))) {
+            return;
+        }
+
+        if ("D".equals(action) && Utils.existsInDownloads(this, filename)) {
+            showMessage(filename + " already downloaded!", false);
+            return;
+        }
+
+        byte[] decoded = null;
+
+        try {
+            decoded = Base64.decode(src.substring(PNG_DATA_PREFIX.length()), Base64.DEFAULT);
+        } catch (Exception e) {
+            Utils.error("Failed to decode base64", e);
+        }
+        if (null==decoded || decoded.length<10) {
+            showMessage("Failed to decode", true);
+            return;
+        }
+
+        if ("D".equals(action)) {
+            Utils.saveToDownloads(this, filename, decoded);
+            if (Utils.existsInDownloads(this, filename)) {
+                showMessage("Downloaded " + filename, false);
+            } else {
+                showMessage("Failed to download " + filename, true);
+            }
+        } else {
+            File file = Utils.saveToCache(this, NP_SHARE_DIR, filename, decoded);
+            if (null==file) {
+                showMessage("Failed to create temp file!", true);
+                return;
+            }
+
+            Uri contentUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
+            if ("C".equals(action)) {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newUri(getContentResolver(), "File", contentUri);
+                clipboard.setPrimaryClip(clip);
+                showMessage("Added to clipboard.", false);
+            } else {
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("image/png");
+                shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(Intent.createChooser(shareIntent, "Share Now Playing"));
+            }
+            if (null!=shareCleanThread) {
+                shareCleanThread.interrupt();
+            }
+            shareCleanThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(5 * 60 * 1000);
+                        clearShared();
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+            });
+            shareCleanThread.start();
+        }
+    }
+
+    private synchronized void clearShared() {
+        Utils.trimCache(this, NP_SHARE_DIR);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -1153,6 +1245,10 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString(CURRENT_PLAYER_ID_KEY, activePlayer);
             editor.apply();
+        }
+        if (null!=shareCleanThread) {
+            shareCleanThread.interrupt();
+            clearShared();
         }
         super.onDestroy();
     }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- For internal cache -->
+    <cache-path name="cache" path="/now-playing" />
+    <!-- For external cache -->
+    <external-cache-path name="external_cache" path="/now-playing" />
+</paths>
