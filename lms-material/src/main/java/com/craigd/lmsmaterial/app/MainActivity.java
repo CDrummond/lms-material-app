@@ -979,7 +979,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if ("D".equals(action) && Utils.existsInDownloads(this, filename)) {
-            showMessage(filename + " already downloaded!", false);
+            showMessage(getResources().getString(R.string.already_downloaded), false);
             return;
         }
 
@@ -988,24 +988,24 @@ public class MainActivity extends AppCompatActivity {
         try {
             decoded = Base64.decode(src.substring(PNG_DATA_PREFIX.length()), Base64.DEFAULT);
         } catch (Exception e) {
-            Utils.error("Failed to decode base64", e);
+            Utils.error(getResources().getString(R.string.failed), e);
         }
         if (null==decoded || decoded.length<10) {
-            showMessage("Failed to decode", true);
+            showMessage(getResources().getString(R.string.failed), true);
             return;
         }
 
         if ("D".equals(action)) {
             Utils.saveToDownloads(this, filename, decoded);
             if (Utils.existsInDownloads(this, filename)) {
-                showMessage("Downloaded " + filename, false);
+                showMessage(getResources().getString(R.string.downloaded), false);
             } else {
-                showMessage("Failed to download " + filename, true);
+                showMessage(getResources().getString(R.string.failed), true);
             }
         } else {
             File file = Utils.saveToCache(this, NP_SHARE_DIR, filename, decoded);
             if (null==file) {
-                showMessage("Failed to create temp file!", true);
+                showMessage(getResources().getString(R.string.failed), true);
                 return;
             }
 
@@ -1014,7 +1014,7 @@ public class MainActivity extends AppCompatActivity {
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clip = ClipData.newUri(getContentResolver(), "File", contentUri);
                 clipboard.setPrimaryClip(clip);
-                showMessage("Added to clipboard.", false);
+                showMessage(getResources().getString(R.string.added_to_clipboard), false);
             } else {
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
                 shareIntent.setType("image/png");
