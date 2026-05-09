@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
             builder.appendQueryParameter("nativeConnectionStatus", "1");
             builder.appendQueryParameter("nativeNpShareS", "1");
             builder.appendQueryParameter("nativeNpShareC", "1");
-            builder.appendQueryParameter("nativeNpShareD", "1");
+            //builder.appendQueryParameter("nativeNpShareD", "1");
             builder.appendQueryParameter("dontTrapBack", "1");
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
                 builder.appendQueryParameter("nativePlayerPower", "1");
