@@ -307,8 +307,6 @@ public class MainActivity extends AppCompatActivity {
             builder.appendQueryParameter("nativeTextColor", "1");
             builder.appendQueryParameter("nativeConnectionStatus", "1");
             builder.appendQueryParameter("nativeNpShareS", "1");
-            builder.appendQueryParameter("nativeNpShareC", "1");
-            //builder.appendQueryParameter("nativeNpShareD", "1");
             builder.appendQueryParameter("dontTrapBack", "1");
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
                 builder.appendQueryParameter("nativePlayerPower", "1");
@@ -974,12 +972,7 @@ public class MainActivity extends AppCompatActivity {
     public void npShare(String src, String filename, String action) {
         Utils.debug("len:" + (null==src ? -1 : src.length())+" fn:"+filename+" act:"+action);
         if (Utils.isEmpty(src) || src.length()<=PNG_DATA_PREFIX.length() || !src.startsWith(PNG_DATA_PREFIX) ||
-            Utils.isEmpty(filename) || Utils.isEmpty(action) || (!"C".equals(action) && !"D".equals(action) && !"S".equals(action))) {
-            return;
-        }
-
-        if ("D".equals(action) && Utils.existsInDownloads(this, filename)) {
-            showMessage(getResources().getString(R.string.already_downloaded), false);
+            Utils.isEmpty(filename) || Utils.isEmpty(action) || !"S".equals(action)) {
             return;
         }
 
@@ -995,48 +988,34 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if ("D".equals(action)) {
-            Utils.saveToDownloads(this, filename, decoded);
-            if (Utils.existsInDownloads(this, filename)) {
-                showMessage(getResources().getString(R.string.downloaded), false);
-            } else {
-                showMessage(getResources().getString(R.string.failed), true);
-            }
-        } else {
-            File file = Utils.saveToCache(this, NP_SHARE_DIR, filename, decoded);
-            if (null==file) {
-                showMessage(getResources().getString(R.string.failed), true);
-                return;
-            }
 
-            Uri contentUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
-            if ("C".equals(action)) {
-                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newUri(getContentResolver(), "File", contentUri);
-                clipboard.setPrimaryClip(clip);
-                showMessage(getResources().getString(R.string.added_to_clipboard), false);
-            } else {
-                Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType("image/png");
-                shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
-                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                startActivity(Intent.createChooser(shareIntent, "Share Now Playing"));
-            }
-            if (null!=shareCleanThread) {
-                shareCleanThread.interrupt();
-            }
-            shareCleanThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(5 * 60 * 1000);
-                        clearShared();
-                    } catch (InterruptedException ignored) {
-                    }
-                }
-            });
-            shareCleanThread.start();
+        File file = Utils.saveToCache(this, NP_SHARE_DIR, filename, decoded);
+        if (null==file) {
+            showMessage(getResources().getString(R.string.failed), true);
+            return;
         }
+
+        Uri contentUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("image/png");
+        shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(Intent.createChooser(shareIntent, "Share Now Playing"));
+
+        if (null!=shareCleanThread) {
+            shareCleanThread.interrupt();
+        }
+        shareCleanThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5 * 60 * 1000);
+                    clearShared();
+                } catch (InterruptedException ignored) {
+                }
+            }
+        });
+        shareCleanThread.start();
     }
 
     private synchronized void clearShared() {
