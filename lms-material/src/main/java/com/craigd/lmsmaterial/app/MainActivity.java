@@ -597,7 +597,11 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(false);
-        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        // COMPATIBILITY_MODE keeps cover-art and similar passive sub-resources
+        // working when the LMS server is reachable over https while still
+        // blocking active mixed content like scripts. ALWAYS_ALLOW is the
+        // strictly less-safe option from the WebSettings javadoc.
+        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         webSettings.setTextZoom(100);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             webSettings.setAlgorithmicDarkeningAllowed(false);
