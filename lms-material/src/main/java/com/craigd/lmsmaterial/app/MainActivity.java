@@ -306,6 +306,7 @@ public class MainActivity extends AppCompatActivity {
             builder.appendQueryParameter("nativeTheme", "1");
             builder.appendQueryParameter("nativeTextColor", "1");
             builder.appendQueryParameter("nativeConnectionStatus", "1");
+            builder.appendQueryParameter("nativeNpShareC", "1");
             builder.appendQueryParameter("nativeNpShareS", "1");
             builder.appendQueryParameter("dontTrapBack", "1");
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
@@ -972,7 +973,7 @@ public class MainActivity extends AppCompatActivity {
     public void npShare(String src, String filename, String action) {
         Utils.debug("len:" + (null==src ? -1 : src.length())+" fn:"+filename+" act:"+action);
         if (Utils.isEmpty(src) || src.length()<=PNG_DATA_PREFIX.length() || !src.startsWith(PNG_DATA_PREFIX) ||
-            Utils.isEmpty(filename) || Utils.isEmpty(action) || !"S".equals(action)) {
+            Utils.isEmpty(filename) || Utils.isEmpty(action) || (!"C".equals(action) && !"S".equals(action))) {
             return;
         }
 
@@ -988,7 +989,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-
         File file = Utils.saveToCache(this, NP_SHARE_DIR, filename, decoded);
         if (null==file) {
             showMessage(getResources().getString(R.string.failed), true);
@@ -996,11 +996,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Uri contentUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("image/png");
-        shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        startActivity(Intent.createChooser(shareIntent, "Share Now Playing"));
+        if ("C".equals(action)) {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newUri(getContentResolver(), "File", contentUri);
+            clipboard.setPrimaryClip(clip);
+            showMessage(getResources().getString(R.string.added_to_clipboard), false);
+        } else {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("image/png");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(shareIntent, getResources().getString(R.string.share_now_playing)));
+        }
 
         if (null!=shareCleanThread) {
             shareCleanThread.interrupt();
