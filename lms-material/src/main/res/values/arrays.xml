@@ -56,4 +56,14 @@
         <item>basic</item>
         <item>full</item>
     </string-array>
+    <string-array name="notifSize">
+        <item>Auto determine</item>
+        <item>32px</item>
+        <item>48px</item>
+    </string-array>
+    <string-array name="notifSizeAlias" translatable="false">
+        <item>0</item>
+        <item>32</item>
+        <item>48</item>
+    </string-array>
 </resources>

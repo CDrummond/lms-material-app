@@ -84,13 +84,14 @@ public class Utils {
     }
 
     static int getTopPadding(Activity activity) {
-        int def = 26;
+        int val = 26;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowInsets wi = activity.getWindowManager().getCurrentWindowMetrics().getWindowInsets();
             Insets i = wi.getInsets(WindowInsets.Type.systemBars());
-            return Math.max((int)Math.ceil(convertPixelsToDp(i.top, activity)), def);
+            val = Math.max((int)Math.ceil(convertPixelsToDp(i.top, activity)), val);
         }
-        return def;
+        Utils.debug("top:" + val);
+        return val;
     }
 
     static int getBottomPadding(Activity activity) {
@@ -273,6 +274,14 @@ public class Utils {
                 }
             }
             path.delete();
+        }
+    }
+
+    public static int parseInt(String str, int def) {
+        try {
+            return Integer.parseInt(str);
+        } catch (NumberFormatException _) {
+            return def;
         }
     }
 }

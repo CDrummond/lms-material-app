@@ -65,6 +65,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final int PERMISSION_READ_PHONE_STATE = 1;
     public static final int PERMISSION_POST_NOTIFICATIONS = 2;
     public static final int PERMISSION_NOTIFS_AND_READ_PHONE_STATE = 3;
+    public static final String NOTIF_SIZE_PREF_KEY = "notif_size";
 
     private static boolean visible = false;
     public static boolean isVisible() {
@@ -349,6 +350,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
 
             updateListSummary(NOTIFCATIONS_PREF_KEY);
+            updateListSummary(NOTIF_SIZE_PREF_KEY);
             updateListSummary(ORIENTATION_PREF_KEY);
             updateListSummary(ON_CALL_PREF_KEY);
             setAfterCallState();
@@ -358,7 +360,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            if (ORIENTATION_PREF_KEY.equals(key)) {
+            if (NOTIF_SIZE_PREF_KEY.equals(key) || ORIENTATION_PREF_KEY.equals(key)) {
                 updateListSummary(key);
             }
 

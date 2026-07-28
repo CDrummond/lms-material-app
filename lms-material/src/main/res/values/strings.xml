@@ -76,4 +76,5 @@
     <string name="failed">Failed!</string>
     <string name="added_to_clipboard">Added to clipboard.</string>
     <string name="share_now_playing">Share Now Playing</string>
+    <string name="notif_size">Notification area size</string>
 </resources>

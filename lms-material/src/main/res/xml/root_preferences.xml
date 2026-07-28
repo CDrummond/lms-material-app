@@ -50,6 +50,12 @@
             app:summary="@string/fullscreen_summary"
             app:title="@string/fullscreen" />
         <ListPreference
+            android:entries="@array/notifSize"
+            android:entryValues="@array/notifSizeAlias"
+            android:key="notif_size"
+            android:title="@string/notif_size"
+            app:iconSpaceReserved="false" />
+        <ListPreference
             android:entries="@array/orientation"
             android:entryValues="@array/orientationAlias"
             android:key="orientation"

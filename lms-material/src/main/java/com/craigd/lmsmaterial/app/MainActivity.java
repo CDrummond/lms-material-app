@@ -320,10 +320,13 @@ public class MainActivity extends AppCompatActivity {
                 int scale = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
                 double adjust = 1.0;
                 if (scale<5) {
-                    adjust += (5-scale)/10.0;
+                    adjust -= (scale-5)/5.0;
                 }
-                Utils.cutoutTopLeft(this);
-                builder.appendQueryParameter("topPad", ""+(int) Math.ceil(Utils.getTopPadding(this)*adjust));
+                int notifAreaSize = Utils.parseInt(sharedPreferences.getString(SettingsActivity.NOTIF_SIZE_PREF_KEY, "0"), 0);
+                if (notifAreaSize<20) {
+                    notifAreaSize = Utils.getTopPadding(this);
+                }
+                builder.appendQueryParameter("topPad", ""+(int)(notifAreaSize*adjust));
                 builder.appendQueryParameter("botPad", ""+(int)Math.ceil(Utils.getBottomPadding(this)*adjust));
                 if (!Utils.usingGestureNavigation(this)) {
                     builder.appendQueryParameter("dlgPad", ""+(int)Math.ceil(48*adjust));
@@ -372,6 +375,10 @@ public class MainActivity extends AppCompatActivity {
         if (!sharedPreferences.contains(SettingsActivity.FULLSCREEN_PREF_KEY) ||
                 (sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false) && Utils.cutoutTopLeft(this))) {
             editor.putBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false);
+            modified=true;
+        }
+        if (!sharedPreferences.contains(SettingsActivity.NOTIF_SIZE_PREF_KEY)) {
+            editor.putString(SettingsActivity.NOTIF_SIZE_PREF_KEY, "0");
             modified=true;
         }
         if (!sharedPreferences.contains(SettingsActivity.ORIENTATION_PREF_KEY)) {
@@ -446,9 +453,9 @@ public class MainActivity extends AppCompatActivity {
             return 0;
         }
         if (pref<5) {
-            return (int)Math.round(initialWebViewScale *(100+(5*(pref-5))));
+            return (int)Math.round(initialWebViewScale * (100+(5*(pref-5))));
         }
-        return (int)Math.round(initialWebViewScale *(100+(10*(pref-5))));
+        return (int)Math.round(initialWebViewScale * (100+(10*(pref-5))));
     }
 
     @Override
