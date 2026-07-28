@@ -73,4 +73,7 @@
     <string name="hardware_volume">Изменить громкость устройства</string>
     <string name="hardware_volume_summary">При изменении громкости с помощью клавиш устройства изменять громкость устройства, а не программного проигрывателя.</string>
     <string name="player_control_failed">\'%1\' не установлен!</string>
+    <string name="failed">Провалено!</string>
+    <string name="added_to_clipboard">Добавлено в буфер обмена.</string>
+    <string name="share_now_playing">Поделиться «Сейчас играет»</string>
 </resources>

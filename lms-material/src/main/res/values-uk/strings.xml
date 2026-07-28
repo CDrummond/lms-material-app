@@ -73,4 +73,7 @@
     <string name="hardware_volume">Змінити гучність пристрою</string>
     <string name="hardware_volume_summary">При зміні гучності за допомогою клавіш пристрою змінювати гучність пристрою, а не програмного програвача.</string>
     <string name="player_control_failed">\'%1\' не встановлено!</string>
+    <string name="failed">Невдача!</string>
+    <string name="added_to_clipboard">Додано до буфера обміну.</string>
+    <string name="share_now_playing">Поділитися «Зараз грає»</string>
 </resources>
