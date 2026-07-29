@@ -280,7 +280,7 @@ public class Utils {
     public static int parseInt(String str, int def) {
         try {
             return Integer.parseInt(str);
-        } catch (NumberFormatException _) {
+        } catch (NumberFormatException ignored) {
             return def;
         }
     }
