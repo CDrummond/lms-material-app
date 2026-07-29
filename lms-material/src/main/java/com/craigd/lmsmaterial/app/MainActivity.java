@@ -317,11 +317,8 @@ public class MainActivity extends AppCompatActivity {
             }
             if (!sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false) &&
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                int scale = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
-                double adjust = 1.0;
-                if (scale<5) {
-                    adjust -= (scale-5)/5.0;
-                }
+                int factor = getScaleFactor();
+                double adjust = factor==100 ? 1.0 : (100.0d / factor);
                 int notifAreaSize = Utils.parseInt(sharedPreferences.getString(SettingsActivity.NOTIF_SIZE_PREF_KEY, "0"), 0);
                 if (notifAreaSize<20) {
                     notifAreaSize = Utils.getTopPadding(this);
@@ -447,15 +444,23 @@ public class MainActivity extends AppCompatActivity {
         return clear;
     }
 
-    private int getScale() {
-        int pref = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY,0);
+    private int getScaleFactor() {
+        int pref = sharedPreferences.getInt(SettingsActivity.SCALE_PREF_KEY, 0);
         if (5==pref) {
-            return 0;
+            return 100;
         }
         if (pref<5) {
-            return (int)Math.round(initialWebViewScale * (100+(5*(pref-5))));
+            return 100+(5*(pref-5));
         }
-        return (int)Math.round(initialWebViewScale * (100+(10*(pref-5))));
+        return 100+(10*(pref-5));
+    }
+
+    private int getScale() {
+        int factor = getScaleFactor();
+        if (100==factor) {
+            return 0;
+        }
+        return (int)Math.round(initialWebViewScale * factor);
     }
 
     @Override
@@ -616,7 +621,7 @@ public class MainActivity extends AppCompatActivity {
         }
         initialWebViewScale = getResources().getDisplayMetrics().density;
         currentScale = getScale();
-        webView.setInitialScale(currentScale);
+        webView.setInitialScale(100==currentScale ? 0 : currentScale);
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setHorizontalScrollBarEnabled(false);
         webView.setVerticalScrollBarEnabled(false);
@@ -1120,7 +1125,7 @@ public class MainActivity extends AppCompatActivity {
         int scale = getScale();
         if (scale!=currentScale) {
             currentScale = scale;
-            webView.setInitialScale(scale);
+            webView.setInitialScale(100==scale ? 0 : scale);
             needReload = true;
         }
         if (clearCache()) {
