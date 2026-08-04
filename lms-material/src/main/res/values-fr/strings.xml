@@ -76,4 +76,5 @@
     <string name="failed">Échec !</string>
     <string name="added_to_clipboard">Ajouté au presse-papiers.</string>
     <string name="share_now_playing">Partager lecture en cours</string>
+    <string name="notif_size">Taille de la zone de notification</string>
 </resources>
