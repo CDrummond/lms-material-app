@@ -28,4 +28,9 @@
         <item>Basiques (contrôles uniquement, pas d\'état)</item>
         <item>Complètes</item>
     </string-array>
+    <string-array name="notifSize">
+        <item>Déterminer automatiquement</item>
+        <item>32px</item>
+        <item>48px</item>
+    </string-array>
 </resources>
