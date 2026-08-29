@@ -30,7 +30,6 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -38,7 +37,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.SystemClock;
-import android.provider.Settings;
 import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.View;
@@ -71,8 +69,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.preference.PreferenceManager;
 
-import org.json.JSONArray;
-
 import java.io.File;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -103,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int PAGE_TIMEOUT = 5000; // ms
     private static final int DISCONNECT_TIMEOUT = 6; // seconds
     private static final int DISCONNECT_TIMEOUT_WITHOUT_NETWORK = 10; // seconds
-    private static final int STORAGE_ACCESS_REQUEST_CODE = 123;
 
     private SharedPreferences sharedPreferences;
     private WebView webView;
@@ -119,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
     private String notifications = null;
     private boolean showOverLockscreen = false;
     private UrlHandler urlHander;
-    private JSONArray downloadData = null;
     public static boolean isDark = true;
     private boolean pageLoaded = false;
     private long recreateTime = 0;
@@ -155,54 +149,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private Messenger downloadServiceMessenger = null;
-    private BroadcastReceiver downloadStatusReceiver = null;
-    private final ServiceConnection downloadServiceConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            Utils.debug("Setup download messenger");
-            downloadServiceMessenger = new Messenger(service);
-            downloadStatusReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    Utils.debug("Download status received: " + intent.getStringExtra(DownloadService.STATUS_BODY));
-                    String msg  = intent.getStringExtra(DownloadService.STATUS_BODY);
-                    if (null==msg) {
-                        return;
-                    }
-                    msg = msg.replace("\n", "")
-                            .replace("\\\"", "\\\\\"")
-                            .replace("\"", "\\\"");
-                    webView.evaluateJavascript("downloadStatus(\"" + msg +"\")", null);
-
-                    if (0==intent.getIntExtra(DownloadService.STATUS_LEN, -1)) {
-                        try {
-                            unbindService(downloadServiceConnection);
-                        } catch (Exception e) {
-                            Utils.error("Failed to unbind download service");
-                        }
-                        downloadServiceMessenger = null;
-                    }
-                }
-            };
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(downloadStatusReceiver, new IntentFilter(DownloadService.STATUS), RECEIVER_NOT_EXPORTED);
-            } else {
-                registerReceiver(downloadStatusReceiver, new IntentFilter(DownloadService.STATUS));
-            }
-            if (null != downloadData) {
-                startDownload(downloadData);
-            }
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            Utils.debug("onServiceDisconnected:" + className.getClassName());
-            downloadServiceMessenger = null;
-            unregisterReceiver(downloadStatusReceiver);
-            downloadStatusReceiver = null;
-        }
-    };
-
     private class Discovery extends ServerDiscovery {
         Discovery(Context context) {
             super(context, false);
@@ -221,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                 editor.apply();
                 String prevUrl = url;
                 url = getConfiguredUrl();
-                if (!url.equals(prevUrl)) {
+                if (null!=url && !url.equals(prevUrl)) {
                     StyleableToast.makeText(context, getResources().getString(R.string.server_discovered) + "\n\n" + servers.get(0).describe(), Toast.LENGTH_SHORT, R.style.toast).show();
                     Utils.info("URL:" + url);
                     pageError = false;
@@ -311,9 +257,6 @@ public class MainActivity extends AppCompatActivity {
             builder.appendQueryParameter("dontTrapBack", "1");
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
                 builder.appendQueryParameter("nativePlayerPower", "1");
-            }
-            if (Utils.notificationAllowed(this, DownloadService.NOTIFICATION_CHANNEL_ID)) {
-                builder.appendQueryParameter("download", "native");
             }
             if (!sharedPreferences.getBoolean(SettingsActivity.FULLSCREEN_PREF_KEY, false) &&
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -932,51 +875,6 @@ public class MainActivity extends AppCompatActivity {
             disconnectHandler = null;
         }
     }
-    @JavascriptInterface
-    public void cancelDownload(String str) {
-        Utils.debug(str);
-
-        try {
-            if (downloadServiceMessenger!=null) {
-                Message msg = Message.obtain(null, DownloadService.CANCEL_LIST, new JSONArray(str));
-                try {
-                    downloadServiceMessenger.send(msg);
-                } catch (RemoteException e) {
-                    Utils.error("Failed to request download cancel");
-                }
-            }
-        } catch (Exception e) {
-            Utils.error("failed to decode cancelDownload", e);
-        }
-    }
-
-    @JavascriptInterface
-    public void download(String str) {
-        Utils.debug(str);
-
-        try {
-            doDownload(new JSONArray(str));
-        } catch (Exception e) {
-            Utils.error("failed to decode download", e);
-        }
-    }
-
-    private void doDownload(JSONArray data) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Environment.isExternalStorageManager()) {
-            Utils.debug("Request manage permission");
-            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:" + BuildConfig.APPLICATION_ID));
-            startActivityForResult(intent, STORAGE_ACCESS_REQUEST_CODE);
-            downloadData = data;
-        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
-                ( checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                        checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) ) {
-            Utils.debug("Request r/w permissions");
-            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-            downloadData = data;
-        } else {
-            startDownload(data);
-        }
-    }
 
     private void showMessage(String msg, boolean error) {
         runOnUiThread(() -> {
@@ -1046,27 +944,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        // If MANAGE_EXTERNAL_STORAGE permission is rejected then we can still download, just not cover-art
-        startDownload(downloadData);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 1) {
-            for (int result : grantResults) {
-                if (PackageManager.PERMISSION_GRANTED != result) {
-                    Utils.debug("Read/write external storage permission not granted");
-                    return;
-                }
-            }
-            startDownload(downloadData);
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
-    @Override
     protected void onPause() {
         Utils.info("");
         webView.onPause();
@@ -1105,7 +982,6 @@ public class MainActivity extends AppCompatActivity {
         isCurrentActivity = true;
 
         if (!settingsShown) {
-            updateDownloadStatus();
             if (pageLoaded) {
                 localPlayer.autoStart(true);
             }
@@ -1171,18 +1047,6 @@ public class MainActivity extends AppCompatActivity {
         notifications = notificationsNow;
         manageShowOverLockscreen();
         reloadUrlAfterSettings=false;
-        updateDownloadStatus();
-    }
-
-    private void updateDownloadStatus() {
-        if (downloadServiceMessenger!=null) {
-            Message msg = Message.obtain(null, DownloadService.STATUS_REQ);
-            try {
-                downloadServiceMessenger.send(msg);
-            } catch (RemoteException e) {
-                Utils.error("Failed to request download update");
-            }
-        }
     }
 
     @Override
@@ -1319,24 +1183,6 @@ public class MainActivity extends AppCompatActivity {
             } catch (RemoteException e) {
                 Utils.error("Failed to refresh service");
             }
-        }
-    }
-
-    void startDownload(JSONArray data) {
-        if (downloadServiceMessenger!= null) {
-            Utils.debug("Send track list to download service");
-            Message msg = Message.obtain(null, DownloadService.DOWNLOAD_LIST, data);
-            try {
-                downloadServiceMessenger.send(msg);
-            } catch (RemoteException e) {
-                Utils.error("Failed to send data to download service");
-            }
-            downloadData = null;
-        } else {
-            downloadData = data;
-            Utils.debug("Start download service");
-            Intent intent = new Intent(MainActivity.this, DownloadService.class);
-            bindService(intent, downloadServiceConnection, Context.BIND_AUTO_CREATE);
         }
     }
 

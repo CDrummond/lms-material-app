@@ -1,1 +1,2 @@
 • Add possibility to set notification area size.
+• Remove download support, as no longer working and there are better methods.

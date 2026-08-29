@@ -10,9 +10,6 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" android:minSdkVersion="31"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" android:minSdkVersion="33" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <queries>
@@ -82,11 +79,6 @@
             </intent-filter>
         </service>
 
-        <service
-            android:name=".DownloadService"
-            android:enabled="true"
-            android:foregroundServiceType="shortService"/>
-
         <receiver
             android:exported="false"
             android:name="androidx.media.session.MediaButtonReceiver">
@@ -99,14 +91,6 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" tools:ignore="BatteryLife" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".DownloadStatusReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
-                <action android:name="android.intent.action.DOWNLOAD_NOTIFICATION_CLICKED" />
             </intent-filter>
         </receiver>
         <receiver
