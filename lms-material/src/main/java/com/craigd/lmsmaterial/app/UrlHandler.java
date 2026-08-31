@@ -37,7 +37,7 @@ public class UrlHandler {
     private final List<Player> playerList = new LinkedList<>();
     private int chosenPlayer = 0;
 
-    private static class Player implements Comparable {
+    private static class Player implements Comparable<Player> {
         public Player(String name, String id) {
             this.name = name;
             this.id = id;
@@ -46,8 +46,8 @@ public class UrlHandler {
         public String id;
 
         @Override
-        public int compareTo(Object o) {
-            return name.compareToIgnoreCase(((Player)o).name);
+        public int compareTo(Player o) {
+            return name.compareToIgnoreCase(o.name);
         }
     }
 
