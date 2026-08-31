@@ -42,9 +42,6 @@
     <string name="default_player_summary">设置默认播放器的名称或 ID。</string>
     <string name="single_player">仅控制默认播放器</string>
     <string name="single_player_summary">仅显示并控制默认播放器（如上述配置）</string>
-    <string name="downloading">下载设置</string>
-    <string name="transcode">转码为 MP3</string>
-    <string name="transcode_summary">将下载文件转为MP3转码在服务器进行需正确配置服务器</string>
     <string name="url_handler_label">选择播放器和操作</string>
     <string name="player_name">播放器</string>
     <string name="play_now">立即播放</string>
@@ -66,7 +63,6 @@
     <string name="failed_start_activity">启动界面失败</string>
     <string name="no_pdf_handler">未找到 PDF 处理程序</string>
     <string name="main_notification">主要通知</string>
-    <string name="download_notification">下载通知</string>
     <string name="notification_meta_text">播放控制</string>
     <string name="quitmenu">添加“退出”选项</string>
     <string name="quitmenu_summary">在主菜单中显示“退出”选项</string>

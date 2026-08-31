@@ -105,16 +105,6 @@
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
-        app:title="@string/downloading">
-        <SwitchPreferenceCompat
-            app:iconSpaceReserved="false"
-            app:key="transcode"
-            app:summary="@string/transcode_summary"
-            app:title="@string/transcode" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        app:iconSpaceReserved="false"
         app:title="@string/local_player">
 
         <ListPreference
