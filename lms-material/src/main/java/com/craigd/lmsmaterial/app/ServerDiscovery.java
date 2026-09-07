@@ -22,6 +22,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -115,8 +119,21 @@ public abstract class ServerDiscovery {
             return null==ip ? (o.ip==null ? 0 : -1) : ip.compareTo(o.ip);
         }
 
-        public boolean equals(Server o) {
-            return Objects.equals(ip, o.ip);
+        @Override
+        public boolean equals(Object o) {
+            if (this==o) {
+                return true;
+            }
+            if (!(o instanceof Server)) {
+                return false;
+            }
+            Server other = (Server)o;
+            return port==other.port && Objects.equals(ip, other.ip);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(ip, port);
         }
 
         public String describe() {
@@ -152,26 +169,17 @@ public abstract class ServerDiscovery {
             this.wifiManager = wifiManager;
         }
 
-        @Override
-        public void run() {
-            Utils.debug("Discover LMS servers");
-
-            active = true;
-            WifiManager.WifiLock wifiLock;
+        // Returns true if a server was found and discoverAll is false (caller should stop).
+        private boolean discoverOnInterface(InetAddress localAddr, InetAddress broadcastAddr, byte[] req) {
             DatagramSocket socket = null;
-            wifiLock = wifiManager.createWifiLock(Utils.LOG_TAG);
-            wifiLock.acquire();
-
             try {
-                InetAddress broadcastAddress = InetAddress.getByName("255.255.255.255");
-                socket = new DatagramSocket();
-                byte[] req = { 'e', 'I', 'P', 'A', 'D', 0, 'N', 'A', 'M', 'E', 0, 'J', 'S', 'O', 'N', 0 };
-                DatagramPacket reqPkt = new DatagramPacket(req, req.length, broadcastAddress, 3483);
+                socket = localAddr != null ? new DatagramSocket(0, localAddr) : new DatagramSocket();
+                socket.setBroadcast(true);
+                socket.setSoTimeout(SERVER_DISCOVERY_TIMEOUT);
+                DatagramPacket reqPkt = new DatagramPacket(req, req.length, broadcastAddr, 3483);
+                socket.send(reqPkt);
                 byte[] resp = new byte[256];
                 DatagramPacket respPkt = new DatagramPacket(resp, resp.length);
-
-                socket.setSoTimeout(SERVER_DISCOVERY_TIMEOUT);
-                socket.send(reqPkt);
                 for (;;) {
                     try {
                         socket.receive(respPkt);
@@ -180,7 +188,7 @@ public abstract class ServerDiscovery {
                             if (!servers.contains(server)) {
                                 servers.add(server);
                                 if (!discoverAll) {
-                                    break; // Stop at first for now...
+                                    return true;
                                 }
                             }
                         }
@@ -194,7 +202,147 @@ public abstract class ServerDiscovery {
                 if (socket != null) {
                     socket.close();
                 }
+            }
+            return false;
+        }
 
+        private int inet4ToInt(InetAddress address) {
+            byte[] bytes = address.getAddress();
+            return ((bytes[0] & 0xff) << 24) |
+                   ((bytes[1] & 0xff) << 16) |
+                   ((bytes[2] & 0xff) << 8) |
+                   (bytes[3] & 0xff);
+        }
+
+        private InetAddress intToInet4(int value) {
+            byte[] bytes = {
+                    (byte)((value >> 24) & 0xff),
+                    (byte)((value >> 16) & 0xff),
+                    (byte)((value >> 8) & 0xff),
+                    (byte)(value & 0xff)
+            };
+            try {
+                return InetAddress.getByAddress(bytes);
+            } catch (Exception ignored) {
+                return null;
+            }
+        }
+
+        private boolean isHotspotInterface(NetworkInterface iface) {
+            String name = iface.getName();
+            if (name == null) {
+                return false;
+            }
+            name = name.toLowerCase();
+            return name.startsWith("ap") || name.startsWith("swlan") ||
+                    name.startsWith("softap") || name.matches("wlan[1-9].*");
+        }
+
+        // Some Android hotspot implementations do not reliably deliver broadcast packets
+        // to connected clients. Probe small IPv4 subnets directly as a fallback.
+        private boolean discoverOnSubnet(InterfaceAddress addr, byte[] req) {
+            InetAddress localAddr = addr.getAddress();
+            InetAddress broadcastAddr = addr.getBroadcast();
+            int prefixLength = addr.getNetworkPrefixLength();
+            if (localAddr == null || broadcastAddr == null || localAddr.getAddress().length != 4 ||
+                    prefixLength < 24 || prefixLength > 30) {
+                return false;
+            }
+
+            DatagramSocket socket = null;
+            try {
+                int local = inet4ToInt(localAddr);
+                int mask = -1 << (32 - prefixLength);
+                int network = local & mask;
+                int broadcast = inet4ToInt(broadcastAddr);
+                socket = new DatagramSocket(0, localAddr);
+                socket.setSoTimeout(SERVER_DISCOVERY_TIMEOUT);
+                for (int host = network + 1; host < broadcast; ++host) {
+                    if (host == local) {
+                        continue;
+                    }
+                    InetAddress target = intToInet4(host);
+                    if (target != null) {
+                        socket.send(new DatagramPacket(req, req.length, target, 3483));
+                    }
+                }
+
+                byte[] resp = new byte[256];
+                DatagramPacket respPkt = new DatagramPacket(resp, resp.length);
+                for (;;) {
+                    try {
+                        socket.receive(respPkt);
+                        if (resp[0]==(byte)'E') {
+                            Server server = new Server(respPkt);
+                            if (!servers.contains(server)) {
+                                servers.add(server);
+                                if (!discoverAll) {
+                                    return true;
+                                }
+                            }
+                        }
+                    } catch (IOException e) {
+                        break;
+                    }
+                }
+            } catch (Exception ignored) {
+            } finally {
+                if (socket != null) {
+                    socket.close();
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void run() {
+            Utils.debug("Discover LMS servers");
+
+            active = true;
+            WifiManager.WifiLock wifiLock = wifiManager.createWifiLock(Utils.LOG_TAG);
+            wifiLock.acquire();
+
+            try {
+                byte[] req = { 'e', 'I', 'P', 'A', 'D', 0, 'N', 'A', 'M', 'E', 0, 'J', 'S', 'O', 'N', 0 };
+
+                discoverOnInterface(null, InetAddress.getByName("255.255.255.255"), req);
+
+                // If the normal discovery path does not find a server, try the hotspot
+                // interface where Android exposes connected clients (swlan0/ap0/softap0).
+                List<InterfaceAddress> hotspotCandidates = new ArrayList<>();
+                if (servers.isEmpty() || discoverAll) {
+                    try {
+                        Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
+                        if (ifaces != null) {
+                            while (ifaces.hasMoreElements()) {
+                                NetworkInterface iface = ifaces.nextElement();
+                                if (!iface.isLoopback() && iface.isUp() && isHotspotInterface(iface)) {
+                                    for (InterfaceAddress addr : iface.getInterfaceAddresses()) {
+                                        if (addr.getBroadcast() != null) {
+                                            hotspotCandidates.add(addr);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception ignored) {
+                    }
+                    for (InterfaceAddress addr : hotspotCandidates) {
+                        if (discoverOnInterface(addr.getAddress(), addr.getBroadcast(), req)) {
+                            break;
+                        }
+                    }
+                    if (servers.isEmpty() || discoverAll) {
+                        for (InterfaceAddress addr : hotspotCandidates) {
+                            if (discoverOnSubnet(addr, req)) {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+            } catch (Exception ignored) {
+            } finally {
                 Utils.verbose("Scanning complete, unlocking WiFi");
                 wifiLock.release();
             }
