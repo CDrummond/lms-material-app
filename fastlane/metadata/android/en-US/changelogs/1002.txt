@@ -1,0 +1,1 @@
+• Enable server discovery on Android hotspot networks - thanks to chrober.
