@@ -24,11 +24,12 @@ public class PlayerStatus {
     public long duration = 0;
     public long time = 0;
     public boolean isPlaying = false;
+    public int volume = -1;
 
     @NonNull
     @Override
     public String toString() {
-        return "id:"+id+", title:"+title+", artist:"+artist+", album:"+album+", cover:"+cover+", duration:"+Utils.timeStr(duration)+", time:"+Utils.timeStr(time)+", isPlaying:"+isPlaying;
+        return "id:"+id+", title:"+title+", artist:"+artist+", album:"+album+", cover:"+cover+", duration:"+Utils.timeStr(duration)+", time:"+Utils.timeStr(time)+", isPlaying:"+isPlaying+", volume:"+volume;
     }
 
     public String display() {
