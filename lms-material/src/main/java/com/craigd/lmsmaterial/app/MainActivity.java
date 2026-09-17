@@ -44,6 +44,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.HttpAuthHandler;
 import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -588,6 +589,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                readVolumeStep();
+            }
+
+            @Override
             public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
                 Utils.debug(request.getUrl() + ", mf:" + request.isForMainFrame() + ", sc:" + errorResponse.getStatusCode());
                 if (request.isForMainFrame() && 404== errorResponse.getStatusCode() && request.getUrl().toString().equals(getConfiguredUrl())) {
@@ -946,10 +953,29 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         Utils.info("");
+        readVolumeStep();
         webView.onPause();
         webView.pauseTimers();
         super.onPause();
         isCurrentActivity = false;
+    }
+
+    private void readVolumeStep() {
+        webView.evaluateJavascript("javascript:localStorage.getItem('lms-material::volumeStep')", new ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String value) {
+                if (!Utils.isEmpty(value)) {
+                    Utils.debug("Vol step: " + value);
+                    try {
+                        int step = Integer.parseInt(value.replaceAll("\"", ""));
+                        if (step>=1 && step<=10) {
+                            ControlService.setVolumeStep(step);
+                        }
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+        });
     }
 
     private static boolean deleteDir(File path, Set<String> ignore) {

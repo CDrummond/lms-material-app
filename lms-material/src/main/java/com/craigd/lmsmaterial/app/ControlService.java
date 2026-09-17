@@ -87,13 +87,23 @@ public class ControlService extends Service {
     private static final String[] PAUSE_COMMAND = {"pause", "1"};
     private static final String[] NEXT_COMMAND = {"playlist", "index", "+1"};
     private static final String[] TOGGLE_PLAY_PAUSE_COMMAND = {"pause"};
-    private static final String[] DEC_VOLUME_COMMAND = {"mixer", "volume", "-5"};
-    private static final String[] INC_VOLUME_COMMAND = {"mixer", "volume", "+5"};
+    private static String[] decVolumeCommand = {"mixer", "volume", "-5"};
+    private static String[] incVolumeCommand = {"mixer", "volume", "+5"};
     private static final String[] POWER_COMMAND = {"power"};
     public static final String NOTIFICATION_CHANNEL_ID = "lms_control_service";
 
     private static boolean isRunning = false;
 
+    private static int volStep = 5;
+
+    public static void setVolumeStep(int step) {
+        if (step!=volStep) {
+            volStep = step;
+            Utils.debug("Set vole step: " + step);
+            decVolumeCommand = new String[] {"mixer", "volume", "-" + volStep};
+            incVolumeCommand = new String[] {"mixer", "volume", "+" + volStep};
+        }
+    }
     public static boolean isActive() {
         return isRunning;
     }
@@ -467,9 +477,9 @@ public class ControlService extends Service {
                         public void onAdjustVolume(int direction) {
                             Utils.debug(""+direction);
                             if (direction > 0) {
-                                sendCommand(INC_VOLUME_COMMAND);
+                                sendCommand(incVolumeCommand);
                             } else if (direction < 0) {
-                                sendCommand(DEC_VOLUME_COMMAND);
+                                sendCommand(decVolumeCommand);
                             }
                         }
                     });

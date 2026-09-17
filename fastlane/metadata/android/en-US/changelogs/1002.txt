@@ -1,1 +1,2 @@
 • Enable server discovery on Android hotspot networks - thanks to chrober.
+• Use the skin's volume step value when changing volume with notification shown.
