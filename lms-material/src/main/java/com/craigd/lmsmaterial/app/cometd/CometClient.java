@@ -447,7 +447,7 @@ public class CometClient {
     }
 
     private void handlePlayerStatus(String id, String mode, String remote_title, String artist, String album, String title,
-                                    String artwork_url, String coverid, long duration, long time) {
+                                    String artwork_url, String coverid, long duration, long time, int volume) {
         PlayerStatus status = new PlayerStatus();
         status.id = id;
         status.timestamp = SystemClock.elapsedRealtime();
@@ -461,6 +461,7 @@ public class CometClient {
         status.duration = duration;
         status.time = "stop".equals(mode) ? 0 : time;
         status.isPlaying = "play".equals(mode);
+        status.volume = volume;
         if (!Utils.isEmpty(artwork_url)) {
             String resolved = resolveImageUrl(artwork_url);
             if (!Utils.isEmpty(resolved)) {
@@ -478,11 +479,8 @@ public class CometClient {
         if (null==val) {
             return 0.0f;
         }
-        if (val instanceof Float) {
-            return (Float)val;
-        }
-        if (val instanceof Double) {
-            return ((Double)val).floatValue();
+        if (val instanceof Number) {
+            return ((Number)val).floatValue();
         }
         if (val instanceof String) {
             try {
@@ -490,6 +488,19 @@ public class CometClient {
             } catch (NumberFormatException ignored) { }
         }
         return 0.0f;
+    }
+
+    // "mixer volume" is negative when the player is muted, with the magnitude being the volume to restore on unmute.
+    private int getVolume(JSONObject json) {
+        if (!json.has("mixer volume")) {
+            return -1;
+        }
+        return Math.round(Math.abs(getFloat(json, "mixer volume")));
+    }
+
+    private int getVolume(Map<String, Object> data) {
+        Object val = data.get("mixer volume");
+        return null==val ? -1 : Math.round(Math.abs(parseFloat(val)));
     }
 
     private String getString(JSONObject json, String key) {
@@ -517,6 +528,7 @@ public class CometClient {
         try {
             playlist_loop = response.getJSONArray("playlist_loop");
         } catch (JSONException ignored) { }
+        int volume = getVolume(response);
         if (playlist_loop!=null && playlist_loop.length()>0) {
             JSONObject track = null;
             try {
@@ -532,11 +544,12 @@ public class CometClient {
                         getString(track, "artwork_url"),
                         getString(track, "coverid"),
                         (long) (getFloat(track, "duration") * 1000.0f),
-                        (long) (getFloat(response, "time") * 1000.0f));
+                        (long) (getFloat(response, "time") * 1000.0f),
+                        volume);
                 return;
             }
         }
-        handlePlayerStatus(id, getString(response, "mode"), null, null, null, null, null, null, 0, 0);
+        handlePlayerStatus(id, getString(response, "mode"), null, null, null, null, null, null, 0, 0, volume);
     }
 
     @SuppressWarnings("unchecked")
@@ -551,6 +564,7 @@ public class CometClient {
 
         Map<String, Object> messageData = message.getDataAsMap();
         Object[] playlist_loop = (Object[]) messageData.get("playlist_loop");
+        int volume = getVolume(messageData);
 
         if (playlist_loop!=null && playlist_loop.length>0) {
             Map<String, Object> track = (Map<String, Object>)playlist_loop[0];
@@ -563,9 +577,10 @@ public class CometClient {
                     (String)track.get("artwork_url"),
                     (String)track.get("coverid"),
                     (long)(parseFloat(track.get("duration"))*1000.0f),
-                    (long)(parseFloat(messageData.get("time"))*1000.0f));
+                    (long)(parseFloat(messageData.get("time"))*1000.0f),
+                    volume);
         } else {
-            handlePlayerStatus(playerId, (String)messageData.get("mode"), null, null, null, null, null, null, 0, 0);
+            handlePlayerStatus(playerId, (String)messageData.get("mode"), null, null, null, null, null, null, 0, 0, volume);
         }
     }
 }
