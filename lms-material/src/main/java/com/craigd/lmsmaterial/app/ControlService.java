@@ -99,7 +99,7 @@ public class ControlService extends Service {
     public static void setVolumeStep(int step) {
         if (step!=volStep) {
             volStep = step;
-            Utils.debug("Set vole step: " + step);
+            Utils.debug("Set volume step: " + step);
             decVolumeCommand = new String[] {"mixer", "volume", "-" + volStep};
             incVolumeCommand = new String[] {"mixer", "volume", "+" + volStep};
         }

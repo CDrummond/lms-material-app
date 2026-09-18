@@ -70,6 +70,9 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.preference.PreferenceManager;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -255,6 +258,7 @@ public class MainActivity extends AppCompatActivity {
             builder.appendQueryParameter("nativeConnectionStatus", "1");
             builder.appendQueryParameter("nativeNpShareC", "1");
             builder.appendQueryParameter("nativeNpShareS", "1");
+            builder.appendQueryParameter("nativeUiChanges", "1");
             builder.appendQueryParameter("dontTrapBack", "1");
             if (sharedPreferences.getBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false)) {
                 builder.appendQueryParameter("nativePlayerPower", "1");
@@ -865,6 +869,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @JavascriptInterface
+    public void updateUiSettings(String settings) {
+        Utils.debug(settings);
+        try {
+            JSONObject json = new JSONObject(settings);
+            if (json.has("volumeStep")) {
+                ControlService.setVolumeStep(json.getInt("volumeStep"));
+            }
+        } catch (JSONException e) {
+            Utils.error("Failed to parse UI JSON", e);
+            readVolumeStep();
+        }
+    }
+
     ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     ScheduledFuture<?> disconnectHandler;
     private void startDisconnectTimer() {
@@ -953,7 +971,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         Utils.info("");
-        readVolumeStep();
         webView.onPause();
         webView.pauseTimers();
         super.onPause();
