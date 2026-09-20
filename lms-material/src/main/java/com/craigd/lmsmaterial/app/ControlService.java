@@ -114,6 +114,8 @@ public class ControlService extends Service {
     private MediaSessionCompat mediaSession;
     MediaSessionCompat.Callback mediaSessionCallback;
     private PlaybackStateCompat playbackState;
+    private VolumeProviderCompat volumeProvider;
+    private Boolean lastUseHardwareVolume;
     private String notificationType = NO_NOTIFICATION;
     private CometClient cometClient = null;
     private SharedPreferences prefs = null;
@@ -469,20 +471,28 @@ public class ControlService extends Service {
                 mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
                 mediaSession.setCallback(mediaSessionCallback);
 
-                if (prefs.getBoolean(SettingsActivity.HARDWARE_VOLUME_PREF_KEY, true)) {
-                    mediaSession.setPlaybackToLocal(AudioManager.STREAM_MUSIC);
-                } else {
-                    mediaSession.setPlaybackToRemote(new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 50, 1) {
-                        @Override
-                        public void onAdjustVolume(int direction) {
-                            Utils.debug(""+direction);
-                            if (direction > 0) {
-                                sendCommand(incVolumeCommand);
-                            } else if (direction < 0) {
-                                sendCommand(decVolumeCommand);
+                boolean useHardwareVolume = prefs.getBoolean(SettingsActivity.HARDWARE_VOLUME_PREF_KEY, true);
+                if (lastUseHardwareVolume==null || lastUseHardwareVolume!=useHardwareVolume) {
+                    lastUseHardwareVolume = useHardwareVolume;
+                    if (useHardwareVolume) {
+                        volumeProvider = null;
+                        mediaSession.setPlaybackToLocal(AudioManager.STREAM_MUSIC);
+                    } else {
+                        volumeProvider = new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 100, statusValid && lastStatus.volume>=0 ? lastStatus.volume : 50) {
+                            @Override
+                            public void onAdjustVolume(int direction) {
+                                Utils.debug(""+direction);
+                                if (direction > 0) {
+                                    sendCommand(incVolumeCommand);
+                                } else if (direction < 0) {
+                                    sendCommand(decVolumeCommand);
+                                }
                             }
-                        }
-                    });
+                        };
+                        mediaSession.setPlaybackToRemote(volumeProvider);
+                    }
+                } else if (null!=volumeProvider && statusValid && lastStatus.volume>=0) {
+                    volumeProvider.setCurrentVolume(lastStatus.volume);
                 }
 
                 String title = MainActivity.activePlayerName == null || MainActivity.activePlayerName.isEmpty() ? getResources().getString(R.string.no_player) : MainActivity.activePlayerName;
