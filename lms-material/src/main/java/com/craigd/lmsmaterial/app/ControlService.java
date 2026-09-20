@@ -478,7 +478,7 @@ public class ControlService extends Service {
                         volumeProvider = null;
                         mediaSession.setPlaybackToLocal(AudioManager.STREAM_MUSIC);
                     } else {
-                        volumeProvider = new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 100, statusValid && lastStatus.volume>=0 ? lastStatus.volume : 50) {
+                        volumeProvider = new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_ABSOLUTE, 100, statusValid && lastStatus.volume>=0 ? lastStatus.volume : 50) {
                             @Override
                             public void onAdjustVolume(int direction) {
                                 Utils.debug(""+direction);
@@ -487,6 +487,13 @@ public class ControlService extends Service {
                                 } else if (direction < 0) {
                                     sendCommand(decVolumeCommand);
                                 }
+                            }
+
+                            @Override
+                            public void onSetVolumeTo(int volume) {
+                                Utils.debug(""+volume);
+                                sendCommand(new String[]{"mixer", "volume", Integer.toString(volume)});
+                                setCurrentVolume(volume);
                             }
                         };
                         mediaSession.setPlaybackToRemote(volumeProvider);
