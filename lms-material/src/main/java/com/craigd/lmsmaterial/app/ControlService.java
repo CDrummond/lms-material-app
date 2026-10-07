@@ -61,6 +61,9 @@ import com.craigd.lmsmaterial.app.cometd.PlayerStatus;
 
 import org.eclipse.jetty.util.B64Code;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
@@ -91,6 +94,7 @@ public class ControlService extends Service {
     private static String[] incVolumeCommand = {"mixer", "volume", "+5"};
     private static final String[] POWER_COMMAND = {"power"};
     public static final String NOTIFICATION_CHANNEL_ID = "lms_control_service";
+    private static final int MAX_COVER_SIZE = 512;
 
     private static boolean isRunning = false;
 
@@ -561,7 +565,7 @@ public class ControlService extends Service {
                     con.setRequestProperty("Authorization", "Basic " + B64Code.encode(user + ":" + pass));
                 }
 
-                currentBitmap = BitmapFactory.decodeStream(con.getInputStream());
+                currentBitmap = decodeCover(con.getInputStream());
                 if (null!=currentBitmap) {
                     currentCover = lastStatus.cover;
                 }
@@ -573,6 +577,45 @@ public class ControlService extends Service {
                 });
             } catch (Exception e) { Utils.error("Cover error", e); }
         });
+    }
+
+    // Decode, scaling down so that large covers are not passed to SystemUI/launchers on each update.
+    private static Bitmap decodeCover(InputStream stream) throws IOException {
+        byte[] data;
+        try (InputStream in = stream; ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[16384];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            data = out.toByteArray();
+        }
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inJustDecodeBounds = true;
+        BitmapFactory.decodeByteArray(data, 0, data.length, opts);
+        if (opts.outWidth <= 0 || opts.outHeight <= 0) {
+            return null;
+        }
+        int sampleSize = 1;
+        while (Math.max(opts.outWidth, opts.outHeight) / (sampleSize * 2) >= MAX_COVER_SIZE) {
+            sampleSize *= 2;
+        }
+        opts = new BitmapFactory.Options();
+        opts.inSampleSize = sampleSize;
+        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, opts);
+        if (null==bitmap) {
+            return null;
+        }
+        int largest = Math.max(bitmap.getWidth(), bitmap.getHeight());
+        if (largest > MAX_COVER_SIZE) {
+            float scale = (float)MAX_COVER_SIZE / largest;
+            Bitmap scaled = Bitmap.createScaledBitmap(bitmap, Math.round(bitmap.getWidth() * scale), Math.round(bitmap.getHeight() * scale), true);
+            if (scaled != bitmap) {
+                bitmap.recycle();
+            }
+            bitmap = scaled;
+        }
+        return bitmap;
     }
 
     private void createNotification() {
