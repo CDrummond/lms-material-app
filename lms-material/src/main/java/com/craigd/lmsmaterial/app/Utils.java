@@ -52,7 +52,7 @@ public class Utils {
     public static boolean isNetworkConnected(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = connectivityManager.getActiveNetworkInfo();
-        return null!=info && info.isConnected();
+        return (null!=info && info.isConnected()) || !ServerDiscovery.getHotspotInterfaces().isEmpty();
     }
 
     public static float convertPixelsToDp(float px, Context context){

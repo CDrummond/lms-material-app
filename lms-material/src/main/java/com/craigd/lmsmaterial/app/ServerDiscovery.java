@@ -228,16 +228,6 @@ public abstract class ServerDiscovery {
             }
         }
 
-        private boolean isHotspotInterface(NetworkInterface iface) {
-            String name = iface.getName();
-            if (name == null) {
-                return false;
-            }
-            name = name.toLowerCase();
-            return name.startsWith("ap") || name.startsWith("swlan") ||
-                    name.startsWith("softap") || name.matches("wlan[1-9].*");
-        }
-
         // Some Android hotspot implementations do not reliably deliver broadcast packets
         // to connected clients. Probe small IPv4 subnets directly as a fallback.
         private boolean discoverOnSubnet(InterfaceAddress addr, byte[] req) {
@@ -311,22 +301,7 @@ public abstract class ServerDiscovery {
                 // interface where Android exposes connected clients (swlan0/ap0/softap0).
                 List<InterfaceAddress> hotspotCandidates = new ArrayList<>();
                 if (servers.isEmpty() || discoverAll) {
-                    try {
-                        Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
-                        if (ifaces != null) {
-                            while (ifaces.hasMoreElements()) {
-                                NetworkInterface iface = ifaces.nextElement();
-                                if (!iface.isLoopback() && iface.isUp() && isHotspotInterface(iface)) {
-                                    for (InterfaceAddress addr : iface.getInterfaceAddresses()) {
-                                        if (addr.getBroadcast() != null) {
-                                            hotspotCandidates.add(addr);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } catch (Exception ignored) {
-                    }
+                    hotspotCandidates = getHotspotInterfaces();
                     for (InterfaceAddress addr : hotspotCandidates) {
                         if (discoverOnInterface(addr.getAddress(), addr.getBroadcast(), req)) {
                             break;
@@ -354,6 +329,34 @@ public abstract class ServerDiscovery {
         public boolean isActive() {
             return active;
         }
+    }
+
+    static List<InterfaceAddress> getHotspotInterfaces() {
+        List<InterfaceAddress> addresses = new ArrayList<>();
+        try {
+            Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
+            if (ifaces != null) {
+                while (ifaces.hasMoreElements()) {
+                    NetworkInterface iface = ifaces.nextElement();
+                    String name = iface.getName();
+                    if (name == null) {
+                        continue;
+                    }
+                    name = name.toLowerCase();
+                    if (!iface.isLoopback() && iface.isUp() &&
+                            (name.startsWith("ap") || name.startsWith("swlan") ||
+                                    name.startsWith("softap") || name.matches("wlan[1-9].*"))) {
+                        for (InterfaceAddress addr : iface.getInterfaceAddresses()) {
+                            if (addr.getBroadcast() != null) {
+                                addresses.add(addr);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return addresses;
     }
 
     final Context context;
