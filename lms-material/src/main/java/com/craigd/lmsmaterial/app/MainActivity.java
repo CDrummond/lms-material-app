@@ -231,6 +231,16 @@ public class MainActivity extends AppCompatActivity {
     private void navigateToSettingsActivity() {
         Utils.debug("Navigate to settings");
         if (!SettingsActivity.isVisible()) {
+            if (KioskMode.isEnabled(sharedPreferences)) {
+                KioskMode.askPin(this, sharedPreferences, this::openSettingsActivity);
+            } else {
+                openSettingsActivity();
+            }
+        }
+    }
+
+    private void openSettingsActivity() {
+        if (!SettingsActivity.isVisible()) {
             stopDisconnectTimer();
             settingsShown = true;
             startActivity(new Intent(this, SettingsActivity.class));

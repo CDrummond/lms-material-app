@@ -158,5 +158,10 @@
             app:key="clear_cache"
             app:summary="@string/clear_cache_summary"
             app:title="@string/clear_cache" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="kiosk_mode"
+            app:summary="@string/kiosk_mode_summary"
+            app:title="@string/kiosk_mode" />
     </PreferenceCategory>
 </PreferenceScreen>
