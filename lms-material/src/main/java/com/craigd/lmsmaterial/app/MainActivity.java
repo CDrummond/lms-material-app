@@ -247,15 +247,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String getConfiguredUrl() {
+    private String getBaseUrl() {
         Discovery.Server server = new Discovery.Server(sharedPreferences.getString(SettingsActivity.SERVER_PREF_KEY,null));
-        String defaultPlayer = sharedPreferences.getString(SettingsActivity.DEFAULT_PLAYER_PREF_KEY, null);
-        if (server.ip == null || server.ip.isEmpty()) {
+        return Utils.isEmpty(server.ip) ? "" : ("http://" + server.ip + ":" + server.port + "/material/");
+    }
+
+    private String getConfiguredUrl() {
+        String baseUrl = getBaseUrl();
+        if (Utils.isEmpty(baseUrl)) {
             return null;
         }
 
         try {
-            Uri.Builder builder = Uri.parse("http://" + server.ip + ":" + server.port + "/material/").buildUpon();
+            String defaultPlayer = sharedPreferences.getString(SettingsActivity.DEFAULT_PLAYER_PREF_KEY, null);
+            Uri.Builder builder = Uri.parse(baseUrl).buildUpon();
             if (defaultPlayer!=null && !defaultPlayer.isEmpty()) {
                 builder.appendQueryParameter("player", defaultPlayer);
                 if (sharedPreferences.getBoolean(SettingsActivity.SINGLE_PLAYER_PREF_KEY, false)) {
@@ -591,7 +596,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageStarted(WebView view, String u, Bitmap favicon) {
                 Utils.debug(u);
-                if (u.equals(url)) {
+                if (u.startsWith(getBaseUrl())) {
                     pageLoadHandler.removeCallbacks(pageLoadTimeout);
                     firstAuthReq=true;
                 }
@@ -611,7 +616,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
                 Utils.debug(request.getUrl() + ", mf:" + request.isForMainFrame() + ", sc:" + errorResponse.getStatusCode());
-                if (request.isForMainFrame() && 404== errorResponse.getStatusCode() && request.getUrl().toString().equals(getConfiguredUrl())) {
+                if (request.isForMainFrame() && 404== errorResponse.getStatusCode() && request.getUrl().toString().startsWith(getBaseUrl())) {
                     pageError = true;
                     //discoverServer(false);
                     pageLoadHandler.removeCallbacks(pageLoadTimeout);
