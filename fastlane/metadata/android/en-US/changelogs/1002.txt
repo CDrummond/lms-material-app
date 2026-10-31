@@ -1,3 +1,4 @@
 • Enable server discovery on Android hotspot networks - thanks to chrober.
 • Use the skin's volume step value when changing volume with notification shown.
 • When changing volume with notification shown, show correct value - thanks to Gorancho Sirkarovski.
+• Recognize an active phone hotspot as network connectivity - thanks to chrober.
