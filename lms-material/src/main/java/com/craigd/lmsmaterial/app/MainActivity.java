@@ -429,15 +429,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (interceptVolume) {
+            boolean isLandscape = getResources().getConfiguration().orientation
+                    == Configuration.ORIENTATION_LANDSCAPE;
             switch (keyCode) {
                 case KeyEvent.KEYCODE_VOLUME_UP:
                     if (0 == (event.getRepeatCount() % 2)) {
-                        webView.evaluateJavascript("incrementVolume()", null);
+                        webView.evaluateJavascript(
+                                isLandscape ? "decrementVolume()" : "incrementVolume()", null);
                     }
                     return true;
                 case KeyEvent.KEYCODE_VOLUME_DOWN:
                     if (0 == (event.getRepeatCount() % 2)) {
-                        webView.evaluateJavascript("decrementVolume()", null);
+                        webView.evaluateJavascript(
+                                isLandscape ? "incrementVolume()" : "decrementVolume()", null);
                     }
                     return true;
             }
