@@ -207,6 +207,16 @@ public class SettingsActivity extends AppCompatActivity {
             this.activity = activity;
         }
 
+        // When Android recreates the activity itself (e.g. after a window resize), the fragment manager recreates
+        // this fragment without setActivity(), which crashed in onCreatePreferences.
+        @Override
+        public void onAttach(@NonNull Context context) {
+            super.onAttach(context);
+            if (null==activity && context instanceof SettingsActivity) {
+                activity = (SettingsActivity) context;
+            }
+        }
+
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
