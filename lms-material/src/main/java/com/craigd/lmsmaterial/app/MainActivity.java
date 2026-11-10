@@ -54,6 +54,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -101,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String LMS_PASSWORD_KEY = "lms-password";
     private static final String CURRENT_PLAYER_ID_KEY = "current_player_id";
     private static final int PAGE_TIMEOUT = 5000; // ms
+    private static final int PAGE_GIVE_UP_TIMEOUT = 35000; // ms, with a network connection
     private static final int DISCONNECT_TIMEOUT = 6; // seconds
     private static final int DISCONNECT_TIMEOUT_WITHOUT_NETWORK = 10; // seconds
 
@@ -478,15 +480,51 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private final Runnable pageLoadTimeout = () -> {
+        if (Utils.isNetworkConnected(this)) {
+            // Slow connection: keep waiting, but let the user open settings. Real errors are handled by
+            // onReceivedError / onReceivedHttpError.
+            waitForSlowPage();
+            return;
+        }
         Utils.debug("Page failed to load");
         discoverServer(false);
     };
+
+    private final Runnable pageLoadGiveUp = () -> {
+        Utils.debug("Page failed to load");
+        hideProgress();
+        discoverServer(false);
+    };
+
+    private void waitForSlowPage() {
+        Utils.debug("Page not started yet, still waiting");
+        showProgress(R.string.still_connecting, true);
+        pageLoadHandler.postDelayed(pageLoadGiveUp, PAGE_GIVE_UP_TIMEOUT-PAGE_TIMEOUT);
+    }
+
+    private void showProgress(int text, boolean showSettings) {
+        ((TextView)findViewById(R.id.textView)).setText(text);
+        findViewById(R.id.progressSettings).setVisibility(showSettings ? View.VISIBLE : View.GONE);
+        findViewById(R.id.progress).setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgress() {
+        findViewById(R.id.progress).setVisibility(View.GONE);
+    }
+
+    private void stopPageLoadWait() {
+        pageLoadHandler.removeCallbacks(pageLoadTimeout);
+        pageLoadHandler.removeCallbacks(pageLoadGiveUp);
+        if (findViewById(R.id.progressSettings).getVisibility()==View.VISIBLE) {
+            hideProgress();
+        }
+    }
 
     private final Handler pageLoadHandler = new Handler(Looper.getMainLooper());
 
     private void loadUrl(String u) {
         Utils.debug("Load URL:"+url);
-        pageLoadHandler.removeCallbacks(pageLoadTimeout);
+        stopPageLoadWait();
         webView.loadUrl(u);
         if (SystemClock.elapsedRealtime()-recreateTime>1000) {
             pageLoadHandler.postDelayed(pageLoadTimeout, PAGE_TIMEOUT);
@@ -554,6 +592,10 @@ public class MainActivity extends AppCompatActivity {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         setContentView(R.layout.activity_main);
+        findViewById(R.id.progressSettings).setOnClickListener(v -> {
+            stopPageLoadWait();
+            navigateToSettingsActivity();
+        });
 
         manageShowOverLockscreen();
         webView = findViewById(R.id.webview);
@@ -597,7 +639,7 @@ public class MainActivity extends AppCompatActivity {
             public void onPageStarted(WebView view, String u, Bitmap favicon) {
                 Utils.debug(u);
                 if (u.startsWith(getBaseUrl())) {
-                    pageLoadHandler.removeCallbacks(pageLoadTimeout);
+                    stopPageLoadWait();
                     firstAuthReq=true;
                 }
                 localPlayer.autoStart(false);
@@ -619,7 +661,7 @@ public class MainActivity extends AppCompatActivity {
                 if (request.isForMainFrame() && 404== errorResponse.getStatusCode() && request.getUrl().toString().startsWith(getBaseUrl())) {
                     pageError = true;
                     //discoverServer(false);
-                    pageLoadHandler.removeCallbacks(pageLoadTimeout);
+                    stopPageLoadWait();
                     navigateToSettingsActivity();
                 }
                 super.onReceivedHttpError(view, request, errorResponse);
@@ -629,6 +671,7 @@ public class MainActivity extends AppCompatActivity {
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 Utils.info(error.getErrorCode() + ", mf:" + request.isForMainFrame() + ", u:" + request.getUrl());
                 if (request.isForMainFrame()) {
+                    stopPageLoadWait();
                     webView.setVisibility(View.GONE);
                     pageError = true;
                     discoverServer(false);
@@ -701,7 +744,7 @@ public class MainActivity extends AppCompatActivity {
 
             public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler httpAuthHandler, String host, String realm) {
                 Utils.info("");
-                pageLoadHandler.removeCallbacks(pageLoadTimeout);
+                stopPageLoadWait();
                 // If this is the first time we have been asked for auth on this page, then use and settings stored in preferences.
                 if (firstAuthReq) {
                     firstAuthReq = false;
@@ -727,7 +770,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void checkNetworkConnection() {
         Utils.debug("Check network connection");
-        View progress = findViewById(R.id.progress);
         if (Utils.isNetworkConnected(this)) {
             Utils.debug("Connected");
             webView.setVisibility(View.VISIBLE);
@@ -736,7 +778,7 @@ public class MainActivity extends AppCompatActivity {
                 unregisterReceiver(connectionChangeListener);
                 connectionChangeListener = null;
             }
-            progress.setVisibility(View.GONE);
+            hideProgress();
 
             url = getConfiguredUrl();
             if (url == null) {
@@ -755,7 +797,7 @@ public class MainActivity extends AppCompatActivity {
             Utils.debug("Not connected");
             // No network connection, show progress spinner until we are connected
             webView.setVisibility(View.GONE);
-            progress.setVisibility(View.VISIBLE);
+            showProgress(R.string.waiting_for_network, false);
             connectionChangeListener = new ConnectionChangeListener(this);
             registerReceiver(connectionChangeListener, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
