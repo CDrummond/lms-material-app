@@ -73,4 +73,13 @@
     <string name="added_to_clipboard">Ajouté au presse-papiers.</string>
     <string name="share_now_playing">Partager lecture en cours</string>
     <string name="notif_size">Taille de la zone de notification</string>
+    <string name="kiosk_mode">Mode kiosque</string>
+    <string name="kiosk_mode_summary">Nécessite un code PIN pour accéder à ces paramètres. S\'applique uniquement à cet appareil.</string>
+    <string name="kiosk_mode_enabled_summary">Activé. Appuyer pour désactiver.</string>
+    <string name="kiosk_set_pin">Définir le code PIN du kiosque</string>
+    <string name="kiosk_repeat_pin">Répéter le code PIN</string>
+    <string name="kiosk_enter_pin">Saisir le code PIN du kiosque</string>
+    <string name="kiosk_wrong_pin">Code PIN erroné</string>
+    <string name="kiosk_pin_too_short">Le code PIN doit comporter au moins 4 chiffres</string>
+    <string name="kiosk_pin_mismatch">Les codes PIN ne correspondent pas</string>
 </resources>
