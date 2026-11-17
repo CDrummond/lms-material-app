@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="statusbar">
+        <item>Visible (estándar)</item>
+        <item>Visible (integrada)</item>
+        <item>Oculta</item>
+    </string-array>
+    <string-array name="orientation">
+        <item>Automática</item>
+        <item>Vertical</item>
+        <item>Horizontal</item>
+    </string-array>
+    <string-array name="oncall">
+        <item>No hacer nada</item>
+        <item>Silenciar todos los reproductores activos</item>
+        <item>Silenciar el reproductor actual</item>
+        <item>Pausar todos los reproductores activos</item>
+        <item>Pausar el reproductor actual</item>
+    </string-array>
+    <string-array name="playerapps">
+        <item>Ninguna</item>
+        <item>SB Player</item>
+        <item>SqueezePlayer</item>
+        <item>Squeezelite</item>
+    </string-array>
+    <string-array name="notifs">
+        <item>Ninguna</item>
+        <item>Básica (solo controles, sin estado)</item>
+        <item>Completa</item>
+    </string-array>
+    <string-array name="notifSize">
+        <item>Determinar automáticamente</item>
+        <item>32px</item>
+        <item>48px</item>
+    </string-array>
+</resources>
+
