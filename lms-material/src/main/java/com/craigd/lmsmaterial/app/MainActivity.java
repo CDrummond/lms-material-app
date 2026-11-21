@@ -1165,6 +1165,12 @@ public class MainActivity extends AppCompatActivity {
         webView.destroy();
         webView = null;
         stopControlService();
+        if (null!=connectionChangeListener) {
+            // Registered while there's no network: left registered, its next broadcast ran checkNetworkConnection()
+            // on this destroyed activity, without its WebView, and crashed the app.
+            unregisterReceiver(connectionChangeListener);
+            connectionChangeListener = null;
+        }
         if (null!=activePlayer && !activePlayer.equals(sharedPreferences.getString(CURRENT_PLAYER_ID_KEY, null))) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString(CURRENT_PLAYER_ID_KEY, activePlayer);
