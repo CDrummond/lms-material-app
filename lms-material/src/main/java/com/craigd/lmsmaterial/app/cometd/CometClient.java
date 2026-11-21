@@ -45,12 +45,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 public class CometClient {
     private final SharedPreferences prefs;
     final ConnectionState connectionState;
     private SlimClient bayeuxClient;
+    // The HTTP client of bayeuxClient. Every connect() starts a new one (9 threads), so it must be stopped when its
+    // client is dropped: left running, they piled up with every reconnect.
+    private HttpClient httpClient;
+    // Stops dropped HTTP clients, off the connection thread: a stop waits for the client's threads to end.
+    private final ScheduledExecutorService httpClientStopper = Executors.newSingleThreadScheduledExecutor();
     private String currentPlayer = null;
     private String subscribedPlayer = null;
     // Keep server details so that we can detect if changed
@@ -72,6 +81,7 @@ public class CometClient {
     private static final String IMAGE_SIZE = "_600x600_f";
     private static final String PLAYER_STATUS_TAGS = "tags:acdlKN";
     private static final int HANDSHAKE_TIMEOUT = 4*1000;
+    private static final int HTTP_CLIENT_STOP_DELAY = 2*1000;
     private static final int MSG_HANDSHAKE_TIMEOUT = 1;
     private static final int MSG_DISCONNECT = 2;
     private static final int MSG_RECONNECT = 3;
@@ -181,9 +191,11 @@ public class CometClient {
             try {
                 httpClient.start();
             } catch (Exception e) {
+                stopHttpClient(httpClient);
                 connectionState.setConnectionError(ConnectionState.Error.START_CLIENT_ERROR);
                 return;
             }
+            this.httpClient = httpClient;
 
             serverAddress = server.ip;
             serverPort = server.port;
@@ -306,7 +318,25 @@ public class CometClient {
             bayeuxClient.disconnect();
             bayeuxClient = null;
         }
+        if (null != httpClient) {
+            // Not at once: the /meta/disconnect above is still on its way.
+            final HttpClient old = httpClient;
+            httpClient = null;
+            try {
+                httpClientStopper.schedule(() -> stopHttpClient(old), HTTP_CLIENT_STOP_DELAY, TimeUnit.MILLISECONDS);
+            } catch (RejectedExecutionException e) {
+                stopHttpClient(old);
+            }
+        }
         subscribedPlayer = null;
+    }
+
+    private static void stopHttpClient(HttpClient client) {
+        try {
+            client.stop();
+        } catch (Exception e) {
+            Utils.error("Failed to stop HTTP client", e);
+        }
     }
 
     private synchronized void onConnected() {
