@@ -17,8 +17,7 @@
         android:id="@+id/progress"
         android:animateLayoutChanges="true"
         android:visibility="gone"
-        android:alpha="0.4"
-        android:background="#000000"
+        android:background="#66000000"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -41,6 +40,16 @@
                 android:text="@string/waiting_for_network"
                 android:layout_gravity="center"
                 android:textSize="20dp"/>
+            <Button
+                android:id="@+id/progressSettings"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:textColor="@color/colorAccent"
+                android:layout_marginTop="40dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/open_settings"
+                android:visibility="gone"
+                android:layout_gravity="center"/>
         </LinearLayout>
     </FrameLayout>
 </RelativeLayout>
