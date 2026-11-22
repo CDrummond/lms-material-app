@@ -163,5 +163,10 @@
             app:key="kiosk_mode"
             app:summary="@string/kiosk_mode_summary"
             app:title="@string/kiosk_mode" />
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="swap_vol_keys"
+            app:summary="@string/swap_vol_keys_summary"
+            app:title="@string/swap_vol_keys" />
     </PreferenceCategory>
 </PreferenceScreen>

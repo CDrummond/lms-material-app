@@ -129,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
     public static String activePlayer = null;
     public static String activePlayerName = null;
     private static boolean isCurrentActivity = false;
+    private boolean swapVolKeysWhenLandscape = false;
 
     private Thread shareCleanThread = null;
 
@@ -392,6 +393,10 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean(SettingsActivity.PLAYER_START_MENU_ITEM_PREF_KEY, false);
             modified=true;
         }
+        if (!sharedPreferences.contains(SettingsActivity.SWAP_VOL_KEYS_PREF_KEY)) {
+            editor.putBoolean(SettingsActivity.SWAP_VOL_KEYS_PREF_KEY, false);
+            modified=true;
+        }
         if (modified) {
             editor.apply();
         }
@@ -431,15 +436,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (interceptVolume) {
+            boolean swapDirection = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE &&
+                    swapVolKeysWhenLandscape;
             switch (keyCode) {
                 case KeyEvent.KEYCODE_VOLUME_UP:
                     if (0 == (event.getRepeatCount() % 2)) {
-                        webView.evaluateJavascript("incrementVolume()", null);
+                        webView.evaluateJavascript(
+                                swapDirection ? "decrementVolume()" : "incrementVolume()", null);
                     }
                     return true;
                 case KeyEvent.KEYCODE_VOLUME_DOWN:
                     if (0 == (event.getRepeatCount() % 2)) {
-                        webView.evaluateJavascript("decrementVolume()", null);
+                        webView.evaluateJavascript(
+                                swapDirection ? "incrementVolume()" : "decrementVolume()", null);
                     }
                     return true;
             }
@@ -583,6 +592,7 @@ public class MainActivity extends AppCompatActivity {
         manageControlService(false);
         onCall = sharedPreferences.getString(SettingsActivity.ON_CALL_PREF_KEY, PhoneStateHandler.DO_NOTHING);
         notifications = sharedPreferences.getString(SettingsActivity.NOTIFCATIONS_PREF_KEY, ControlService.NO_NOTIFICATION);
+        swapVolKeysWhenLandscape = sharedPreferences.getBoolean(SettingsActivity.SWAP_VOL_KEYS_PREF_KEY, swapVolKeysWhenLandscape);
         setOrientation();
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
@@ -1147,6 +1157,7 @@ public class MainActivity extends AppCompatActivity {
         notifications = notificationsNow;
         manageShowOverLockscreen();
         reloadUrlAfterSettings=false;
+        swapVolKeysWhenLandscape = sharedPreferences.getBoolean(SettingsActivity.SWAP_VOL_KEYS_PREF_KEY, swapVolKeysWhenLandscape);
     }
 
     @Override

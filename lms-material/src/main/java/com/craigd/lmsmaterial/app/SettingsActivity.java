@@ -62,6 +62,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String AUTO_START_PLAYER_APP_PREF_KEY = "auto_start_player";
     public static final String PLAYER_START_MENU_ITEM_PREF_KEY = "menu_start_player";
     public static final String STOP_APP_ON_QUIT_PREF_KEY = "stop_app_on_quit";
+    public static final String SWAP_VOL_KEYS_PREF_KEY = "swap_vol_keys";
     public static final int PERMISSION_READ_PHONE_STATE = 1;
     public static final int PERMISSION_POST_NOTIFICATIONS = 2;
     public static final int PERMISSION_NOTIFS_AND_READ_PHONE_STATE = 3;

@@ -84,4 +84,6 @@
     <string name="kiosk_wrong_pin">Wrong PIN</string>
     <string name="kiosk_pin_too_short">PIN must be at least 4 digits</string>
     <string name="kiosk_pin_mismatch">PINs do not match</string>
+    <string name="swap_vol_keys">Swap volume keys if landscape</string>
+    <string name="swap_vol_keys_summary">When device is in landscape mode then pressing the device\'s volume down key will increment the player\'s volume, end vice versa.</string>
 </resources>
