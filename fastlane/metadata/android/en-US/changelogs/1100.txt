@@ -3,3 +3,6 @@
 • When changing volume with notification shown, show correct value - thanks to Gorancho Sirkarovski.
 • Recognize an active phone hotspot as network connectivity - thanks to chrober.
 • Add optional per-device kiosk mode (PIN-protected settings) - thanks to networxnet.
+• Keep waiting for the page on a slow connection instead of opening Settings - thanks to Ari.
+• Stop each CometD connection's HTTP client when the connection is dropped - thanks to Ari.
+• Don't crash the control service again when Android restarts it after a crash - thanks to Ari.
