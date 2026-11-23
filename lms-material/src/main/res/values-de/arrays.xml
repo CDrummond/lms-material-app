@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="statusbar">
+        <item>Sichtbar (Standard)</item>
+        <item>Sichtbar (überblendet)</item>
+        <item>Ausgeblendet</item>
+    </string-array>
+    <string-array name="orientation">
+        <item>Automatisch</item>
+        <item>Hochformat</item>
+        <item>Querformat</item>
+    </string-array>
+    <string-array name="oncall">
+        <item>Nichts tun</item>
+        <item>Alle aktiven Player stummschalten</item>
+        <item>Aktuellen Player stummschalten</item>
+        <item>Alle aktiven Player pausieren</item>
+        <item>Aktuellen Player pausieren</item>
+    </string-array>
+    <string-array name="playerapps">
+        <item>Keine</item>
+        <item>SB Player</item>
+        <item>SqueezePlayer</item>
+        <item>Squeezelite</item>
+    </string-array>
+    <string-array name="notifs">
+        <item>Keine</item>
+        <item>Einfach (nur Steuerung, kein Status)</item>
+        <item>Vollständig</item>
+    </string-array>
+    <string-array name="notifSize">
+        <item>Automatisch ermitteln</item>
+        <item>32px</item>
+        <item>48px</item>
+    </string-array>
+</resources>
