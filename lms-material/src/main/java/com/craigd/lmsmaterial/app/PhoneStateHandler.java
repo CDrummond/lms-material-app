@@ -81,6 +81,10 @@ public class PhoneStateHandler {
         if (MainActivity.isActive() || ControlService.isActive()) {
             inCall = true;
             if (MUTE_CURRENT.equals(action) || PAUSE_CURRENT.equals(action)) {
+                if (Utils.isEmpty(MainActivity.activePlayer)) {
+                    Utils.debug("No current player");
+                    return;
+                }
                 activePlayers.add(MainActivity.activePlayer);
                 controlPlayers();
             } else {
