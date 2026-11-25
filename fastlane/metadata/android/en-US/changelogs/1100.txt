@@ -8,3 +8,4 @@
 • Don't crash the control service again when Android restarts it after a crash - thanks to Ari.
 • Add option to swap volume keys when landscape.
 • Add German translation - thanks to networxnet.
+• Don't crash on a call when there is no current player - thanks to Ari.
